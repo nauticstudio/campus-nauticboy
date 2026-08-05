@@ -1,85 +1,58 @@
-# Nautic Campus
+# 🎧 Nautic Campus
 
-Campus privado para alumnos de producción musical. La base actual usa Next.js, Supabase Auth/PostgreSQL y Google Drive como almacenamiento de archivos grandes.
+> **Plataforma privada de alto rendimiento para alumnos de producción musical.**
 
-## Stack
+[![Next.js](https://img.shields.io/badge/Next.js-16.0-black?style=for-the-badge&logo=nextdotjs)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-06B6D4?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-Auth_%26_PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
+[![Google Drive API](https://img.shields.io/badge/Google_Drive-API_v3-4285F4?style=for-the-badge&logo=googledrive&logoColor=white)](https://developers.google.com/drive)
 
-- Next.js 16 + React 19
-- TypeScript
-- Tailwind CSS v4
-- shadcn/ui
-- Supabase Auth + PostgreSQL
-- Google Drive API para archivos
+Sistema de gestión académica y hub de contenidos pesados (plantillas DAW, librerías, stems, masterclasses y proyectos) diseñado para operar a **costo cero perpetuo** con almacenamiento optimizado en la nube.
 
-## Configuración local
+---
 
-1. Instalar dependencias:
+## 📋 Tabla de Contenidos
 
-```bash
-npm install
-```
+- [Visión General](#-visión-general)
+- [Características Principales](#-características-principales)
+- [Stack Tecnológico](#-stack-tecnológico)
+- [Arquitectura de Almacenamiento](#-arquitectura-de-almacenamiento)
+- [Configuración Local](#-configuración-local)
+- [Configuración de Google Drive API](#-configuración-de-google-drive-api)
+- [Endpoints de Almacenamiento](#-endpoints-de-almacenamiento)
+- [Guardrails de Costo](#-guardrails-de-costo)
+- [Nota de Arquitectura](#-nota-de-arquitectura)
 
-2. Crear `nautic-campus/.env.local` desde `.env.example`.
+---
 
-3. Configurar Supabase:
+## 📖 Visión General
 
-```bash
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-```
+**Nautic Campus** es una plataforma web moderna e interactiva orientada a la enseñanza de producción musical. Combina la velocidad de renderizado de **Next.js 16 (App Router)** y **React 19**, la seguridad relacional de **Supabase (PostgreSQL + Auth)**, y la capacidad de distribución masiva de archivos pesados utilizando **Google Drive API** mediante sesiones resumibles *Direct-to-Drive*.
 
-4. Configurar Google Drive:
+---
 
-```bash
-GOOGLE_DRIVE_CLIENT_ID=
-GOOGLE_DRIVE_CLIENT_SECRET=
-GOOGLE_DRIVE_REFRESH_TOKEN=
-GOOGLE_DRIVE_REDIRECT_URI=http://localhost:3000/api/auth/callback/google-drive
-GOOGLE_DRIVE_ROOT_FOLDER_ID=
-```
+## ✨ Características Principales
 
-5. Ejecutar el SQL de `supabase/seed.sql` en Supabase.
+- 🔐 **Control de Acceso (RBAC):** Autenticación de usuarios y validación de estado de alumno mediante políticas RLS en Supabase PostgreSQL.
+- ⚡ **Direct-to-Drive Uploads:** Carga resumible de archivos pesados directa desde el navegador del usuario a Google Drive, evitando intermediación y cuellos de botella en el servidor web.
+- 🛡️ **Descargas Verificadas:** Flujo de descarga protegido en dos pasos que autentica sesión, rol activo y permisos sobre el recurso antes de otorgar el acceso.
+- 🎨 **UI Modern & Scalable:** Interfaz elegante y reactiva construida con Tailwind CSS v4 y componentes shadcn/ui.
+- 💰 **Costo Cero Garantizado:** Arquitectura diseñada para encajar estrictamente en los niveles gratuitos de Vercel Hobby, Supabase Free y Google Cloud Tier.
 
-6. Iniciar el servidor:
+---
 
-```bash
-npm run dev
-```
+## 🛠️ Stack Tecnológico
 
-## Google Drive
+| Capa | Tecnología | Descripción |
+| :--- | :--- | :--- |
+| **Framework** | Next.js 16 (App Router) | Server Components, Server Actions y API Routes optimizados. |
+| **UI Core** | React 19 + TypeScript | Desarrollo estructurado con tipado estricto end-to-end. |
+| **Estilos** | Tailwind CSS v4 + shadcn/ui | Sistema de diseño rápido, limpio, accesible y 100% responsivo. |
+| **Base de Datos & Auth** | Supabase (PostgreSQL) | Autenticación, gestión de sesiones y base de datos con políticas de seguridad RLS. |
+| **Almacenamiento** | Google Drive API (v3) | Gestión y streaming de archivos pesados con alcance `drive.file`. |
 
-Crear un proyecto en Google Cloud, habilitar Google Drive API y crear un OAuth Client tipo Web. Agregar como redirect URI:
+---
 
-```text
-http://localhost:3000/api/auth/callback/google-drive
-```
-
-Con `GOOGLE_DRIVE_CLIENT_ID` y `GOOGLE_DRIVE_CLIENT_SECRET` configurados, abrir:
-
-```text
-http://localhost:3000/api/auth/google-drive
-```
-
-La callback mostrará el `refresh_token` que hay que guardar en `GOOGLE_DRIVE_REFRESH_TOKEN`.
-
-Crear una carpeta `Campus` en Google Drive y copiar su ID desde la URL. Ese valor va en `GOOGLE_DRIVE_ROOT_FOLDER_ID`.
-
-## Guardrails de costo
-
-Este proyecto debe mantenerse 100% gratis:
-
-- No habilitar Cloud Billing en el proyecto de Google Cloud.
-- No solicitar aumentos de cuota de Google Drive API.
-- No usar Google Cloud Storage, Cloud CDN, Cloud Run ni servicios pagos.
-- Mantener Vercel en Hobby y Supabase en Free.
-- Usar Google Drive API solo dentro del uso estándar gratuito y las cuotas documentadas.
-
-## Endpoints de almacenamiento
-
-- `POST /api/upload/session`: crea una sesión resumible de Google Drive para que el navegador suba archivos grandes directo a Drive.
-- `GET /api/download/[id]`: valida login, estado del alumno y acceso al recurso antes de redirigir a la descarga por Drive API.
-
-## Nota de arquitectura
-
-Google Drive no ofrece un equivalente idéntico a una URL temporal anónima de descarga. Para mantener costo cero y usar la cuenta de 5TB, el campus usa Google Drive API con tokens de corta vida y scope `drive.file`. Si el proyecto llega a límites de cuota, debe degradar o pausar descargas antes que activar billing.
+## 🏗️ Arquitectura de Almacenamiento
