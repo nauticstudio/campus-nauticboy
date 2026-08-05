@@ -31,6 +31,7 @@ interface Module {
   description: string
   resources: Resource[]
   completed: boolean
+  is_published: boolean
 }
 
 interface Course {
@@ -128,7 +129,7 @@ export function CourseDetailClient({
 
       {/* Main Content: Edit Mode OR View Mode */}
       {isEditMode ? (
-        <CourseEditor modules={modules} setModules={setModules} />
+        <CourseEditor courseId={course.id} initialModules={modules} />
       ) : modules.length === 0 ? (
         <div className="glass-card rounded-3xl p-12 text-center space-y-4">
           <div className="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center mx-auto">

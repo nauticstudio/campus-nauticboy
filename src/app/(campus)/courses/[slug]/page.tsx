@@ -30,7 +30,7 @@ export default async function CourseDetailPage({
   // Fetch modules for this course
   const { data: dbModules } = await supabase
     .from('modules')
-    .select('id, title, description, sort_order')
+    .select('id, title, description, sort_order, is_published')
     .eq('course_id', course.id)
     .order('sort_order', { ascending: true })
 
@@ -39,7 +39,8 @@ export default async function CourseDetailPage({
     title: m.title,
     description: m.description || '',
     resources: [],
-    completed: false
+    completed: false,
+    is_published: m.is_published
   }))
 
   return (
