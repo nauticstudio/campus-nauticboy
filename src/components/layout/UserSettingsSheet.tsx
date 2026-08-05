@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Sheet,
   SheetContent,
@@ -22,11 +23,28 @@ export function UserSettingsSheet({ userName, isAdmin }: UserSettingsSheetProps)
   const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'admin'>('profile')
   const [name, setName] = useState(userName)
   const [isSaved, setIsSaved] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSaved(true)
-    setTimeout(() => setIsSaved(false), 2000)
+    setIsLoading(true)
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (user) {
+        await supabase.from('profiles').update({ full_name: name }).eq('id', user.id)
+      }
+      setIsSaved(true)
+      router.refresh()
+      setTimeout(() => setIsSaved(false), 2000)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -122,8 +140,10 @@ export function UserSettingsSheet({ userName, isAdmin }: UserSettingsSheetProps)
                 </div>
               </div>
 
-              <Button type="submit" className="w-full rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs">
-                {isSaved ? (
+              <Button type="submit" disabled={isLoading} className="w-full rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs">
+                {isLoading ? (
+                  'Guardando...'
+                ) : isSaved ? (
                   <span className="flex items-center gap-1.5"><Check className="w-4 h-4" /> ¡Guardado!</span>
                 ) : (
                   'Guardar Cambios'
