@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nautic Campus
 
-## Getting Started
+Campus privado para alumnos de producción musical. La base actual usa Next.js, Supabase Auth/PostgreSQL y Google Drive como almacenamiento de archivos grandes.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 + React 19
+- TypeScript
+- Tailwind CSS v4
+- shadcn/ui
+- Supabase Auth + PostgreSQL
+- Google Drive API para archivos
+
+## Configuración local
+
+1. Instalar dependencias:
+
+```bash
+npm install
+```
+
+2. Crear `nautic-campus/.env.local` desde `.env.example`.
+
+3. Configurar Supabase:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+```
+
+4. Configurar Google Drive:
+
+```bash
+GOOGLE_DRIVE_CLIENT_ID=
+GOOGLE_DRIVE_CLIENT_SECRET=
+GOOGLE_DRIVE_REFRESH_TOKEN=
+GOOGLE_DRIVE_REDIRECT_URI=http://localhost:3000/api/auth/callback/google-drive
+GOOGLE_DRIVE_ROOT_FOLDER_ID=
+```
+
+5. Ejecutar el SQL de `supabase/seed.sql` en Supabase.
+
+6. Iniciar el servidor:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Google Drive
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Crear un proyecto en Google Cloud, habilitar Google Drive API y crear un OAuth Client tipo Web. Agregar como redirect URI:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```text
+http://localhost:3000/api/auth/callback/google-drive
+```
 
-## Learn More
+Con `GOOGLE_DRIVE_CLIENT_ID` y `GOOGLE_DRIVE_CLIENT_SECRET` configurados, abrir:
 
-To learn more about Next.js, take a look at the following resources:
+```text
+http://localhost:3000/api/auth/google-drive
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+La callback mostrará el `refresh_token` que hay que guardar en `GOOGLE_DRIVE_REFRESH_TOKEN`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Crear una carpeta `Campus` en Google Drive y copiar su ID desde la URL. Ese valor va en `GOOGLE_DRIVE_ROOT_FOLDER_ID`.
 
-## Deploy on Vercel
+## Guardrails de costo
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Este proyecto debe mantenerse 100% gratis:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- No habilitar Cloud Billing en el proyecto de Google Cloud.
+- No solicitar aumentos de cuota de Google Drive API.
+- No usar Google Cloud Storage, Cloud CDN, Cloud Run ni servicios pagos.
+- Mantener Vercel en Hobby y Supabase en Free.
+- Usar Google Drive API solo dentro del uso estándar gratuito y las cuotas documentadas.
+
+## Endpoints de almacenamiento
+
+- `POST /api/upload/session`: crea una sesión resumible de Google Drive para que el navegador suba archivos grandes directo a Drive.
+- `GET /api/download/[id]`: valida login, estado del alumno y acceso al recurso antes de redirigir a la descarga por Drive API.
+
+## Nota de arquitectura
+
+Google Drive no ofrece un equivalente idéntico a una URL temporal anónima de descarga. Para mantener costo cero y usar la cuenta de 5TB, el campus usa Google Drive API con tokens de corta vida y scope `drive.file`. Si el proyecto llega a límites de cuota, debe degradar o pausar descargas antes que activar billing.
