@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { BookOpen, Plus, Shield, Edit3, Trash2, Layers, Move } from 'lucide-react'
+import { BookOpen, Plus, Shield, Edit3, Trash2, Layers, Move, Eye, EyeOff } from 'lucide-react'
 
 export default function AdminCoursesPage() {
   const [courses, setCourses] = useState([
@@ -30,6 +30,12 @@ export default function AdminCoursesPage() {
       isPublished: true
     }
   ])
+
+  const toggleCourseVisibility = (id: string) => {
+    setCourses(courses.map(c => 
+      c.id === id ? { ...c, isPublished: !c.isPublished } : c
+    ))
+  }
 
   return (
     <div className="p-6 md:p-10 lg:p-12 space-y-8 max-w-7xl mx-auto">
@@ -60,9 +66,21 @@ export default function AdminCoursesPage() {
                 <span className="px-3 py-1 rounded-full text-[11px] font-extrabold bg-cyan-100 text-cyan-800 border border-cyan-200">
                   {course.software}
                 </span>
-                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                  Publicado
-                </span>
+                <button 
+                  onClick={() => toggleCourseVisibility(course.id)}
+                  className={`flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full transition-all ${
+                    course.isPublished 
+                      ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-200' 
+                      : 'bg-rose-100/50 text-rose-600 hover:bg-rose-100 border border-rose-200/50'
+                  }`}
+                  title={course.isPublished ? 'Ocultar curso a los alumnos' : 'Publicar curso para alumnos'}
+                >
+                  {course.isPublished ? (
+                    <><Eye className="w-3.5 h-3.5" /> Publicado</>
+                  ) : (
+                    <><EyeOff className="w-3.5 h-3.5" /> Oculto</>
+                  )}
+                </button>
               </div>
 
               <h3 className="font-extrabold text-xl text-slate-900 group-hover:text-cyan-600 transition-colors tracking-tight">

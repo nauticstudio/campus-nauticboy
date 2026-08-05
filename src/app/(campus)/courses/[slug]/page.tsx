@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { AdminQuickToolbar } from '@/components/admin/AdminQuickToolbar'
+import { CourseEditor } from '@/components/admin/CourseEditor'
 import { 
   BookOpen, 
   CheckCircle2, 
@@ -78,6 +80,8 @@ export default function CourseDetailPage() {
   ])
 
   const [expandedModule, setExpandedModule] = useState<string | null>('m3')
+  const [isEditMode, setIsEditMode] = useState(false)
+  const isAdmin = true // Mock admin status for UI demonstration
 
   const toggleModuleCompletion = (id: string) => {
     setModules(prev =>
@@ -144,9 +148,20 @@ export default function CourseDetailPage() {
         </div>
       </div>
 
-      {/* Modules List */}
+      {isAdmin && (
+        <AdminQuickToolbar 
+          isEditMode={isEditMode} 
+          onToggleEditMode={() => setIsEditMode(!isEditMode)} 
+        />
+      )}
+
+      {/* Modules List or Editor */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        {isEditMode ? (
+           <CourseEditor />
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Módulos de Aprendizaje</h2>
           <span className="text-xs font-semibold text-slate-500">{modules.length} Módulos en total</span>
         </div>
@@ -262,8 +277,9 @@ export default function CourseDetailPage() {
               </div>
             )
           })}
-        </div>
-
+            </div>
+          </>
+        )}
       </div>
 
     </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { SidebarItem } from './SidebarItem'
-import { Music2, Search, Home, Library, Heart, BarChart3, Bell, Users, BookOpen, Package, FolderTree, Megaphone, Settings, LogOut, Sparkles } from 'lucide-react'
+import { Music2, Search, Home, Library, Heart, BarChart3, Bell, Users, BookOpen, Package, FolderTree, Megaphone, Settings, LogOut, Sparkles, Crown } from 'lucide-react'
 import { logout } from '@/lib/actions/auth'
 
 interface SidebarProps {
@@ -98,12 +98,13 @@ export function Sidebar({ isAdmin = false, userName = 'Alumno' }: SidebarProps) 
       <div className="p-3.5 border-t border-slate-100 bg-slate-50/50">
         <div className="flex items-center justify-between mb-3 px-2">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 text-white font-bold flex items-center justify-center text-xs shadow-sm shadow-cyan-500/30">
+            <div className={`w-8 h-8 rounded-full text-white font-bold flex items-center justify-center text-xs shadow-sm ${isAdmin ? 'bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-500 shadow-amber-500/40 relative' : 'bg-gradient-to-br from-cyan-500 to-blue-600 shadow-cyan-500/30'}`}>
+              {isAdmin && <Crown className="w-4 h-4 absolute -top-1.5 -right-1 text-yellow-400 drop-shadow-md rotate-[15deg]" fill="currentColor" />}
               {userName.charAt(0).toUpperCase()}
             </div>
             <div className="flex flex-col">
               <span className="text-xs font-bold text-slate-800 line-clamp-1">{userName}</span>
-              <span className="text-[10px] font-medium text-cyan-600">{isAdmin ? 'Administrador' : 'Alumno Pro'}</span>
+              <span className={`text-[10px] font-bold ${isAdmin ? 'text-amber-600 tracking-wide' : 'text-cyan-600'}`}>{isAdmin ? 'Fundador & Admin' : 'Alumno Pro'}</span>
             </div>
           </div>
           <button 

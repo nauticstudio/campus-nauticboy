@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Users, UserPlus, Shield, Search, MoreVertical, CheckCircle, Ban, Mail } from 'lucide-react'
+import { Users, UserPlus, Shield, Search, MoreVertical, CheckCircle, Ban, Mail, Crown } from 'lucide-react'
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([
@@ -86,7 +86,8 @@ export default function AdminUsersPage() {
               {users.map(u => (
                 <tr key={u.id} className="hover:bg-slate-50/60 transition-colors">
                   <td className="py-4 px-6 flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 text-white font-extrabold flex items-center justify-center text-xs shadow-2xs">
+                    <div className={`relative w-9 h-9 rounded-full text-white font-extrabold flex items-center justify-center text-xs shadow-2xs ${u.role === 'admin' ? 'bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-500 shadow-amber-500/40' : 'bg-gradient-to-tr from-cyan-500 to-blue-600'}`}>
+                      {u.role === 'admin' && <Crown className="w-4 h-4 absolute -top-1.5 -right-1 text-yellow-400 drop-shadow-md rotate-[15deg]" fill="currentColor" />}
                       {u.full_name.charAt(0)}
                     </div>
                     <div>
@@ -98,12 +99,13 @@ export default function AdminUsersPage() {
                   </td>
 
                   <td className="py-4 px-6">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border flex items-center w-max gap-1 ${
                       u.role === 'admin' 
-                        ? 'bg-cyan-100 text-cyan-800 border-cyan-200' 
+                        ? 'bg-amber-100 text-amber-800 border-amber-200' 
                         : 'bg-slate-100 text-slate-700 border-slate-200'
                     }`}>
-                      {u.role === 'admin' ? 'Administrador' : 'Alumno'}
+                      {u.role === 'admin' && <Crown className="w-3 h-3 text-amber-600" />}
+                      {u.role === 'admin' ? 'Fundador & Admin' : 'Alumno'}
                     </span>
                   </td>
 
