@@ -111,13 +111,22 @@ function SortableModuleItem({
   )
 }
 
-export function CourseEditor() {
-  const [modules, setModules] = useState<ModuleType[]>([
+export function CourseEditor({
+  modules: externalModules,
+  setModules: setExternalModules
+}: {
+  modules?: any[]
+  setModules?: React.Dispatch<React.SetStateAction<any[]>>
+} = {}) {
+  const [internalModules, setInternalModules] = useState<ModuleType[]>([
     { id: 'm1', title: '1. Introducción al Sonido', description: 'Conceptos básicos de audio digital', isPublished: true },
     { id: 'm2', title: '2. Síntesis Básica', description: 'Osciladores, filtros y envolventes', isPublished: true },
     { id: 'm3', title: '3. Diseño de Baterías', description: 'Creando kicks y snares potentes', isPublished: false },
     { id: 'm4', title: '4. Arreglo y Estructura', description: 'Cómo estructurar un track profesional', isPublished: true },
   ])
+
+  const modules = externalModules || internalModules
+  const setModules = setExternalModules || setInternalModules
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -130,9 +139,9 @@ export function CourseEditor() {
     const { active, over } = event
 
     if (over && active.id !== over.id) {
-      setModules((items) => {
-        const oldIndex = items.findIndex((i) => i.id === active.id)
-        const newIndex = items.findIndex((i) => i.id === over.id)
+      setModules((items: any[]) => {
+        const oldIndex = items.findIndex((i: any) => i.id === active.id)
+        const newIndex = items.findIndex((i: any) => i.id === over.id)
         return arrayMove(items, oldIndex, newIndex)
       })
     }

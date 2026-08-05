@@ -1,7 +1,26 @@
 import Link from 'next/link'
-import { BookOpen, Sparkles, Trophy, Flame, PlayCircle, ArrowRight, Library, Heart, Clock } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import { BookOpen, Sparkles, Trophy, Flame, PlayCircle, ArrowRight, Clock, Package } from 'lucide-react'
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = await createClient()
+
+  // Fetch current user
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let courses: any[] = []
+
+  if (user) {
+    // Fetch published courses
+    const { data } = await supabase
+      .from('courses')
+      .select('id, title, slug, description, software, is_published')
+      .eq('is_published', true)
+      .order('created_at', { ascending: false })
+    
+    courses = data || []
+  }
+
   return (
     <div className="p-6 md:p-10 lg:p-12 space-y-10 max-w-7xl mx-auto">
       
@@ -15,24 +34,14 @@ export default function DashboardPage() {
         <div className="relative z-10 max-w-2xl space-y-4">
           <div className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 px-3.5 py-1 text-xs font-bold text-cyan-400 backdrop-blur-md">
             <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-            <span>Nautic Boy Academy Pro</span>
+            <span>Nautic Boy Campus</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white leading-tight">
             Bienvenido al Campus Virtual 🎧
           </h1>
           <p className="text-slate-300 text-base md:text-lg font-medium leading-relaxed">
-            Lleva tus producciones al siguiente nivel. Continúa donde lo dejaste en tus programas de estudio.
+            Lleva tus producciones al siguiente nivel. Accede a tus contenidos oficiales.
           </p>
-          <div className="pt-2 flex flex-wrap gap-4">
-            <Link 
-              href="/courses/produccion-ableton"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 group/btn"
-            >
-              <PlayCircle className="w-4 h-4 group-hover/btn:rotate-12 transition-transform" />
-              <span>Continuar Curso Actual</span>
-              <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-            </Link>
-          </div>
         </div>
       </div>
 
@@ -44,8 +53,8 @@ export default function DashboardPage() {
             <BookOpen className="w-7 h-7" />
           </div>
           <div>
-            <span className="text-2xl font-black text-slate-900 tracking-tight">3 Cursos</span>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Inscriptos</p>
+            <span className="text-2xl font-black text-slate-900 tracking-tight">{courses.length} Cursos</span>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Disponibles</p>
           </div>
         </div>
 
@@ -54,7 +63,7 @@ export default function DashboardPage() {
             <Flame className="w-7 h-7" />
           </div>
           <div>
-            <span className="text-2xl font-black text-slate-900 tracking-tight">4 Módulos</span>
+            <span className="text-2xl font-black text-slate-900 tracking-tight">0 Módulos</span>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Completados</p>
           </div>
         </div>
@@ -64,7 +73,7 @@ export default function DashboardPage() {
             <Trophy className="w-7 h-7" />
           </div>
           <div>
-            <span className="text-2xl font-black text-slate-900 tracking-tight">65% Progreso</span>
+            <span className="text-2xl font-black text-slate-900 tracking-tight">0% Progreso</span>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Promedio General</p>
           </div>
         </div>
@@ -80,129 +89,56 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          
-          {/* Ableton Live Card */}
-          <Link href="/courses/produccion-ableton" className="group">
-            <div className="glass-card glass-card-hover rounded-3xl p-6 flex flex-col h-full justify-between relative overflow-hidden">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-cyan-100 text-cyan-800 border border-cyan-200">
-                    Ableton Live 12
-                  </span>
-                  <div className="flex items-center gap-1 text-slate-400 text-xs font-medium">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>8 Módulos</span>
+        {courses.length === 0 ? (
+          <div className="glass-card rounded-3xl p-12 text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center mx-auto">
+              <Package className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-extrabold text-slate-900">No hay cursos publicados aún</h3>
+            <p className="text-xs font-semibold text-slate-500 max-w-sm mx-auto">
+              Cuando publiques cursos desde el panel de administración, aparecerán aquí para los estudiantes.
+            </p>
+            <Link 
+              href="/admin/courses"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-cyan-600 text-white font-bold text-xs shadow-md shadow-cyan-600/20 hover:bg-cyan-500 transition-all"
+            >
+              <span>Ir a Gestión de Cursos</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {courses.map(course => (
+              <Link key={course.id} href={`/courses/${course.slug}`} className="group">
+                <div className="glass-card glass-card-hover rounded-3xl p-6 flex flex-col h-full justify-between relative overflow-hidden">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-cyan-100 text-cyan-800 border border-cyan-200">
+                        {course.software || 'General'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h3 className="font-extrabold text-xl text-slate-900 group-hover:text-cyan-600 transition-colors tracking-tight">
+                        {course.title}
+                      </h3>
+                      <p className="text-xs font-medium text-slate-500 line-clamp-2 leading-relaxed">
+                        {course.description || 'Sin descripción.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 mt-6 border-t border-slate-100 space-y-2">
+                    <div className="flex justify-between items-center text-xs font-bold">
+                      <span className="text-slate-600">Ver Contenido</span>
+                      <ArrowRight className="w-4 h-4 text-cyan-600 group-hover:translate-x-1 transition-transform" />
+                    </div>
                   </div>
                 </div>
-
-                <div className="space-y-1">
-                  <h3 className="font-extrabold text-xl text-slate-900 group-hover:text-cyan-600 transition-colors tracking-tight">
-                    Ableton Live Masterclass
-                  </h3>
-                  <p className="text-xs font-medium text-slate-500 line-clamp-2 leading-relaxed">
-                    Aprende producción profesional desde cero, mezcla avanzada y diseño sonoro.
-                  </p>
-                </div>
-              </div>
-
-              {/* Progress Footer */}
-              <div className="pt-6 mt-6 border-t border-slate-100 space-y-2">
-                <div className="flex justify-between items-center text-xs font-bold">
-                  <span className="text-slate-600">Progreso del Curso</span>
-                  <span className="text-cyan-600 font-extrabold">65%</span>
-                </div>
-                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
-                  <div 
-                    className="h-full bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full transition-all duration-500" 
-                    style={{ width: '65%' }}
-                  />
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          {/* Mezcla & Master Card */}
-          <Link href="/courses/mezcla-mastering" className="group">
-            <div className="glass-card glass-card-hover rounded-3xl p-6 flex flex-col h-full justify-between relative overflow-hidden">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
-                    Mezcla & Mastering
-                  </span>
-                  <div className="flex items-center gap-1 text-slate-400 text-xs font-medium">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>6 Módulos</span>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <h3 className="font-extrabold text-xl text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight">
-                    Mezcla Pros & Mastering
-                  </h3>
-                  <p className="text-xs font-medium text-slate-500 line-clamp-2 leading-relaxed">
-                    Ecualización dinámica, compresión multibanda y volumen competitivo para plataformas.
-                  </p>
-                </div>
-              </div>
-
-              {/* Progress Footer */}
-              <div className="pt-6 mt-6 border-t border-slate-100 space-y-2">
-                <div className="flex justify-between items-center text-xs font-bold">
-                  <span className="text-slate-600">Progreso del Curso</span>
-                  <span className="text-indigo-600 font-extrabold">30%</span>
-                </div>
-                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
-                  <div 
-                    className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-500" 
-                    style={{ width: '30%' }}
-                  />
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          {/* Sound Design Card */}
-          <Link href="/courses/sound-design-synth" className="group">
-            <div className="glass-card glass-card-hover rounded-3xl p-6 flex flex-col h-full justify-between relative overflow-hidden">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                    Sintetizadores
-                  </span>
-                  <div className="flex items-center gap-1 text-slate-400 text-xs font-medium">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>5 Módulos</span>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <h3 className="font-extrabold text-xl text-slate-900 group-hover:text-amber-600 transition-colors tracking-tight">
-                    Diseño Sonoro en Serum
-                  </h3>
-                  <p className="text-xs font-medium text-slate-500 line-clamp-2 leading-relaxed">
-                    Crea tus propios leads, plucks, basses y pads con síntesis wavetable.
-                  </p>
-                </div>
-              </div>
-
-              {/* Progress Footer */}
-              <div className="pt-6 mt-6 border-t border-slate-100 space-y-2">
-                <div className="flex justify-between items-center text-xs font-bold">
-                  <span className="text-slate-600">Progreso del Curso</span>
-                  <span className="text-amber-600 font-extrabold">100%</span>
-                </div>
-                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
-                  <div 
-                    className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500" 
-                    style={{ width: '100%' }}
-                  />
-                </div>
-              </div>
-            </div>
-          </Link>
-
-        </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
     </div>

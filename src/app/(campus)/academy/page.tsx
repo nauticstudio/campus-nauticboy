@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
 import { 
   Library, 
   Package, 
@@ -9,93 +10,49 @@ import {
   BrainCircuit, 
   Target, 
   ArrowRight, 
-  Sparkles,
-  Search
+  Sparkles
 } from 'lucide-react'
 
-export default function AcademyPage() {
-  const categories = [
-    {
-      name: 'Plantillas & Projects',
-      slug: 'plantillas',
-      description: 'Proyectos completos de Ableton Live y FL Studio organizados por género.',
-      icon: Library,
-      count: '24 Recursos',
-      gradient: 'from-cyan-500/10 via-sky-500/10 to-blue-500/10',
-      iconColor: 'text-cyan-600',
-      borderColor: 'group-hover:border-cyan-400/60'
-    },
-    {
-      name: 'Presets de Sintes',
-      slug: 'presets',
-      description: 'Presets exclusivos para Serum, Vital, Diva y Wavetable listos para usar.',
-      icon: Package,
-      count: '48 Packs',
-      gradient: 'from-purple-500/10 via-indigo-500/10 to-violet-500/10',
-      iconColor: 'text-purple-600',
-      borderColor: 'group-hover:border-purple-400/60'
-    },
-    {
-      name: 'Sample Packs',
-      slug: 'samples',
-      description: 'Kicks, snares, 808s, hi-hats y fx procesados analógicamente.',
-      icon: Drum,
-      count: '32 Librerías',
-      gradient: 'from-amber-500/10 via-orange-500/10 to-yellow-500/10',
-      iconColor: 'text-amber-600',
-      borderColor: 'group-hover:border-amber-400/60'
-    },
-    {
-      name: 'Plugins & Racks',
-      slug: 'plugins',
-      description: 'Instrumentos virtuales y cadenas de efectos de mezcla y master.',
-      icon: Plug,
-      count: '18 Herramientas',
-      gradient: 'from-emerald-500/10 via-teal-500/10 to-green-500/10',
-      iconColor: 'text-emerald-600',
-      borderColor: 'group-hover:border-emerald-400/60'
-    },
-    {
-      name: 'Guías & PDFs',
-      slug: 'pdfs',
-      description: 'Manuales de síntesis, tablas de frecuencias y teoría musical rápida.',
-      icon: FileText,
-      count: '15 Manuales',
-      gradient: 'from-rose-500/10 via-pink-500/10 to-red-500/10',
-      iconColor: 'text-rose-600',
-      borderColor: 'group-hover:border-rose-400/60'
-    },
-    {
-      name: 'Micro Tutoriales',
-      slug: 'videos',
-      description: 'Videos cortos de 5 min resolviendo problemas técnicos concretos.',
-      icon: Video,
-      count: '60 Videos',
-      gradient: 'from-blue-500/10 via-indigo-500/10 to-sky-500/10',
-      iconColor: 'text-blue-600',
-      borderColor: 'group-hover:border-blue-400/60'
-    },
-    {
-      name: 'Cheatsheets',
-      slug: 'cheatsheets',
-      description: 'Hojas de referencia rápida para atajos de teclado y ecualización.',
-      icon: BrainCircuit,
-      count: '10 Hojas',
-      gradient: 'from-teal-500/10 via-cyan-500/10 to-emerald-500/10',
-      iconColor: 'text-teal-600',
-      borderColor: 'group-hover:border-teal-400/60'
-    },
-    {
-      name: 'Desafíos de Producción',
-      slug: 'desafios',
-      description: 'Retos semanales para poner a prueba tus habilidades de composición.',
-      icon: Target,
-      count: '8 Retos',
-      gradient: 'from-violet-500/10 via-fuchsia-500/10 to-purple-500/10',
-      iconColor: 'text-violet-600',
-      borderColor: 'group-hover:border-violet-400/60'
+const ICON_MAP: Record<string, any> = {
+  'layout-template': Library,
+  'sliders': Package,
+  'drum': Drum,
+  'plug': Plug,
+  'file-text': FileText,
+  'video': Video,
+  'brain-circuit': BrainCircuit,
+  'target': Target
+}
+
+export default async function AcademyPage() {
+  const supabase = await createClient()
+
+  // Fetch categories from DB
+  const { data: dbCategories } = await supabase
+    .from('categories')
+    .select('id, name, slug, description, icon')
+    .order('sort_order', { ascending: true })
+
+  // Fetch count of published resources for each category
+  const { data: dbResources } = await supabase
+    .from('resources')
+    .select('category_id')
+    .eq('is_published', true)
+
+  const resourceCounts: Record<string, number> = {}
+  dbResources?.forEach(r => {
+    if (r.category_id) {
+      resourceCounts[r.category_id] = (resourceCounts[r.category_id] || 0) + 1
     }
-  ]
+  })
+
+  const categories = (dbCategories || []).map(cat => ({
+    name: cat.name,
+    slug: cat.slug,
+    description: cat.description || 'Explora recursos de esta categoría.',
+    icon: ICON_MAP[cat.icon] || Library,
+    count: `${resourceCounts[cat.id] || 0} Recursos`,
+  }))
 
   return (
     <div className="p-6 md:p-10 lg:p-12 space-y-10 max-w-7xl mx-auto">
@@ -124,11 +81,11 @@ export default function AcademyPage() {
           const Icon = cat.icon
           return (
             <Link key={cat.slug} href={`/academy/${cat.slug}`} className="group">
-              <div className={`glass-card glass-card-hover rounded-3xl p-6 flex flex-col justify-between h-full relative overflow-hidden ${cat.borderColor}`}>
+              <div className="glass-card glass-card-hover rounded-3xl p-6 flex flex-col justify-between h-full relative overflow-hidden group-hover:border-cyan-400/60">
                 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${cat.gradient} border border-slate-200/60 flex items-center justify-center ${cat.iconColor} group-hover:scale-110 group-hover:rotate-6 transition-all duration-300`}>
+                    <div className="w-14 h-14 rounded-2xl bg-cyan-50 border border-slate-200/60 flex items-center justify-center text-cyan-600 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
                       <Icon className="w-7 h-7" />
                     </div>
                     <span className="text-[11px] font-extrabold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200/60">

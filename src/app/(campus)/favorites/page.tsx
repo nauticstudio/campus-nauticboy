@@ -2,27 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Heart, Download, Trash2, ArrowRight, Sparkles, Layers } from 'lucide-react'
+import { Heart, Download, Trash2, ArrowRight } from 'lucide-react'
 
 export default function FavoritesPage() {
-  const [favorites, setFavorites] = useState([
-    {
-      id: 'res-1',
-      title: 'Plantilla Melodic Techno & Afro House 2026',
-      software: 'Ableton Live 12',
-      category: 'Plantillas',
-      fileSize: '185 MB',
-      fileName: 'Melodic_Techno_Master_2026.als'
-    },
-    {
-      id: 'res-3',
-      title: 'Mastering Chain Preset (Stock Plugins)',
-      software: 'Ableton Live 12',
-      category: 'Presets',
-      fileSize: '4.8 MB',
-      fileName: 'Mastering_Chain_Pro.adg'
-    }
-  ])
+  const [favorites, setFavorites] = useState<any[]>([])
 
   const removeFavorite = (id: string) => {
     setFavorites(prev => prev.filter(item => item.id !== id))

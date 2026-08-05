@@ -1,13 +1,13 @@
-'use client'
+import { createClient } from '@/lib/supabase/server'
+import { Megaphone, Plus, Shield, Trash2, Package } from 'lucide-react'
 
-import { useState } from 'react'
-import { Megaphone, Plus, Shield, Trash2 } from 'lucide-react'
+export default async function AdminAnnouncementsPage() {
+  const supabase = await createClient()
 
-export default function AdminAnnouncementsPage() {
-  const [announcements, setAnnouncements] = useState([
-    { id: '1', title: 'Nuevo Módulo Lanzado: Mastering', type: 'new_resource', date: '2026-08-04' },
-    { id: '2', title: 'Librería Afro House Drums', type: 'new_resource', date: '2026-08-03' }
-  ])
+  const { data: announcements } = await supabase
+    .from('announcements')
+    .select('id, title, type, created_at')
+    .order('created_at', { ascending: false })
 
   return (
     <div className="p-6 md:p-10 lg:p-12 space-y-8 max-w-7xl mx-auto">
@@ -28,19 +28,31 @@ export default function AdminAnnouncementsPage() {
         </button>
       </div>
 
-      <div className="space-y-4">
-        {announcements.map(ann => (
-          <div key={ann.id} className="glass-card glass-card-hover rounded-3xl p-6 flex items-center justify-between">
-            <div className="space-y-1">
-              <h3 className="font-extrabold text-slate-900 text-base">{ann.title}</h3>
-              <span className="text-xs font-medium text-slate-400">Publicado el {ann.date}</span>
-            </div>
-            <button className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors">
-              <Trash2 className="w-4 h-4" />
-            </button>
+      {(!announcements || announcements.length === 0) ? (
+        <div className="glass-card rounded-3xl p-12 text-center space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center mx-auto">
+            <Package className="w-6 h-6" />
           </div>
-        ))}
-      </div>
+          <h3 className="text-lg font-extrabold text-slate-900">No hay novedades registradas</h3>
+          <p className="text-xs font-semibold text-slate-500 max-w-sm mx-auto">
+            Publica anuncios oficiales para informarle a tus estudiantes sobre actualizaciones.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {announcements.map(ann => (
+            <div key={ann.id} className="glass-card glass-card-hover rounded-3xl p-6 flex items-center justify-between">
+              <div className="space-y-1">
+                <h3 className="font-extrabold text-slate-900 text-base">{ann.title}</h3>
+                <span className="text-xs font-medium text-slate-400">Publicado el {new Date(ann.created_at).toLocaleDateString()}</span>
+              </div>
+              <button className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
     </div>
   )

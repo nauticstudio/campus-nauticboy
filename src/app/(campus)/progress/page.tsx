@@ -1,36 +1,24 @@
 import Link from 'next/link'
-import { Trophy, CheckCircle2, BookOpen, Flame, ArrowRight, Sparkles, Award } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import { Trophy, CheckCircle2, Flame, ArrowRight, Award, Package } from 'lucide-react'
 
-export default function ProgressPage() {
-  const coursesProgress = [
-    {
-      title: 'Ableton Live Masterclass',
-      slug: 'produccion-ableton',
-      software: 'Ableton Live 12',
-      completedModules: 2,
-      totalModules: 4,
-      percent: 50,
-      badgeColor: 'bg-cyan-100 text-cyan-800 border-cyan-200'
-    },
-    {
-      title: 'Mezcla Pros & Mastering',
-      slug: 'mezcla-mastering',
-      software: 'Plugins & DAWs',
-      completedModules: 2,
-      totalModules: 6,
-      percent: 33,
-      badgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-200'
-    },
-    {
-      title: 'Diseño Sonoro en Serum',
-      slug: 'sound-design-synth',
-      software: 'Serum',
-      completedModules: 5,
-      totalModules: 5,
-      percent: 100,
-      badgeColor: 'bg-amber-100 text-amber-800 border-amber-200'
-    }
-  ]
+export default async function ProgressPage() {
+  const supabase = await createClient()
+
+  // Fetch published courses
+  const { data: dbCourses } = await supabase
+    .from('courses')
+    .select('id, title, slug, software')
+    .eq('is_published', true)
+
+  const coursesProgress = (dbCourses || []).map(c => ({
+    title: c.title,
+    slug: c.slug,
+    software: c.software || 'General',
+    completedModules: 0,
+    totalModules: 0,
+    percent: 0,
+  }))
 
   return (
     <div className="p-6 md:p-10 lg:p-12 space-y-10 max-w-6xl mx-auto">
@@ -61,8 +49,8 @@ export default function ProgressPage() {
             <Award className="w-7 h-7" />
           </div>
           <div>
-            <span className="text-2xl font-black text-slate-900 tracking-tight">1 Curso</span>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Completado al 100%</p>
+            <span className="text-2xl font-black text-slate-900 tracking-tight">0 Cursos</span>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Completados al 100%</p>
           </div>
         </div>
 
@@ -71,8 +59,8 @@ export default function ProgressPage() {
             <CheckCircle2 className="w-7 h-7" />
           </div>
           <div>
-            <span className="text-2xl font-black text-slate-900 tracking-tight">9 / 15</span>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Módulos Superados</p>
+            <span className="text-2xl font-black text-slate-900 tracking-tight">0 Módulos</span>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Superados</p>
           </div>
         </div>
 
@@ -81,7 +69,7 @@ export default function ProgressPage() {
             <Flame className="w-7 h-7" />
           </div>
           <div>
-            <span className="text-2xl font-black text-slate-900 tracking-tight">61% Total</span>
+            <span className="text-2xl font-black text-slate-900 tracking-tight">0% Total</span>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Avance Promedio</p>
           </div>
         </div>
@@ -92,48 +80,59 @@ export default function ProgressPage() {
       <div className="space-y-6">
         <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Detalle por Programa</h2>
 
-        <div className="space-y-4">
-          {coursesProgress.map(c => (
-            <div key={c.slug} className="glass-card glass-card-hover rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2 max-w-md">
-                <span className={`inline-block px-3 py-0.5 rounded-full text-xs font-bold border ${c.badgeColor}`}>
-                  {c.software}
-                </span>
-                <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                  {c.title}
-                </h3>
-                <p className="text-xs font-semibold text-slate-500">
-                  {c.completedModules} de {c.totalModules} Módulos marcados como listos
-                </p>
-              </div>
-
-              {/* Progress bar and link */}
-              <div className="flex flex-col md:flex-row items-center gap-6 flex-1 max-w-lg justify-end">
-                <div className="w-full space-y-2">
-                  <div className="flex justify-between items-center text-xs font-bold">
-                    <span className="text-slate-600">Completado</span>
-                    <span className="text-cyan-600 font-extrabold">{c.percent}%</span>
-                  </div>
-                  <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
-                    <div 
-                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full transition-all duration-500" 
-                      style={{ width: `${c.percent}%` }}
-                    />
-                  </div>
+        {coursesProgress.length === 0 ? (
+          <div className="glass-card rounded-3xl p-12 text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center mx-auto">
+              <Package className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-extrabold text-slate-900">No hay cursos registrados para dar seguimiento</h3>
+            <p className="text-xs font-semibold text-slate-500 max-w-sm mx-auto">
+              Cuando publiques cursos y los alumnos se matriculen, se calculará su progreso aquí.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {coursesProgress.map(c => (
+              <div key={c.slug} className="glass-card glass-card-hover rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-2 max-w-md">
+                  <span className="inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-cyan-100 text-cyan-800 border border-cyan-200">
+                    {c.software}
+                  </span>
+                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                    {c.title}
+                  </h3>
+                  <p className="text-xs font-semibold text-slate-500">
+                    {c.completedModules} de {c.totalModules} Módulos marcados como listos
+                  </p>
                 </div>
 
-                <Link
-                  href={`/courses/${c.slug}`}
-                  className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-slate-900 text-white font-bold text-xs hover:bg-cyan-600 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-200 group whitespace-nowrap"
-                >
-                  <span>Ir al Curso</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
+                {/* Progress bar and link */}
+                <div className="flex flex-col md:flex-row items-center gap-6 flex-1 max-w-lg justify-end">
+                  <div className="w-full space-y-2">
+                    <div className="flex justify-between items-center text-xs font-bold">
+                      <span className="text-slate-600">Completado</span>
+                      <span className="text-cyan-600 font-extrabold">{c.percent}%</span>
+                    </div>
+                    <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
+                      <div 
+                        className="h-full bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full transition-all duration-500" 
+                        style={{ width: `${c.percent}%` }}
+                      />
+                    </div>
+                  </div>
 
+                  <Link
+                    href={`/courses/${c.slug}`}
+                    className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-slate-900 text-white font-bold text-xs hover:bg-cyan-600 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-200 group whitespace-nowrap"
+                  >
+                    <span>Ir al Curso</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
     </div>
