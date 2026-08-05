@@ -1,10 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Shield, Edit3, Trash2, Layers, Eye, EyeOff, Loader2, Music, Video, Book } from 'lucide-react'
+import { Plus, Shield, Edit3, Trash2, Layers, Eye, EyeOff, Loader2, Book } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from 'sonner'
+import { createCourseAction } from '@/app/actions/courses'
+
 import {
   Dialog,
   DialogContent,
@@ -25,18 +31,34 @@ interface Course {
   is_published: boolean
 }
 
+const courseSchema = z.object({
+  title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
+  software: z.string().optional(),
+  description: z.string().optional(),
+})
+
+type CourseFormValues = z.infer<typeof courseSchema>
+
 export function AdminCoursesClient({ initialCourses }: { initialCourses: Course[] }) {
   const [courses, setCourses] = useState<Course[]>(initialCourses)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isCreating, setIsCreating] = useState(false)
-  
-  // New Course Form State
-  const [newTitle, setNewTitle] = useState('')
-  const [newDescription, setNewDescription] = useState('')
-  const [newSoftware, setNewSoftware] = useState('')
   
   const supabase = createClient()
   const router = useRouter()
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<CourseFormValues>({
+    resolver: zodResolver(courseSchema),
+    defaultValues: {
+      title: "",
+      software: "",
+      description: "",
+    }
+  })
 
   const toggleCourseVisibility = async (id: string, currentStatus: boolean) => {
     // Optimistic UI update
@@ -51,53 +73,39 @@ export function AdminCoursesClient({ initialCourses }: { initialCourses: Course[
       .eq('id', id)
 
     if (error) {
+      toast.error('Error al cambiar la visibilidad del curso')
       console.error('Error toggling course visibility:', error)
       // Revert on error
       setCourses(courses.map(c => 
         c.id === id ? { ...c, is_published: currentStatus } : c
       ))
     } else {
-      // Refresh router so layout.tsx fetches updated enrollments
+      toast.success(currentStatus ? 'Curso ocultado' : 'Curso publicado')
       router.refresh()
     }
   }
 
-  const handleCreateCourse = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newTitle.trim()) return
+  const onSubmit = async (data: CourseFormValues) => {
+    const slug = data.title.toLowerCase().trim().replace(/[\s\W-]+/g, '-')
+    
+    const result = await createCourseAction({
+      title: data.title,
+      description: data.description || '',
+      software: data.software,
+      slug,
+    })
 
-    setIsCreating(true)
-    try {
-      const slug = newTitle.toLowerCase().trim().replace(/[\s\W-]+/g, '-')
-      
-      const { data, error } = await supabase
-        .from('courses')
-        .insert({
-          title: newTitle,
-          description: newDescription,
-          software: newSoftware || null,
-          slug,
-          is_published: false // Courses start as drafts
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-
-      setCourses([data, ...courses])
-      setIsDialogOpen(false)
-      
-      // Reset form
-      setNewTitle('')
-      setNewDescription('')
-      setNewSoftware('')
-      
-      router.push(`/admin/courses/${data.id}`)
-    } catch (error) {
-      console.error('Error creating course:', error)
-    } finally {
-      setIsCreating(false)
+    if (!result.success) {
+      toast.error(result.error || "Ocurrió un error al crear el curso")
+      return
     }
+
+    toast.success("Curso creado exitosamente")
+    setCourses([result.course, ...courses])
+    setIsDialogOpen(false)
+    reset()
+    
+    router.push(`/admin/courses/${result.course.id}`)
   }
 
   return (
@@ -112,13 +120,18 @@ export function AdminCoursesClient({ initialCourses }: { initialCourses: Course[
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Gestión de Cursos & Módulos</h1>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger render={<button className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-600 text-white font-bold text-xs shadow-md shadow-cyan-600/20 hover:bg-cyan-500 hover:scale-105 active:scale-95 transition-all duration-200" />}>
-            <Plus className="w-4 h-4" />
-            <span>Crear Nuevo Curso</span>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open)
+          if (!open) reset()
+        }}>
+          <DialogTrigger asChild>
+            <button className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-600 text-white font-bold text-xs shadow-md shadow-cyan-600/20 hover:bg-cyan-500 hover:scale-105 active:scale-95 transition-all duration-200">
+              <Plus className="w-4 h-4" />
+              <span>Crear Nuevo Curso</span>
+            </button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] bg-white border-slate-200 rounded-3xl p-6">
-            <form onSubmit={handleCreateCourse}>
+            <form onSubmit={handleSubmit(onSubmit)}>
               <DialogHeader className="space-y-3 mb-6">
                 <DialogTitle className="text-xl font-black text-slate-900 flex items-center gap-2">
                   <div className="w-8 h-8 rounded-xl bg-cyan-100 flex items-center justify-center">
@@ -135,19 +148,17 @@ export function AdminCoursesClient({ initialCourses }: { initialCourses: Course[
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Título del Curso</label>
                   <Input 
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
+                    {...register("title")}
                     placeholder="Ej: Ableton Live Masterclass..."
                     className="rounded-xl border-slate-200 text-sm font-semibold bg-slate-50/50"
-                    required
                   />
+                  {errors.title && <p className="text-[10px] text-rose-500 font-bold">{errors.title.message}</p>}
                 </div>
                 
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Software Asociado (Opcional)</label>
                   <Input 
-                    value={newSoftware}
-                    onChange={(e) => setNewSoftware(e.target.value)}
+                    {...register("software")}
                     placeholder="Ej: Ableton Live 12, FL Studio..."
                     className="rounded-xl border-slate-200 text-sm font-semibold bg-slate-50/50"
                   />
@@ -156,8 +167,7 @@ export function AdminCoursesClient({ initialCourses }: { initialCourses: Course[
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Breve Descripción</label>
                   <textarea 
-                    value={newDescription}
-                    onChange={(e) => setNewDescription(e.target.value)}
+                    {...register("description")}
                     placeholder="De qué trata este curso..."
                     className="w-full rounded-xl border border-slate-200 text-sm font-semibold bg-slate-50/50 p-3 min-h-[80px] resize-none focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all"
                   />
@@ -167,10 +177,10 @@ export function AdminCoursesClient({ initialCourses }: { initialCourses: Course[
               <DialogFooter className="mt-6 border-t border-slate-100 pt-6">
                 <Button 
                   type="submit" 
-                  disabled={isCreating}
+                  disabled={isSubmitting}
                   className="w-full rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold h-11"
                 >
-                  {isCreating ? (
+                  {isSubmitting ? (
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creando...</>
                   ) : (
                     'Crear e Ir al Editor'
