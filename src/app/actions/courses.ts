@@ -36,6 +36,10 @@ export async function createCourseAction(data: {
       return { success: false, error: error.message }
     }
 
+    const { revalidatePath } = require('next/cache')
+    revalidatePath('/admin/courses')
+    revalidatePath('/courses')
+
     return { success: true, course: newCourse }
   } catch (error: any) {
     console.error('Exception in createCourseAction:', error)
