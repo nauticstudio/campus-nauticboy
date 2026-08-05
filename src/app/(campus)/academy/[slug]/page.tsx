@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { CategoryResourcesClient } from './CategoryResourcesClient'
 
 export default async function CategoryResourcesPage({ 
@@ -11,7 +11,8 @@ export default async function CategoryResourcesPage({
 
   // Get user profile role
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: profile } = user ? await supabase.from('profiles').select('role').eq('id', user.id).single() : { data: null }
+  const adminSupabase = await createAdminClient()
+  const { data: profile } = user ? await adminSupabase.from('profiles').select('role').eq('id', user.id).single() : { data: null }
   const isAdmin = profile?.role === 'admin'
 
   // Fetch category by slug to get its ID

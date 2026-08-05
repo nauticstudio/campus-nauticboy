@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
@@ -20,8 +20,9 @@ export default async function CampusLayout({
     redirect('/login')
   }
 
-  // Fetch profile to check role and name
-  const { data: profile } = await supabase
+  // Use admin client to bypass RLS infinite recursion bug in profiles table
+  const adminSupabase = await createAdminClient()
+  const { data: profile } = await adminSupabase
     .from('profiles')
     .select('full_name, role')
     .eq('id', user.id)
