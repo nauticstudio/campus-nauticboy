@@ -229,10 +229,8 @@ export function CourseEditor({
         <h2 className="text-xl font-black text-slate-900 tracking-tight">Estructura del Curso</h2>
         
         <Dialog open={isAddModuleOpen} onOpenChange={setIsAddModuleOpen}>
-          <DialogTrigger asChild>
-            <button className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs shadow-md shadow-slate-900/20 hover:bg-slate-800 transition-all">
-              <Plus className="w-3.5 h-3.5" /> Añadir Módulo
-            </button>
+          <DialogTrigger render={<button className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs shadow-md shadow-slate-900/20 hover:bg-slate-800 transition-all" />}>
+            <Plus className="w-3.5 h-3.5" /> Añadir Módulo
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] bg-white border-slate-200 rounded-3xl p-6">
             <form onSubmit={handleAddModule}>

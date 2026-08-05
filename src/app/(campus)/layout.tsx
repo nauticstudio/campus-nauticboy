@@ -34,12 +34,13 @@ export default async function CampusLayout({
   // Fetch enrolled courses for the sidebar
   const { data: enrollments } = await supabase
     .from('enrollments')
-    .select('courses(title, slug)')
+    .select('courses!inner(title, slug)')
     .eq('user_id', user.id)
+    .eq('courses.is_published', true)
 
   const enrolledCourses = enrollments
     ?.map(e => e.courses)
-    .filter(Boolean) as { title: string, slug: string }[] | undefined
+    .filter(Boolean) as unknown as { title: string, slug: string }[] | undefined
 
   return (
     <div className="flex min-h-screen w-full bg-[#F8FAFC] font-sans text-slate-900 selection:bg-cyan-500/20 selection:text-cyan-900 relative overflow-x-hidden">

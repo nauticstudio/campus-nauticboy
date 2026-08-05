@@ -56,6 +56,9 @@ export function AdminCoursesClient({ initialCourses }: { initialCourses: Course[
       setCourses(courses.map(c => 
         c.id === id ? { ...c, is_published: currentStatus } : c
       ))
+    } else {
+      // Refresh router so layout.tsx fetches updated enrollments
+      router.refresh()
     }
   }
 
@@ -110,13 +113,9 @@ export function AdminCoursesClient({ initialCourses }: { initialCourses: Course[
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <button 
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-600 text-white font-bold text-xs shadow-md shadow-cyan-600/20 hover:bg-cyan-500 hover:scale-105 active:scale-95 transition-all duration-200"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Crear Nuevo Curso</span>
-            </button>
+          <DialogTrigger render={<button className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-600 text-white font-bold text-xs shadow-md shadow-cyan-600/20 hover:bg-cyan-500 hover:scale-105 active:scale-95 transition-all duration-200" />}>
+            <Plus className="w-4 h-4" />
+            <span>Crear Nuevo Curso</span>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] bg-white border-slate-200 rounded-3xl p-6">
             <form onSubmit={handleCreateCourse}>

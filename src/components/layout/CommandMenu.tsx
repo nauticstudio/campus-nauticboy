@@ -42,10 +42,10 @@ export function CommandMenu() {
         {/* Placeholder Data for Phase 2 Shell */}
         <CommandGroup heading="Cursos">
           <CommandItem
-            onSelect={() => runCommand(() => router.push('/courses/produccion-ableton'))}
+            onSelect={() => runCommand(() => router.push('/dashboard'))}
           >
             <BookOpen className="mr-2 h-4 w-4 text-cyan-400" />
-            <span>Ableton Live Master</span>
+            <span>Explorar Cursos</span>
           </CommandItem>
         </CommandGroup>
         
