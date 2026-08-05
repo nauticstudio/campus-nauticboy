@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { BookOpen, Sparkles, Trophy, Flame, PlayCircle, ArrowRight, Clock, Package } from 'lucide-react'
+import { BookOpen, Sparkles, Trophy, Flame, PlayCircle, ArrowRight, Clock, Package, Headphones } from 'lucide-react'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -36,8 +36,8 @@ export default async function DashboardPage() {
             <Sparkles className="w-3.5 h-3.5 animate-pulse" />
             <span>Nautic Boy Campus</span>
           </div>
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white leading-tight">
-            Bienvenido al Campus Virtual 🎧
+          <h1 className="flex items-center gap-4 text-3xl md:text-5xl font-black tracking-tight text-white leading-tight">
+            Bienvenido al Campus Virtual <Headphones className="w-10 h-10 md:w-14 md:h-14 text-cyan-400" />
           </h1>
           <p className="text-slate-300 text-base md:text-lg font-medium leading-relaxed">
             Lleva tus producciones al siguiente nivel. Accede a tus contenidos oficiales.

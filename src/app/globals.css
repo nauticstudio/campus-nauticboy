@@ -60,6 +60,14 @@
   animation: pulse-subtle 3s ease-in-out infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-pulse-subtle {
+    animation: none;
+    transform: none;
+  }
+}
+
 /* Glassmorphism Light */
 .glass-card {
   background: rgba(255, 255, 255, 0.85);

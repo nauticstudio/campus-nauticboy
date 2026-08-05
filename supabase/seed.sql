@@ -84,6 +84,9 @@ CREATE TABLE resources (
   is_featured BOOLEAN NOT NULL DEFAULT false,
   is_published BOOLEAN NOT NULL DEFAULT true,
 
+  -- Búsqueda optimizada (columna generada)
+  search_vector tsvector GENERATED ALWAYS AS (to_tsvector('spanish', title || ' ' || COALESCE(description, ''))) STORED,
+
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -148,8 +151,7 @@ CREATE TABLE announcements (
 CREATE INDEX idx_resources_category ON resources(category_id);
 CREATE INDEX idx_resources_tags ON resources USING GIN(tags);
 CREATE UNIQUE INDEX idx_resources_storage_path ON resources(storage_provider, storage_path);
-CREATE INDEX idx_resources_search ON resources
-  USING GIN(to_tsvector('spanish', title || ' ' || COALESCE(description, '')));
+CREATE INDEX idx_resources_search ON resources USING GIN(search_vector);
 CREATE INDEX idx_module_resources_module ON module_resources(module_id);
 CREATE INDEX idx_enrollments_user ON enrollments(user_id);
 CREATE INDEX idx_enrollments_course ON enrollments(course_id);
@@ -184,7 +186,7 @@ BEGIN
       AND mr.resource_id = p_resource_id
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- =============================================
 -- TRIGGER: Create profile on signup
@@ -203,7 +205,7 @@ BEGIN
   );
   RETURN new;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Drop trigger first in case it exists to avoid errors on multiple runs
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
