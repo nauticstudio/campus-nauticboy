@@ -18,7 +18,19 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Eye, EyeOff, Edit3, Trash2, Plus } from 'lucide-react'
+import { GripVertical, Eye, EyeOff, Edit3, Trash2, Plus, Loader2, LayoutGrid } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { createClient } from '@/lib/supabase/client'
 
 // Mock types
 type ModuleType = {
@@ -112,21 +124,26 @@ function SortableModuleItem({
 }
 
 export function CourseEditor({
-  modules: externalModules,
-  setModules: setExternalModules
+  courseId,
+  initialModules = [],
 }: {
-  modules?: any[]
-  setModules?: React.Dispatch<React.SetStateAction<any[]>>
-} = {}) {
-  const [internalModules, setInternalModules] = useState<ModuleType[]>([
-    { id: 'm1', title: '1. Introducción al Sonido', description: 'Conceptos básicos de audio digital', isPublished: true },
-    { id: 'm2', title: '2. Síntesis Básica', description: 'Osciladores, filtros y envolventes', isPublished: true },
-    { id: 'm3', title: '3. Diseño de Baterías', description: 'Creando kicks y snares potentes', isPublished: false },
-    { id: 'm4', title: '4. Arreglo y Estructura', description: 'Cómo estructurar un track profesional', isPublished: true },
-  ])
+  courseId: string
+  initialModules?: any[]
+}) {
+  const [modules, setModules] = useState<ModuleType[]>(initialModules.map(m => ({
+    id: m.id,
+    title: m.title,
+    description: m.description,
+    isPublished: m.is_published
+  })))
+  
+  const [isAddModuleOpen, setIsAddModuleOpen] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [newTitle, setNewTitle] = useState('')
+  const [newDescription, setNewDescription] = useState('')
+  const supabase = createClient()
 
-  const modules = externalModules || internalModules
-  const setModules = setExternalModules || setInternalModules
+
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -135,31 +152,141 @@ export function CourseEditor({
     })
   )
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
 
     if (over && active.id !== over.id) {
-      setModules((items: any[]) => {
-        const oldIndex = items.findIndex((i: any) => i.id === active.id)
-        const newIndex = items.findIndex((i: any) => i.id === over.id)
-        return arrayMove(items, oldIndex, newIndex)
-      })
+      const oldIndex = modules.findIndex((i: any) => i.id === active.id)
+      const newIndex = modules.findIndex((i: any) => i.id === over.id)
+      
+      const newModules = arrayMove(modules, oldIndex, newIndex)
+      setModules(newModules)
+
+      // DB sync for all modules
+      const updates = newModules.map((m, index) => ({
+        id: m.id,
+        course_id: courseId,
+        title: m.title,
+        description: m.description,
+        is_published: m.isPublished,
+        sort_order: index
+      }))
+      
+      await supabase.from('modules').upsert(updates)
     }
   }
 
-  const toggleVisibility = (id: string) => {
-    setModules(modules.map(m => 
-      m.id === id ? { ...m, isPublished: !m.isPublished } : m
-    ))
+  const handleAddModule = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newTitle.trim()) return
+
+    setIsCreating(true)
+    try {
+      const { data, error } = await supabase
+        .from('modules')
+        .insert({
+          course_id: courseId,
+          title: newTitle,
+          description: newDescription,
+          is_published: false,
+          sort_order: modules.length
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      setModules([...modules, {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        isPublished: data.is_published
+      }])
+      setIsAddModuleOpen(false)
+      setNewTitle('')
+      setNewDescription('')
+    } catch (error) {
+      console.error('Error adding module:', error)
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  const toggleVisibility = async (id: string) => {
+    const module = modules.find(m => m.id === id)
+    if (!module) return
+
+    // Optimistic
+    setModules(modules.map(m => m.id === id ? { ...m, isPublished: !m.isPublished } : m))
+    
+    // DB sync
+    await supabase.from('modules').update({ is_published: !module.isPublished }).eq('id', id)
   }
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-black text-slate-900 tracking-tight">Estructura del Curso</h2>
-        <button className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs shadow-md shadow-slate-900/20 hover:bg-slate-800 transition-all">
-          <Plus className="w-3.5 h-3.5" /> Añadir Módulo
-        </button>
+        
+        <Dialog open={isAddModuleOpen} onOpenChange={setIsAddModuleOpen}>
+          <DialogTrigger asChild>
+            <button className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs shadow-md shadow-slate-900/20 hover:bg-slate-800 transition-all">
+              <Plus className="w-3.5 h-3.5" /> Añadir Módulo
+            </button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px] bg-white border-slate-200 rounded-3xl p-6">
+            <form onSubmit={handleAddModule}>
+              <DialogHeader className="space-y-3 mb-6">
+                <DialogTitle className="text-xl font-black text-slate-900 flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center">
+                    <LayoutGrid className="w-4 h-4 text-indigo-600" />
+                  </div>
+                  Crear Nuevo Módulo
+                </DialogTitle>
+                <DialogDescription className="text-xs font-semibold text-slate-500">
+                  Añade un módulo para agrupar clases y recursos. Inicia como borrador.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-2">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Título del Módulo</label>
+                  <Input 
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="Ej: 1. Introducción..."
+                    className="rounded-xl border-slate-200 text-sm font-semibold bg-slate-50/50"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Breve Descripción</label>
+                  <textarea 
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    placeholder="De qué trata este módulo..."
+                    className="w-full rounded-xl border border-slate-200 text-sm font-semibold bg-slate-50/50 p-3 min-h-[80px] resize-none focus:outline-none focus:ring-2 focus:indigo-500/20 focus:border-indigo-500 transition-all"
+                  />
+                </div>
+              </div>
+
+              <DialogFooter className="mt-6 border-t border-slate-100 pt-6">
+                <Button 
+                  type="submit" 
+                  disabled={isCreating}
+                  className="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold h-11"
+                >
+                  {isCreating ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creando...</>
+                  ) : (
+                    'Añadir Módulo'
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <DndContext

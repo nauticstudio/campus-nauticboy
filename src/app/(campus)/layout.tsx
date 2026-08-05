@@ -31,6 +31,16 @@ export default async function CampusLayout({
   const isAdmin = profile?.role === 'admin'
   const userName = profile?.full_name || user.email?.split('@')[0] || 'Alumno'
 
+  // Fetch enrolled courses for the sidebar
+  const { data: enrollments } = await supabase
+    .from('enrollments')
+    .select('courses(title, slug)')
+    .eq('user_id', user.id)
+
+  const enrolledCourses = enrollments
+    ?.map(e => e.courses)
+    .filter(Boolean) as { title: string, slug: string }[] | undefined
+
   return (
     <div className="flex min-h-screen w-full bg-[#F8FAFC] font-sans text-slate-900 selection:bg-cyan-500/20 selection:text-cyan-900 relative overflow-x-hidden">
       
@@ -40,7 +50,7 @@ export default async function CampusLayout({
       <div className="fixed -bottom-40 left-1/3 w-[28rem] h-[28rem] bg-emerald-400/10 rounded-full blur-3xl pointer-events-none z-0" />
 
       {/* Sidebar for Desktop */}
-      <Sidebar isAdmin={isAdmin} userName={userName} />
+      <Sidebar isAdmin={isAdmin} userName={userName} enrolledCourses={enrolledCourses || []} />
 
       <div className="flex flex-col flex-1 min-w-0 z-10">
         {/* Header with Mobile Nav for small screens */}

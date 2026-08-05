@@ -8,9 +8,10 @@ import { UserSettingsSheet } from '@/components/layout/UserSettingsSheet'
 interface SidebarProps {
   isAdmin?: boolean
   userName?: string
+  enrolledCourses?: { title: string, slug: string }[]
 }
 
-export function Sidebar({ isAdmin = false, userName = 'Alumno' }: SidebarProps) {
+export function Sidebar({ isAdmin = false, userName = 'Alumno', enrolledCourses = [] }: SidebarProps) {
   return (
     <aside className="w-64 flex-shrink-0 flex flex-col bg-white/80 backdrop-blur-xl border-r border-slate-200/80 h-screen z-20 sticky top-0 hidden md:flex shadow-[4px_0_24px_-4px_rgba(15,23,42,0.03)]">
       
@@ -50,15 +51,19 @@ export function Sidebar({ isAdmin = false, userName = 'Alumno' }: SidebarProps) 
         </nav>
 
         {/* Dynamic Sections */}
-        <div>
-          <h4 className="px-3.5 mb-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
-            <span>Mis Cursos</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-ping" />
-          </h4>
-          <div className="space-y-1">
-            <SidebarItem href="/courses/produccion-ableton" icon={BookOpen} title="Ableton Live Master" />
+        {enrolledCourses.length > 0 && (
+          <div>
+            <h4 className="px-3.5 mb-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
+              <span>Mis Cursos</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-ping" />
+            </h4>
+            <div className="space-y-1">
+              {enrolledCourses.map(course => (
+                <SidebarItem key={course.slug} href={`/courses/${course.slug}`} icon={BookOpen} title={course.title} />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <div>
           <h4 className="px-3.5 mb-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Academia</h4>
