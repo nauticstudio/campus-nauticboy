@@ -3,6 +3,7 @@
 import { SidebarItem } from './SidebarItem'
 import { Music2, Search, Home, Library, Heart, BarChart3, Bell, Users, BookOpen, Package, FolderTree, Megaphone, Settings, LogOut, Sparkles, Crown } from 'lucide-react'
 import { logout } from '@/lib/actions/auth'
+import { UserSettingsSheet } from '@/components/layout/UserSettingsSheet'
 
 interface SidebarProps {
   isAdmin?: boolean
@@ -107,12 +108,7 @@ export function Sidebar({ isAdmin = false, userName = 'Alumno' }: SidebarProps) 
               <span className={`text-[10px] font-bold ${isAdmin ? 'text-amber-600 tracking-wide' : 'text-cyan-600'}`}>{isAdmin ? 'Fundador & Admin' : 'Alumno Pro'}</span>
             </div>
           </div>
-          <button 
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
-            title="Ajustes"
-          >
-            <Settings className="w-4 h-4" />
-          </button>
+          <UserSettingsSheet userName={userName} isAdmin={isAdmin} />
         </div>
         
         <form action={logout}>
