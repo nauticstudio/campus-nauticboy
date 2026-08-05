@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Package, Upload, Shield, Plus, FileText, CheckCircle2, Lock, HardDrive } from 'lucide-react'
+import { Package, Upload, Shield, Plus, FileText, CheckCircle2, Lock, HardDrive, Eye, EyeOff } from 'lucide-react'
 
 export default function AdminResourcesPage() {
   const [resources, setResources] = useState([
@@ -11,7 +11,8 @@ export default function AdminResourcesPage() {
       fileName: 'Melodic_Techno_Master_2026.als',
       driveId: '1w7Zr5tfucDoXaXOrsVG55WixmIvChyd9',
       category: 'Plantillas',
-      isRestricted: true
+      isRestricted: true,
+      isPublished: true
     },
     {
       id: 'r2',
@@ -19,9 +20,16 @@ export default function AdminResourcesPage() {
       fileName: 'Synthwave_Serum_Pack.zip',
       driveId: '1w7Zr5tfucDoXaXOrsVG55WixmIvChyd9',
       category: 'Presets',
-      isRestricted: false
+      isRestricted: false,
+      isPublished: true
     }
   ])
+
+  const toggleResourceVisibility = (id: string) => {
+    setResources(resources.map(r => 
+      r.id === id ? { ...r, isPublished: !r.isPublished } : r
+    ))
+  }
 
   return (
     <div className="p-6 md:p-10 lg:p-12 space-y-8 max-w-7xl mx-auto">
@@ -90,6 +98,18 @@ export default function AdminResourcesPage() {
                     <Lock className="w-3 h-3" /> Solo Alumnos
                   </span>
                 )}
+
+                <button 
+                  onClick={() => toggleResourceVisibility(res.id)}
+                  className={`p-2 rounded-xl transition-all ${
+                    res.isPublished 
+                      ? 'text-emerald-600 hover:bg-emerald-100 bg-emerald-50' 
+                      : 'text-rose-500 hover:bg-rose-100 bg-rose-50/50'
+                  }`}
+                  title={res.isPublished ? 'Ocultar recurso' : 'Publicar recurso'}
+                >
+                  {res.isPublished ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                </button>
               </div>
             </div>
           ))}

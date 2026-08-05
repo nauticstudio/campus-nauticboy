@@ -7,8 +7,11 @@ import {
   Download, 
   Heart, 
   Search, 
-  Layers
+  Layers,
+  Eye,
+  EyeOff
 } from 'lucide-react'
+import { AdminQuickToolbar } from '@/components/admin/AdminQuickToolbar'
 
 interface ResourceItem {
   id: string
@@ -20,6 +23,7 @@ interface ResourceItem {
   fileName: string
   isFavorite: boolean
   isRestricted: boolean
+  isPublished: boolean
 }
 
 export default function CategoryResourcesPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -35,7 +39,8 @@ export default function CategoryResourcesPage({ params }: { params: Promise<{ sl
       fileSize: '185 MB',
       fileName: 'Melodic_Techno_Master_2026.als',
       isFavorite: true,
-      isRestricted: false
+      isRestricted: false,
+      isPublished: true
     },
     {
       id: 'res-2',
@@ -46,7 +51,8 @@ export default function CategoryResourcesPage({ params }: { params: Promise<{ sl
       fileSize: '14.2 MB',
       fileName: 'Synthwave_Serum_Pack.zip',
       isFavorite: false,
-      isRestricted: false
+      isRestricted: false,
+      isPublished: true
     },
     {
       id: 'res-3',
@@ -57,15 +63,27 @@ export default function CategoryResourcesPage({ params }: { params: Promise<{ sl
       fileSize: '4.8 MB',
       fileName: 'Mastering_Chain_Pro.adg',
       isFavorite: true,
-      isRestricted: true
+      isRestricted: true,
+      isPublished: false
     }
   ])
+
+  const [isEditMode, setIsEditMode] = useState(false)
+  const isAdmin = true // Mock admin status for UI demonstration
 
   const toggleFavorite = (id: string) => {
     setResources(prev =>
       prev.map(r => (r.id === id ? { ...r, isFavorite: !r.isFavorite } : r))
     )
   }
+
+  const toggleResourceVisibility = (id: string) => {
+    setResources(prev =>
+      prev.map(r => (r.id === id ? { ...r, isPublished: !r.isPublished } : r))
+    )
+  }
+
+  const visibleResources = isEditMode ? resources : resources.filter(r => r.isPublished)
 
   return (
     <div className="p-6 md:p-10 lg:p-12 space-y-10 max-w-7xl mx-auto">
@@ -103,30 +121,54 @@ export default function CategoryResourcesPage({ params }: { params: Promise<{ sl
         </div>
       </div>
 
+      {isAdmin && (
+        <AdminQuickToolbar 
+          isEditMode={isEditMode} 
+          onToggleEditMode={() => setIsEditMode(!isEditMode)} 
+        />
+      )}
+
       {/* Resource Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {resources.map(res => (
-          <div key={res.id} className="glass-card glass-card-hover rounded-3xl p-6 flex flex-col justify-between h-full relative overflow-hidden group">
+        {visibleResources.map(res => (
+          <div key={res.id} className={`glass-card glass-card-hover rounded-3xl p-6 flex flex-col justify-between h-full relative overflow-hidden group ${!res.isPublished ? 'opacity-70 grayscale-[30%]' : ''}`}>
             
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <span className="px-3 py-1 rounded-full text-[11px] font-extrabold bg-cyan-100 text-cyan-800 border border-cyan-200">
                   {res.software}
                 </span>
                 
-                {/* Favorite Heart Button */}
-                <button
-                  type="button"
-                  onClick={() => toggleFavorite(res.id)}
-                  className={`p-2 rounded-xl border transition-all duration-200 ${
-                    res.isFavorite 
-                      ? 'bg-rose-50 border-rose-200 text-rose-500 shadow-2xs' 
-                      : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-rose-500 hover:bg-rose-50'
-                  }`}
-                  title={res.isFavorite ? "Quitar de favoritos" : "Guardar en favoritos"}
-                >
-                  <Heart className={`w-4 h-4 ${res.isFavorite ? 'fill-rose-500 animate-pulse-subtle' : ''}`} />
-                </button>
+                <div className="flex items-center gap-2">
+                  {isEditMode && (
+                    <button
+                      type="button"
+                      onClick={() => toggleResourceVisibility(res.id)}
+                      className={`p-2 rounded-xl border transition-all duration-200 ${
+                        res.isPublished 
+                          ? 'bg-emerald-50 border-emerald-200 text-emerald-600 shadow-2xs hover:bg-emerald-100' 
+                          : 'bg-rose-50 border-rose-200 text-rose-500 shadow-2xs hover:bg-rose-100'
+                      }`}
+                      title={res.isPublished ? "Ocultar recurso" : "Publicar recurso"}
+                    >
+                      {res.isPublished ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    </button>
+                  )}
+
+                  {/* Favorite Heart Button */}
+                  <button
+                    type="button"
+                    onClick={() => toggleFavorite(res.id)}
+                    className={`p-2 rounded-xl border transition-all duration-200 ${
+                      res.isFavorite 
+                        ? 'bg-rose-50 border-rose-200 text-rose-500 shadow-2xs' 
+                        : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-rose-500 hover:bg-rose-50'
+                    }`}
+                    title={res.isFavorite ? "Quitar de favoritos" : "Guardar en favoritos"}
+                  >
+                    <Heart className={`w-4 h-4 ${res.isFavorite ? 'fill-rose-500 animate-pulse-subtle' : ''}`} />
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-2">
