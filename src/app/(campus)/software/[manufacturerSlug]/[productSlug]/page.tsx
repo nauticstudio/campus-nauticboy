@@ -88,7 +88,7 @@ export default async function SoftwareProductPage({
               {grouped.installersWin.map((win) => (
                 <a 
                   key={win.id}
-                  href={win.download_url}
+                  href={`/api/download?id=${win.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-cyan-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:bg-cyan-400 transition-all shadow-lg shadow-cyan-500/25 active:scale-95"
@@ -100,7 +100,7 @@ export default async function SoftwareProductPage({
               {grouped.installersMac.map((mac) => (
                 <a 
                   key={mac.id}
-                  href={mac.download_url}
+                  href={`/api/download?id=${mac.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider hover:bg-slate-700 border border-slate-700 transition-all active:scale-95"
@@ -150,7 +150,7 @@ export default async function SoftwareProductPage({
                 </div>
 
                 <a 
-                  href={fc.download_url}
+                  href={`/api/download?id=${fc.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-indigo-600 transition-all flex-shrink-0"
@@ -233,7 +233,7 @@ export default async function SoftwareProductPage({
                   </div>
 
                   <a 
-                    href={exp.download_url}
+                    href={`/api/download?id=${exp.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-black text-xs hover:bg-cyan-400 transition-all shadow-md shadow-cyan-500/20 active:scale-95"

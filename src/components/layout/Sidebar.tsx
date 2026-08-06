@@ -1,7 +1,7 @@
 'use client'
 
 import { SidebarItem } from './SidebarItem'
-import { Music2, Search, Home, Library, Heart, BarChart3, Bell, Users, BookOpen, Package, FolderTree, Megaphone, Settings, LogOut, Sparkles, Crown } from 'lucide-react'
+import { Music2, Search, Home, Library, Heart, BarChart3, Bell, Users, BookOpen, Package, FolderTree, Megaphone, Settings, LogOut, Sparkles, Crown, Cpu } from 'lucide-react'
 import { logout } from '@/lib/actions/auth'
 import { UserSettingsSheet } from '@/components/layout/UserSettingsSheet'
 
@@ -92,6 +92,7 @@ export function Sidebar({ isAdmin = false, userName = 'Alumno', enrolledCourses 
             <div className="space-y-1">
               <SidebarItem href="/admin/users" icon={Users} title="Usuarios" />
               <SidebarItem href="/admin/courses" icon={BookOpen} title="Cursos" />
+              <SidebarItem href="/admin/software" icon={Cpu} title="Software & Plugins" />
               <SidebarItem href="/admin/resources" icon={Package} title="Recursos" />
               <SidebarItem href="/admin/categories" icon={FolderTree} title="Categorías" />
               <SidebarItem href="/admin/announcements" icon={Megaphone} title="Anuncios" />
