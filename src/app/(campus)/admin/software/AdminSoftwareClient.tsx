@@ -6,14 +6,11 @@ import {
   Trash2, 
   Package, 
   Download, 
-  Layers, 
   Building2, 
   Cpu, 
   Loader2, 
   Link as LinkIcon,
-  ShieldCheck,
-  CheckCircle2,
-  HardDrive
+  Pencil
 } from 'lucide-react'
 import {
   Dialog,
@@ -31,7 +28,10 @@ import {
   createSoftwareProductAction, 
   createSoftwareItemAction,
   deleteSoftwareProductAction,
-  deleteSoftwareItemAction
+  deleteSoftwareItemAction,
+  updateSoftwareProductAction,
+  updateSoftwareItemAction,
+  updateManufacturerAction
 } from '@/app/actions/software'
 
 export function AdminSoftwareClient({
@@ -44,10 +44,16 @@ export function AdminSoftwareClient({
   const [isManufacturerOpen, setIsManufacturerOpen] = useState(false)
   const [isProductOpen, setIsProductOpen] = useState(false)
   const [isItemOpen, setIsItemOpen] = useState(false)
+  
+  // Edit states
+  const [editingManufacturer, setEditingManufacturer] = useState<any>(null)
+  const [editingProduct, setEditingProduct] = useState<any>(null)
+  const [editingItem, setEditingItem] = useState<any>(null)
+
   const [loading, setLoading] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState('')
 
-  // Submit Handler for Manufacturer
+  // Submit Handlers
   const handleCreateManufacturer = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
@@ -62,7 +68,20 @@ export function AdminSoftwareClient({
     }
   }
 
-  // Submit Handler for Product
+  const handleUpdateManufacturer = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
+    const formData = new FormData(e.currentTarget)
+    const res = await updateManufacturerAction(formData)
+    setLoading(false)
+    if (res.success) {
+      setEditingManufacturer(null)
+      window.location.reload()
+    } else {
+      alert(res.error)
+    }
+  }
+
   const handleCreateProduct = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
@@ -77,7 +96,20 @@ export function AdminSoftwareClient({
     }
   }
 
-  // Submit Handler for Item / Expansion
+  const handleUpdateProduct = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
+    const formData = new FormData(e.currentTarget)
+    const res = await updateSoftwareProductAction(formData)
+    setLoading(false)
+    if (res.success) {
+      setEditingProduct(null)
+      window.location.reload()
+    } else {
+      alert(res.error)
+    }
+  }
+
   const handleCreateItem = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
@@ -86,6 +118,20 @@ export function AdminSoftwareClient({
     setLoading(false)
     if (res.success) {
       setIsItemOpen(false)
+      window.location.reload()
+    } else {
+      alert(res.error)
+    }
+  }
+
+  const handleUpdateItem = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
+    const formData = new FormData(e.currentTarget)
+    const res = await updateSoftwareItemAction(formData)
+    setLoading(false)
+    if (res.success) {
+      setEditingItem(null)
       window.location.reload()
     } else {
       alert(res.error)
@@ -115,9 +161,9 @@ export function AdminSoftwareClient({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {/* Modal 1: Manufacturer */}
+          {/* Modal 1: Create Manufacturer */}
           <Dialog open={isManufacturerOpen} onOpenChange={setIsManufacturerOpen}>
-            <DialogTrigger render={<button className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition-all" />}>
+            <DialogTrigger render={<button className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition-all cursor-pointer" />}>
               <Building2 className="w-4 h-4 text-cyan-400" /> + Fabricante
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px] bg-white text-slate-900 rounded-3xl p-6">
@@ -151,9 +197,9 @@ export function AdminSoftwareClient({
             </DialogContent>
           </Dialog>
 
-          {/* Modal 2: Product */}
+          {/* Modal 2: Create Product */}
           <Dialog open={isProductOpen} onOpenChange={setIsProductOpen}>
-            <DialogTrigger render={<button className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition-all" />}>
+            <DialogTrigger render={<button className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition-all cursor-pointer" />}>
               <Cpu className="w-4 h-4 text-cyan-400" /> + Nuevo Producto / Plugin
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px] bg-white text-slate-900 rounded-3xl p-6">
@@ -215,9 +261,9 @@ export function AdminSoftwareClient({
             </DialogContent>
           </Dialog>
 
-          {/* Modal 3: Item / Expansion */}
+          {/* Modal 3: Create Item */}
           <Dialog open={isItemOpen} onOpenChange={setIsItemOpen}>
-            <DialogTrigger render={<button className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition-all shadow-md shadow-cyan-500/20" />}>
+            <DialogTrigger render={<button className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition-all shadow-md shadow-cyan-500/20 cursor-pointer" />}>
               <Plus className="w-4 h-4" /> + Añadir Contenido / Expansión
             </DialogTrigger>
             <DialogContent className="sm:max-w-[550px] bg-white text-slate-900 rounded-3xl p-6">
@@ -307,6 +353,145 @@ export function AdminSoftwareClient({
         </div>
       </div>
 
+      {/* EDIT PRODUCT MODAL */}
+      {editingProduct && (
+        <Dialog open={!!editingProduct} onOpenChange={(open) => !open && setEditingProduct(null)}>
+          <DialogContent className="sm:max-w-[500px] bg-white text-slate-900 rounded-3xl p-6">
+            <form onSubmit={handleUpdateProduct}>
+              <input type="hidden" name="id" value={editingProduct.id} />
+
+              <DialogHeader className="space-y-2 mb-4">
+                <DialogTitle className="text-xl font-black">Editar Producto: {editingProduct.name}</DialogTitle>
+                <DialogDescription className="text-xs font-medium text-slate-500">Modifica los detalles del producto.</DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-600 uppercase">Fabricante</label>
+                  <select name="manufacturer_id" defaultValue={editingProduct.manufacturer_id} required className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold bg-slate-50 mt-1">
+                    {manufacturers.map(m => (
+                      <option key={m.id} value={m.id}>{m.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-600 uppercase">Nombre del Producto</label>
+                  <Input name="name" defaultValue={editingProduct.name} required className="rounded-xl mt-1" />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-600 uppercase">Lema / Subtítulo</label>
+                  <Input name="tagline" defaultValue={editingProduct.tagline || ''} className="rounded-xl mt-1" />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-600 uppercase">Descripción</label>
+                  <textarea name="description" defaultValue={editingProduct.description || ''} className="w-full rounded-xl border border-slate-200 text-xs p-3 min-h-[70px] mt-1" />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-600 uppercase">URL de Portada</label>
+                  <Input name="cover_image_url" defaultValue={editingProduct.cover_image_url || ''} className="rounded-xl mt-1" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 uppercase">Versión</label>
+                    <Input name="version" defaultValue={editingProduct.version || '1.0'} className="rounded-xl mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 uppercase">Compatibilidad</label>
+                    <Input name="compatibility" defaultValue={editingProduct.compatibility || ''} className="rounded-xl mt-1" />
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter className="mt-6">
+                <Button type="submit" disabled={loading} className="w-full bg-slate-900 text-white font-bold rounded-xl h-11">
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Actualizar Producto'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* EDIT ITEM MODAL */}
+      {editingItem && (
+        <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+          <DialogContent className="sm:max-w-[550px] bg-white text-slate-900 rounded-3xl p-6">
+            <form onSubmit={handleUpdateItem}>
+              <input type="hidden" name="id" value={editingItem.id} />
+
+              <DialogHeader className="space-y-2 mb-4">
+                <DialogTitle className="text-xl font-black">Editar Archivo: {editingItem.title}</DialogTitle>
+                <DialogDescription className="text-xs font-medium text-slate-500">Modifica el enlace de Google Drive o los detalles.</DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 uppercase">Tipo de Archivo</label>
+                    <select name="item_type" defaultValue={editingItem.item_type} required className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold bg-slate-50 mt-1">
+                      <option value="expansion">Expansión / Banco</option>
+                      <option value="installer_win">Instalador Windows</option>
+                      <option value="installer_mac">Instalador macOS</option>
+                      <option value="factory_content">Factory Library Base</option>
+                      <option value="skin">Skin / Apariencia</option>
+                      <option value="presets">Presets Sueltos</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 uppercase">Título del Archivo</label>
+                    <Input name="title" defaultValue={editingItem.title} required className="rounded-xl mt-1" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-cyan-600 uppercase flex items-center gap-1">
+                    <LinkIcon className="w-3 h-3" /> Link de Google Drive
+                  </label>
+                  <Input name="download_url" defaultValue={editingItem.download_url} required className="rounded-xl mt-1 font-mono text-xs border-cyan-300" />
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 uppercase">Tamaño</label>
+                    <Input name="file_size" defaultValue={editingItem.file_size || ''} className="rounded-xl mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 uppercase">Presets (#)</label>
+                    <Input name="preset_count" type="number" defaultValue={editingItem.preset_count || 0} className="rounded-xl mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 uppercase">Tag / Género</label>
+                    <Input name="genre_tag" defaultValue={editingItem.genre_tag || ''} className="rounded-xl mt-1" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-600 uppercase">Portada Imagen</label>
+                  <Input name="cover_image_url" defaultValue={editingItem.cover_image_url || ''} className="rounded-xl mt-1" />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-600 uppercase">Descripción</label>
+                  <Input name="description" defaultValue={editingItem.description || ''} className="rounded-xl mt-1" />
+                </div>
+              </div>
+
+              <DialogFooter className="mt-6">
+                <Button type="submit" disabled={loading} className="w-full bg-slate-900 text-white font-bold rounded-xl h-11">
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Actualizar Archivo'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {/* Catalog Display */}
       <div className="space-y-6">
         <h3 className="text-lg font-black text-slate-900">Productos Registrados ({products.length})</h3>
@@ -332,12 +517,20 @@ export function AdminSoftwareClient({
                     </div>
                   </div>
 
-                  <button 
-                    onClick={() => handleDeleteProduct(p.id, p.name)}
-                    className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors text-xs font-bold flex items-center gap-1"
-                  >
-                    <Trash2 className="w-4 h-4" /> Eliminar Producto
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => setEditingProduct(p)}
+                      className="p-2 text-cyan-600 hover:bg-cyan-50 rounded-xl transition-colors text-xs font-bold flex items-center gap-1 cursor-pointer"
+                    >
+                      <Pencil className="w-4 h-4" /> Editar
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteProduct(p.id, p.name)}
+                      className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors text-xs font-bold flex items-center gap-1 cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" /> Eliminar
+                    </button>
+                  </div>
                 </div>
 
                 {/* Items List */}
@@ -358,12 +551,22 @@ export function AdminSoftwareClient({
                             </div>
                           </div>
 
-                          <button 
-                            onClick={() => handleDeleteItem(item.id, item.title)}
-                            className="text-slate-400 hover:text-rose-600 p-1"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button 
+                              onClick={() => setEditingItem(item)}
+                              className="text-slate-500 hover:text-cyan-600 p-1 cursor-pointer"
+                              title="Editar archivo"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteItem(item.id, item.title)}
+                              className="text-slate-400 hover:text-rose-600 p-1 cursor-pointer"
+                              title="Eliminar archivo"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>

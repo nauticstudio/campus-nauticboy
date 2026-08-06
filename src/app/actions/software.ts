@@ -167,3 +167,117 @@ export async function deleteSoftwareItemAction(itemId: string) {
     return { success: false, error: error.message }
   }
 }
+
+// UPDATE FUNCTIONS
+export async function updateManufacturerAction(formData: FormData) {
+  try {
+    const adminSupabase = await verifyAdmin()
+    const id = formData.get('id') as string
+    const name = formData.get('name') as string
+    const logo_url = formData.get('logo_url') as string
+    const description = formData.get('description') as string
+
+    if (!id || !name) throw new Error('ID y Nombre son obligatorios')
+
+    const slug = slugify(name)
+
+    const { error } = await adminSupabase
+      .from('software_manufacturers')
+      .update({ name, slug, logo_url, description })
+      .eq('id', id)
+
+    if (error) throw error
+
+    revalidatePath('/admin/software')
+    revalidatePath('/software')
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+export async function updateSoftwareProductAction(formData: FormData) {
+  try {
+    const adminSupabase = await verifyAdmin()
+    const id = formData.get('id') as string
+    const manufacturer_id = formData.get('manufacturer_id') as string
+    const name = formData.get('name') as string
+    const tagline = formData.get('tagline') as string
+    const description = formData.get('description') as string
+    const cover_image_url = formData.get('cover_image_url') as string
+    const version = formData.get('version') as string
+    const compatibility = formData.get('compatibility') as string
+    const formats = (formData.get('formats') as string || 'VST3, AU, AAX').split(',').map(s => s.trim())
+
+    if (!id || !name) throw new Error('ID y Nombre son obligatorios')
+
+    const slug = slugify(name)
+
+    const { error } = await adminSupabase
+      .from('software_products')
+      .update({
+        manufacturer_id,
+        name,
+        slug,
+        tagline,
+        description,
+        cover_image_url,
+        version,
+        compatibility,
+        formats,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+
+    if (error) throw error
+
+    revalidatePath('/admin/software')
+    revalidatePath('/software')
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+export async function updateSoftwareItemAction(formData: FormData) {
+  try {
+    const adminSupabase = await verifyAdmin()
+    const id = formData.get('id') as string
+    const title = formData.get('title') as string
+    const item_type = formData.get('item_type') as any
+    const description = formData.get('description') as string
+    const cover_image_url = formData.get('cover_image_url') as string
+    const file_size = formData.get('file_size') as string
+    const version = formData.get('version') as string
+    const download_url = formData.get('download_url') as string
+    const preset_count = parseInt(formData.get('preset_count') as string || '0', 10)
+    const genre_tag = formData.get('genre_tag') as string
+
+    if (!id || !title || !download_url) {
+      throw new Error('ID, Título y Link de Google Drive son obligatorios')
+    }
+
+    const { error } = await adminSupabase
+      .from('software_items')
+      .update({
+        title,
+        item_type,
+        description,
+        cover_image_url,
+        file_size,
+        version,
+        download_url,
+        preset_count,
+        genre_tag
+      })
+      .eq('id', id)
+
+    if (error) throw error
+
+    revalidatePath('/admin/software')
+    revalidatePath('/software')
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
