@@ -162,10 +162,11 @@ export function AdminSoftwareClient({
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Modal 1: Create Manufacturer */}
+          <button onClick={() => setIsManufacturerOpen(true)} className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition-all cursor-pointer">
+            <Building2 className="w-4 h-4 text-cyan-400" /> + Fabricante
+          </button>
+          
           <Dialog open={isManufacturerOpen} onOpenChange={setIsManufacturerOpen}>
-            <DialogTrigger render={<button className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition-all cursor-pointer" />}>
-              <Building2 className="w-4 h-4 text-cyan-400" /> + Fabricante
-            </DialogTrigger>
             <DialogContent className="sm:max-w-[425px] bg-white text-slate-900 rounded-3xl p-6">
               <form onSubmit={handleCreateManufacturer}>
                 <DialogHeader className="space-y-2 mb-4">
@@ -198,10 +199,11 @@ export function AdminSoftwareClient({
           </Dialog>
 
           {/* Modal 2: Create Product */}
+          <button onClick={() => setIsProductOpen(true)} className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition-all cursor-pointer">
+            <Cpu className="w-4 h-4 text-cyan-400" /> + Nuevo Producto / Plugin
+          </button>
+
           <Dialog open={isProductOpen} onOpenChange={setIsProductOpen}>
-            <DialogTrigger render={<button className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition-all cursor-pointer" />}>
-              <Cpu className="w-4 h-4 text-cyan-400" /> + Nuevo Producto / Plugin
-            </DialogTrigger>
             <DialogContent className="sm:max-w-[500px] bg-white text-slate-900 rounded-3xl p-6">
               <form onSubmit={handleCreateProduct}>
                 <DialogHeader className="space-y-2 mb-4">
@@ -262,10 +264,11 @@ export function AdminSoftwareClient({
           </Dialog>
 
           {/* Modal 3: Create Item */}
+          <button onClick={() => setIsItemOpen(true)} className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition-all shadow-md shadow-cyan-500/20 cursor-pointer">
+            <Plus className="w-4 h-4" /> + Añadir Contenido / Expansión
+          </button>
+
           <Dialog open={isItemOpen} onOpenChange={setIsItemOpen}>
-            <DialogTrigger render={<button className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition-all shadow-md shadow-cyan-500/20 cursor-pointer" />}>
-              <Plus className="w-4 h-4" /> + Añadir Contenido / Expansión
-            </DialogTrigger>
             <DialogContent className="sm:max-w-[550px] bg-white text-slate-900 rounded-3xl p-6">
               <form onSubmit={handleCreateItem}>
                 <DialogHeader className="space-y-2 mb-4">
