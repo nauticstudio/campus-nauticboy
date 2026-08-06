@@ -132,7 +132,7 @@ ON CONFLICT (slug) DO NOTHING;
 -- NEXUS 5
 INSERT INTO software_products (id, manufacturer_id, name, slug, tagline, description, cover_image_url, version, compatibility, formats, is_featured)
 VALUES (
-  'p1111111-1111-1111-1111-111111111111',
+  'b1111111-1111-1111-1111-111111111111',
   'a1111111-1111-1111-1111-111111111111',
   'Nexus 5',
   'nexus-5',
@@ -148,7 +148,7 @@ VALUES (
 -- VPS AVENGER 2
 INSERT INTO software_products (id, manufacturer_id, name, slug, tagline, description, cover_image_url, version, compatibility, formats, is_featured)
 VALUES (
-  'p2222222-2222-2222-2222-222222222222',
+  'b2222222-2222-2222-2222-222222222222',
   'a2222222-2222-2222-2222-222222222222',
   'VPS Avenger 2',
   'vps-avenger-2',
@@ -164,7 +164,7 @@ VALUES (
 -- PRO-Q 3
 INSERT INTO software_products (id, manufacturer_id, name, slug, tagline, description, cover_image_url, version, compatibility, formats, is_featured)
 VALUES (
-  'p3333333-3333-3333-3333-333333333333',
+  'b3333333-3333-3333-3333-333333333333',
   'a3333333-3333-3333-3333-333333333333',
   'Pro-Q 3',
   'pro-q-3',
@@ -180,28 +180,28 @@ VALUES (
 -- ITEMS FOR NEXUS 5
 INSERT INTO software_items (product_id, title, item_type, description, file_size, version, download_url, preset_count, genre_tag, sort_order)
 VALUES 
-  ('p1111111-1111-1111-1111-111111111111', 'Instalador Windows (v5.2.1)', 'installer_win', 'Incluye instalador VST3 y AAX de 64 bits para Windows.', '250 MB', '5.2.1', 'https://drive.google.com/uc?export=download&id=DEMO_WIN_NEXUS', 0, NULL, 1),
-  ('p1111111-1111-1111-1111-111111111111', 'Instalador macOS (v5.2.1 Apple Silicon Native)', 'installer_mac', 'Instalador VST3, AU y AAX compatible con M1/M2/M3 e Intel.', '310 MB', '5.2.1', 'https://drive.google.com/uc?export=download&id=DEMO_MAC_NEXUS', 0, NULL, 2),
-  ('p1111111-1111-1111-1111-111111111111', 'Nexus 5 Factory Content (Core Library)', 'factory_content', 'Biblioteca base oficial con más de 4,000 presets de fábrica.', '18.5 GB', '5.0', 'https://drive.google.com/uc?export=download&id=DEMO_FACTORY_NEXUS', 4000, NULL, 3),
-  ('p1111111-1111-1111-1111-111111111111', 'Hard Techno Vol. 1', 'expansion', 'Screaming leads, kiks distorsionados y bajos oscuros para Hard Techno.', '1.2 GB', '1.0', 'https://drive.google.com/uc?export=download&id=DEMO_EXP_HT1', 150, 'Hard Techno', 4),
-  ('p1111111-1111-1111-1111-111111111111', 'Melodic Techno Essentials', 'expansion', 'Arps hipnóticos, plucks atmosféricos y plads profundos estilo Afterlife.', '1.5 GB', '1.0', 'https://drive.google.com/uc?export=download&id=DEMO_EXP_MT1', 180, 'Melodic Techno', 5),
-  ('p1111111-1111-1111-1111-111111111111', 'Synthwave & Retrowave', 'expansion', 'Sonidos analógicos vintage de los 80s rediseñados para producciones modernas.', '850 MB', '1.0', 'https://drive.google.com/uc?export=download&id=DEMO_EXP_SW1', 120, 'Synthwave', 6),
-  ('p1111111-1111-1111-1111-111111111111', 'Peak Time EDM & Festival', 'expansion', 'Leads masivos, chords agresivos y drops para los escenarios más grandes.', '1.8 GB', '1.0', 'https://drive.google.com/uc?export=download&id=DEMO_EXP_EDM1', 200, 'EDM', 7)
+  ('b1111111-1111-1111-1111-111111111111', 'Instalador Windows (v5.2.1)', 'installer_win', 'Incluye instalador VST3 y AAX de 64 bits para Windows.', '250 MB', '5.2.1', 'https://drive.google.com/uc?export=download&id=DEMO_WIN_NEXUS', 0, NULL, 1),
+  ('b1111111-1111-1111-1111-111111111111', 'Instalador macOS (v5.2.1 Apple Silicon Native)', 'installer_mac', 'Instalador VST3, AU y AAX compatible con M1/M2/M3 e Intel.', '310 MB', '5.2.1', 'https://drive.google.com/uc?export=download&id=DEMO_MAC_NEXUS', 0, NULL, 2),
+  ('b1111111-1111-1111-1111-111111111111', 'Nexus 5 Factory Content (Core Library)', 'factory_content', 'Biblioteca base oficial con más de 4,000 presets de fábrica.', '18.5 GB', '5.0', 'https://drive.google.com/uc?export=download&id=DEMO_FACTORY_NEXUS', 4000, NULL, 3),
+  ('b1111111-1111-1111-1111-111111111111', 'Hard Techno Vol. 1', 'expansion', 'Screaming leads, kiks distorsionados y bajos oscuros para Hard Techno.', '1.2 GB', '1.0', 'https://drive.google.com/uc?export=download&id=DEMO_EXP_HT1', 150, 'Hard Techno', 4),
+  ('b1111111-1111-1111-1111-111111111111', 'Melodic Techno Essentials', 'expansion', 'Arps hipnóticos, plucks atmosféricos y plads profundos estilo Afterlife.', '1.5 GB', '1.0', 'https://drive.google.com/uc?export=download&id=DEMO_EXP_MT1', 180, 'Melodic Techno', 5),
+  ('b1111111-1111-1111-1111-111111111111', 'Synthwave & Retrowave', 'expansion', 'Sonidos analógicos vintage de los 80s rediseñados para producciones modernas.', '850 MB', '1.0', 'https://drive.google.com/uc?export=download&id=DEMO_EXP_SW1', 120, 'Synthwave', 6),
+  ('b1111111-1111-1111-1111-111111111111', 'Peak Time EDM & Festival', 'expansion', 'Leads masivos, chords agresivos y drops para los escenarios más grandes.', '1.8 GB', '1.0', 'https://drive.google.com/uc?export=download&id=DEMO_EXP_EDM1', 200, 'EDM', 7)
 ON CONFLICT DO NOTHING;
 
 -- ITEMS FOR AVENGER 2
 INSERT INTO software_items (product_id, title, item_type, description, file_size, version, download_url, preset_count, genre_tag, sort_order)
 VALUES 
-  ('p2222222-2222-2222-2222-222222222222', 'Instalador Windows (v2.0.4)', 'installer_win', 'Instalador oficial VPS Avenger 2 para Windows.', '180 MB', '2.0.4', 'https://drive.google.com/uc?export=download&id=DEMO_WIN_AVENGER', 0, NULL, 1),
-  ('p2222222-2222-2222-2222-222222222222', 'Instalador macOS (v2.0.4 Universal)', 'installer_mac', 'Instalador universal macOS VST3 / AU / AAX.', '220 MB', '2.0.4', 'https://drive.google.com/uc?export=download&id=DEMO_MAC_AVENGER', 0, NULL, 2),
-  ('p2222222-2222-2222-2222-222222222222', 'Avenger 2 Factory Content', 'factory_content', 'Contenido base oficial Avenger 2 (Wavetables, Samples, Presets).', '7.4 GB', '2.0', 'https://drive.google.com/uc?export=download&id=DEMO_FACTORY_AVENGER', 3000, NULL, 3),
-  ('p2222222-2222-2222-2222-222222222222', 'Cyberpunk 2099 Expansion Pack', 'expansion', 'Sonidos oscuros, agresivos e industriales inspirados en el futuro cyberpunk.', '950 MB', '1.0', 'https://drive.google.com/uc?export=download&id=DEMO_EXP_CYBER', 140, 'Cyberpunk', 4)
+  ('b2222222-2222-2222-2222-222222222222', 'Instalador Windows (v2.0.4)', 'installer_win', 'Instalador oficial VPS Avenger 2 para Windows.', '180 MB', '2.0.4', 'https://drive.google.com/uc?export=download&id=DEMO_WIN_AVENGER', 0, NULL, 1),
+  ('b2222222-2222-2222-2222-222222222222', 'Instalador macOS (v2.0.4 Universal)', 'installer_mac', 'Instalador universal macOS VST3 / AU / AAX.', '220 MB', '2.0.4', 'https://drive.google.com/uc?export=download&id=DEMO_MAC_AVENGER', 0, NULL, 2),
+  ('b2222222-2222-2222-2222-222222222222', 'Avenger 2 Factory Content', 'factory_content', 'Contenido base oficial Avenger 2 (Wavetables, Samples, Presets).', '7.4 GB', '2.0', 'https://drive.google.com/uc?export=download&id=DEMO_FACTORY_AVENGER', 3000, NULL, 3),
+  ('b2222222-2222-2222-2222-222222222222', 'Cyberpunk 2099 Expansion Pack', 'expansion', 'Sonidos oscuros, agresivos e industriales inspirados en el futuro cyberpunk.', '950 MB', '1.0', 'https://drive.google.com/uc?export=download&id=DEMO_EXP_CYBER', 140, 'Cyberpunk', 4)
 ON CONFLICT DO NOTHING;
 
 -- ITEMS FOR PRO-Q 3
 INSERT INTO software_items (product_id, title, item_type, description, file_size, version, download_url, preset_count, genre_tag, sort_order)
 VALUES 
-  ('p3333333-3333-3333-3333-333333333333', 'FabFilter Total Bundle Installer (Win/Mac)', 'installer_win', 'Instalador completo que incluye Pro-Q 3, Pro-L 2, Pro-C 2 y más.', '95 MB', '3.24', 'https://drive.google.com/uc?export=download&id=DEMO_FABFILTER', 0, NULL, 1)
+  ('b3333333-3333-3333-3333-333333333333', 'FabFilter Total Bundle Installer (Win/Mac)', 'installer_win', 'Instalador completo que incluye Pro-Q 3, Pro-L 2, Pro-C 2 y más.', '95 MB', '3.24', 'https://drive.google.com/uc?export=download&id=DEMO_FABFILTER', 0, NULL, 1)
 ON CONFLICT DO NOTHING;
 
 NOTIFY pgrst, 'reload schema';
