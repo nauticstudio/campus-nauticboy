@@ -68,8 +68,9 @@ export function Sidebar({ isAdmin = false, userName = 'Alumno', enrolledCourses 
         <div>
           <h4 className="px-3.5 mb-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Academia</h4>
           <div className="space-y-1">
+            <SidebarItem href="/software" icon={Package} title="Software & Plugins" />
             <SidebarItem href="/academy/plantillas" icon={Library} title="Plantillas" />
-            <SidebarItem href="/academy/presets" icon={Package} title="Presets" />
+            <SidebarItem href="/academy/presets" icon={FolderTree} title="Presets" />
           </div>
         </div>
 
