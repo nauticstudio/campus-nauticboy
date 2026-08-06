@@ -101,7 +101,7 @@ export default async function SoftwareHubPage(props: { searchParams?: Promise<{ 
               Principales Fabricantes
             </h3>
             {selectedManufacturer && (
-              <Link href="/software" className="text-xs font-bold text-cyan-600 hover:text-cyan-500 transition-colors">
+              <Link href="/software#catalog-grid" className="text-xs font-bold text-cyan-600 hover:text-cyan-500 transition-colors">
                 Ver Todos
               </Link>
             )}
@@ -112,7 +112,7 @@ export default async function SoftwareHubPage(props: { searchParams?: Promise<{ 
               return (
                 <Link
                   key={m.id}
-                  href={isSelected ? '/software' : `/software?manufacturer=${m.slug}`}
+                  href={isSelected ? '/software#catalog-grid' : `/software?manufacturer=${m.slug}#catalog-grid`}
                   className={`glass-card rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 transition-all group ${
                     isSelected ? 'border-cyan-500 shadow-md shadow-cyan-500/20 bg-cyan-50' : 'hover:border-cyan-500/40 hover:shadow-md'
                   }`}
@@ -139,7 +139,7 @@ export default async function SoftwareHubPage(props: { searchParams?: Promise<{ 
       )}
 
       {/* All Products Catalog */}
-      <div className="space-y-6">
+      <div id="catalog-grid" className="space-y-6 scroll-mt-28">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-black text-slate-900 tracking-tight">
             {selectedManufacturer ? 'Productos Filtrados' : 'Catálogo de Productos & Sintetizadores'}
@@ -156,7 +156,10 @@ export default async function SoftwareHubPage(props: { searchParams?: Promise<{ 
               {selectedManufacturer ? 'No hay productos de esta marca aún.' : 'Aún no hay productos publicados en el campus.'}
             </h3>
             <p className="text-xs font-medium text-slate-500 max-w-md mx-auto">
-              La biblioteca está siendo preparada. ¡Pronto subiremos software oficial para que puedas descargarlo!
+              {selectedManufacturer 
+                ? 'La biblioteca está siendo preparada. Si eres Administrador, ve al "Admin Panel > Gestión de Software" para añadir productos a este fabricante.' 
+                : 'La biblioteca está siendo preparada. ¡Pronto subiremos software oficial para que puedas descargarlo!'
+              }
             </p>
           </div>
         ) : (

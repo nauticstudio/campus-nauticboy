@@ -53,6 +53,7 @@ export function AdminSoftwareClient({
 
   const [loading, setLoading] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState('')
+  const [preselectedManufacturerId, setPreselectedManufacturerId] = useState('')
 
   // Submit Handlers
   const handleCreateManufacturer = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -145,6 +146,12 @@ export function AdminSoftwareClient({
     window.location.reload()
   }
 
+  const handleDeleteManufacturer = async (id: string, name: string) => {
+    if (!confirm(`¿Seguro que deseas eliminar el fabricante ${name} y TODOS sus productos y expansiones?`)) return
+    await deleteManufacturerAction(id)
+    window.location.reload()
+  }
+
   const handleDeleteItem = async (id: string, title: string) => {
     if (!confirm(`¿Eliminar ${title}?`)) return
     await deleteSoftwareItemAction(id)
@@ -200,7 +207,13 @@ export function AdminSoftwareClient({
           </Dialog>
 
           {/* Modal 2: Create Product */}
-          <button onClick={() => setIsProductOpen(true)} className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition-all cursor-pointer">
+          <button 
+            onClick={() => {
+              setPreselectedManufacturerId('')
+              setIsProductOpen(true)
+            }} 
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition-all cursor-pointer"
+          >
             <Cpu className="w-4 h-4 text-cyan-400" /> + Nuevo Producto / Plugin
           </button>
 
@@ -215,7 +228,13 @@ export function AdminSoftwareClient({
                 <div className="space-y-4">
                   <div>
                     <label className="text-[10px] font-bold text-slate-600 uppercase">Fabricante</label>
-                    <select name="manufacturer_id" required className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold bg-slate-50 mt-1">
+                    <select 
+                      name="manufacturer_id" 
+                      value={preselectedManufacturerId}
+                      onChange={(e) => setPreselectedManufacturerId(e.target.value)}
+                      required 
+                      className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold bg-slate-50 mt-1"
+                    >
                       <option value="">Seleccionar Fabricante...</option>
                       {manufacturers.map(m => (
                         <option key={m.id} value={m.id}>{m.name}</option>
@@ -533,8 +552,58 @@ export function AdminSoftwareClient({
         </Dialog>
       )}
 
-      {/* Catalog Display */}
+      {/* Fabricantes Display */}
       <div className="space-y-6">
+        <h3 className="text-lg font-black text-slate-900">Fabricantes Registrados ({manufacturers.length})</h3>
+
+        {manufacturers.length === 0 ? (
+          <div className="p-12 text-center rounded-3xl border border-dashed border-slate-300 bg-slate-50 space-y-3">
+            <Building2 className="w-10 h-10 text-slate-400 mx-auto" />
+            <h4 className="font-bold text-slate-700">No hay fabricantes creados</h4>
+            <p className="text-xs text-slate-500">Usa el botón "+ Fabricante" para añadir tu primera marca de software.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {manufacturers.map(m => (
+              <div key={m.id} className="glass-card rounded-2xl p-5 border border-slate-200 flex flex-col justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {m.logo_url ? <img src={m.logo_url} alt={m.name} className="w-full h-full object-cover" /> : <Building2 className="w-6 h-6 text-slate-400" />}
+                  </div>
+                  <div>
+                    <h4 className="font-black text-slate-900 text-sm">{m.name}</h4>
+                    <p className="text-[10px] font-medium text-slate-500 line-clamp-2">{m.description || 'Sin descripción'}</p>
+                  </div>
+                </div>
+
+                <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => setEditingManufacturer(m)} className="p-2 text-cyan-600 hover:bg-cyan-50 rounded-xl transition-colors cursor-pointer" title="Editar Fabricante">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => handleDeleteManufacturer(m.id, m.name)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer" title="Eliminar Fabricante">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  
+                  <button 
+                    onClick={() => {
+                      setPreselectedManufacturerId(m.id)
+                      setIsProductOpen(true)
+                    }} 
+                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-bold transition-colors cursor-pointer"
+                  >
+                    <Cpu className="w-3 h-3" /> + Producto
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Catalog Display */}
+      <div className="space-y-6 pt-4 border-t border-slate-200/60">
         <h3 className="text-lg font-black text-slate-900">Productos Registrados ({products.length})</h3>
 
         {products.length === 0 ? (
