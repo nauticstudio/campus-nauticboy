@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { createClient } from '@/lib/supabase/client'
+import { createModuleAction, updateModuleVisibilityAction, updateModulesOrderAction } from '@/app/actions/modules'
 
 // Mock types
 type ModuleType = {
@@ -141,7 +141,6 @@ export function CourseEditor({
   const [isCreating, setIsCreating] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newDescription, setNewDescription] = useState('')
-  const supabase = createClient()
 
 
 
@@ -162,7 +161,7 @@ export function CourseEditor({
       const newModules = arrayMove(modules, oldIndex, newIndex)
       setModules(newModules)
 
-      // DB sync for all modules
+      // DB sync for all modules using Server Action
       const updates = newModules.map((m, index) => ({
         id: m.id,
         course_id: courseId,
@@ -172,7 +171,7 @@ export function CourseEditor({
         sort_order: index
       }))
       
-      await supabase.from('modules').upsert(updates)
+      await updateModulesOrderAction(courseId, updates)
     }
   }
 
@@ -182,25 +181,14 @@ export function CourseEditor({
 
     setIsCreating(true)
     try {
-      const { data, error } = await supabase
-        .from('modules')
-        .insert({
-          course_id: courseId,
-          title: newTitle,
-          description: newDescription,
-          is_published: false,
-          sort_order: modules.length
-        })
-        .select()
-        .single()
-
-      if (error) throw error
+      const result = await createModuleAction(courseId, newTitle, newDescription, modules.length)
+      if (!result.success || !result.module) throw new Error(result.error)
 
       setModules([...modules, {
-        id: data.id,
-        title: data.title,
-        description: data.description,
-        isPublished: data.is_published
+        id: result.module.id,
+        title: result.module.title,
+        description: result.module.description,
+        isPublished: result.module.is_published
       }])
       setIsAddModuleOpen(false)
       setNewTitle('')
@@ -219,8 +207,8 @@ export function CourseEditor({
     // Optimistic
     setModules(modules.map(m => m.id === id ? { ...m, isPublished: !m.isPublished } : m))
     
-    // DB sync
-    await supabase.from('modules').update({ is_published: !module.isPublished }).eq('id', id)
+    // DB sync using Server Action
+    await updateModuleVisibilityAction(courseId, id, !module.isPublished)
   }
 
   return (
