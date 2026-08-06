@@ -54,6 +54,7 @@ export function AdminSoftwareClient({
   const [loading, setLoading] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState('')
   const [preselectedManufacturerId, setPreselectedManufacturerId] = useState('')
+  const [createItemType, setCreateItemType] = useState('expansion')
 
   // Submit Handlers
   const handleCreateManufacturer = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -284,7 +285,7 @@ export function AdminSoftwareClient({
           </Dialog>
 
           {/* Modal 3: Create Item */}
-          <button onClick={() => setIsItemOpen(true)} className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition-all shadow-md shadow-cyan-500/20 cursor-pointer">
+          <button onClick={() => { setCreateItemType('expansion'); setIsItemOpen(true); }} className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition-all shadow-md shadow-cyan-500/20 cursor-pointer">
             <Plus className="w-4 h-4" /> + Añadir Contenido / Expansión
           </button>
 
@@ -316,7 +317,13 @@ export function AdminSoftwareClient({
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-[10px] font-bold text-slate-600 uppercase">Tipo de Archivo</label>
-                      <select name="item_type" required className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold bg-slate-50 mt-1">
+                      <select 
+                        name="item_type" 
+                        value={createItemType}
+                        onChange={(e) => setCreateItemType(e.target.value)}
+                        required 
+                        className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold bg-slate-50 mt-1"
+                      >
                         <option value="expansion">Expansión / Banco</option>
                         <option value="installer_win">Instalador Windows</option>
                         <option value="installer_mac">Instalador macOS</option>
@@ -328,7 +335,7 @@ export function AdminSoftwareClient({
 
                     <div>
                       <label className="text-[10px] font-bold text-slate-600 uppercase">Título del Archivo / Expansión</label>
-                      <Input name="title" placeholder="Ej: Hard Techno Vol. 1" required className="rounded-xl mt-1" />
+                      <Input name="title" placeholder={createItemType.startsWith('installer') ? "Ej: Instalador v1.0" : "Ej: Hard Techno Vol. 1"} required className="rounded-xl mt-1" />
                     </div>
                   </div>
 
@@ -339,29 +346,35 @@ export function AdminSoftwareClient({
                     <Input name="download_url" placeholder="https://drive.google.com/..." required className="rounded-xl mt-1 font-mono text-xs border-cyan-300" />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className={`grid ${createItemType.startsWith('installer') ? 'grid-cols-1' : 'grid-cols-3'} gap-3`}>
                     <div>
                       <label className="text-[10px] font-bold text-slate-600 uppercase">Tamaño (MB/GB)</label>
                       <Input name="file_size" placeholder="Ej: 1.2 GB" className="rounded-xl mt-1" />
                     </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-600 uppercase">Presets (#)</label>
-                      <Input name="preset_count" type="number" placeholder="Ej: 150" className="rounded-xl mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-600 uppercase">Tag / Género</label>
-                      <Input name="genre_tag" placeholder="Ej: Techno" className="rounded-xl mt-1" />
-                    </div>
+                    {!createItemType.startsWith('installer') && (
+                      <>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-600 uppercase">Presets (#)</label>
+                          <Input name="preset_count" type="number" placeholder="Ej: 150" className="rounded-xl mt-1" />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-600 uppercase">Tag / Género</label>
+                          <Input name="genre_tag" placeholder="Ej: Techno" className="rounded-xl mt-1" />
+                        </div>
+                      </>
+                    )}
                   </div>
 
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-600 uppercase">Imagen de Portada (Para Expansiones)</label>
-                    <Input name="cover_image_url" placeholder="https://..." className="rounded-xl mt-1" />
-                  </div>
+                  {!createItemType.startsWith('installer') && (
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 uppercase">Imagen de Portada (Para Expansiones)</label>
+                      <Input name="cover_image_url" placeholder="https://..." className="rounded-xl mt-1" />
+                    </div>
+                  )}
 
                   <div>
                     <label className="text-[10px] font-bold text-slate-600 uppercase">Descripción Breve</label>
-                    <Input name="description" placeholder="De qué trata esta expansión..." className="rounded-xl mt-1" />
+                    <Input name="description" placeholder={createItemType.startsWith('installer') ? "Notas del instalador..." : "De qué trata esta expansión..."} className="rounded-xl mt-1" />
                   </div>
                 </div>
 
@@ -493,7 +506,13 @@ export function AdminSoftwareClient({
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-[10px] font-bold text-slate-600 uppercase">Tipo de Archivo</label>
-                    <select name="item_type" defaultValue={editingItem.item_type} required className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold bg-slate-50 mt-1">
+                    <select 
+                      name="item_type" 
+                      value={editingItem.item_type} 
+                      onChange={(e) => setEditingItem({...editingItem, item_type: e.target.value})}
+                      required 
+                      className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold bg-slate-50 mt-1"
+                    >
                       <option value="expansion">Expansión / Banco</option>
                       <option value="installer_win">Instalador Windows</option>
                       <option value="installer_mac">Instalador macOS</option>
@@ -516,25 +535,31 @@ export function AdminSoftwareClient({
                   <Input name="download_url" defaultValue={editingItem.download_url} required className="rounded-xl mt-1 font-mono text-xs border-cyan-300" />
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className={`grid ${editingItem.item_type?.startsWith('installer') ? 'grid-cols-1' : 'grid-cols-3'} gap-3`}>
                   <div>
                     <label className="text-[10px] font-bold text-slate-600 uppercase">Tamaño</label>
                     <Input name="file_size" defaultValue={editingItem.file_size || ''} className="rounded-xl mt-1" />
                   </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-600 uppercase">Presets (#)</label>
-                    <Input name="preset_count" type="number" defaultValue={editingItem.preset_count || 0} className="rounded-xl mt-1" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-600 uppercase">Tag / Género</label>
-                    <Input name="genre_tag" defaultValue={editingItem.genre_tag || ''} className="rounded-xl mt-1" />
-                  </div>
+                  {!editingItem.item_type?.startsWith('installer') && (
+                    <>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-600 uppercase">Presets (#)</label>
+                        <Input name="preset_count" type="number" defaultValue={editingItem.preset_count || ''} className="rounded-xl mt-1" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-600 uppercase">Tag / Género</label>
+                        <Input name="genre_tag" defaultValue={editingItem.genre_tag || ''} className="rounded-xl mt-1" />
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-bold text-slate-600 uppercase">Portada Imagen</label>
-                  <Input name="cover_image_url" defaultValue={editingItem.cover_image_url || ''} className="rounded-xl mt-1" />
-                </div>
+                {!editingItem.item_type?.startsWith('installer') && (
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 uppercase">Portada Imagen</label>
+                    <Input name="cover_image_url" defaultValue={editingItem.cover_image_url || ''} className="rounded-xl mt-1" />
+                  </div>
+                )}
 
                 <div>
                   <label className="text-[10px] font-bold text-slate-600 uppercase">Descripción</label>
