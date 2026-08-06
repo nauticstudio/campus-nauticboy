@@ -24,6 +24,7 @@ export default async function AdminCourseEditorPage({
     .single()
 
   if (error || !course) {
+    console.error('Error fetching course in [id]/page.tsx:', error, 'Course:', course, 'ID:', id)
     return notFound()
   }
 
