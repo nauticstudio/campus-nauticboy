@@ -1,6 +1,6 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { CourseEditor } from '@/components/admin/CourseEditor'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
@@ -14,10 +14,22 @@ export default async function AdminCourseEditorPage({
 
   // Verify auth
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return notFound()
+  if (!user) redirect('/login')
 
-  // Fetch course
-  const { data: course, error } = await supabase
+  // Verify admin role using admin client (bypassing RLS infinite recursion)
+  const adminSupabase = await createAdminClient()
+  const { data: profile } = await adminSupabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'admin') {
+    redirect('/dashboard')
+  }
+
+  // Fetch course using admin client
+  const { data: course, error } = await adminSupabase
     .from('courses')
     .select('*')
     .eq('id', id)
@@ -28,8 +40,8 @@ export default async function AdminCourseEditorPage({
     return notFound()
   }
 
-  // Fetch modules
-  const { data: modules } = await supabase
+  // Fetch modules using admin client
+  const { data: modules } = await adminSupabase
     .from('modules')
     .select('*')
     .eq('course_id', id)
