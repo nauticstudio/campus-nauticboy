@@ -31,6 +31,17 @@ export default async function CampusLayout({
   const isAdmin = profile?.role === 'admin'
   const userName = profile?.full_name || user.email?.split('@')[0] || 'Alumno'
 
+  // Fetch View Mode (Admin only setting, defaults to 'admin' if they are an admin)
+  const { getAdminViewMode } = await import('@/app/actions/view-mode')
+  let currentViewMode = await getAdminViewMode()
+  if (isAdmin && !currentViewMode) currentViewMode = 'admin'
+  
+  // Si no es admin, SIEMPRE el viewMode es student
+  if (!isAdmin) currentViewMode = 'student'
+
+  // El booleano que determina si debemos MOSTRAR las interfaces de admin
+  const showAdminUI = isAdmin && currentViewMode === 'admin'
+
   // Fetch enrolled courses for the sidebar
   const { data: enrollments } = await supabase
     .from('enrollments')
@@ -42,6 +53,9 @@ export default async function CampusLayout({
     ?.map(e => e.courses)
     .filter(Boolean) as unknown as { title: string, slug: string }[] | undefined
 
+  // Import ViewModeSwitcher dynamically if we are an admin
+  const { ViewModeSwitcher } = await import('@/components/layout/ViewModeSwitcher')
+
   return (
     <div className="flex min-h-screen w-full bg-[#F8FAFC] font-sans text-slate-900 selection:bg-cyan-500/20 selection:text-cyan-900 relative overflow-x-hidden">
       
@@ -50,12 +64,17 @@ export default async function CampusLayout({
       <div className="fixed top-1/3 -right-40 w-[30rem] h-[30rem] bg-indigo-400/10 rounded-full blur-3xl pointer-events-none z-0" />
       <div className="fixed -bottom-40 left-1/3 w-[28rem] h-[28rem] bg-emerald-400/10 rounded-full blur-3xl pointer-events-none z-0" />
 
+      {/* Admin View Mode Switcher (Global Floating Toggle) */}
+      {isAdmin && currentViewMode && (
+        <ViewModeSwitcher initialMode={currentViewMode} />
+      )}
+
       {/* Sidebar for Desktop */}
-      <Sidebar isAdmin={isAdmin} userName={userName} enrolledCourses={enrolledCourses || []} />
+      <Sidebar isAdmin={showAdminUI} userName={userName} enrolledCourses={enrolledCourses || []} />
 
       <div className="flex flex-col flex-1 min-w-0 z-10">
         {/* Header with Mobile Nav for small screens */}
-        <Header isAdmin={isAdmin} userName={userName} />
+        <Header isAdmin={showAdminUI} userName={userName} />
         
         {/* Main Content Area */}
         <main className="flex-1 w-full relative">

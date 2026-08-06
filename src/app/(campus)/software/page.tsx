@@ -4,8 +4,16 @@ import { Search, Sparkles, Layers, Cpu, Sliders, ArrowRight, Download, CheckCirc
 
 export const dynamic = 'force-dynamic'
 
-export default async function SoftwareHubPage() {
+export default async function SoftwareHubPage(props: { searchParams?: Promise<{ manufacturer?: string }> }) {
+  const searchParams = await props.searchParams
+  const selectedManufacturer = searchParams?.manufacturer
+
   const { featuredProducts, allProducts, manufacturers, categories } = await getSoftwareHubData()
+
+  // Filter products by manufacturer if selected
+  const displayProducts = selectedManufacturer 
+    ? allProducts.filter(p => p.manufacturer?.slug === selectedManufacturer)
+    : allProducts
 
   const heroProduct = featuredProducts[0] || allProducts[0]
 
@@ -27,8 +35,8 @@ export default async function SoftwareHubPage() {
         </div>
       </div>
 
-      {/* Hero Showcase (Featured Product) */}
-      {heroProduct && (
+      {/* Hero Showcase (Featured Product) - Only show if NO filter is applied */}
+      {!selectedManufacturer && heroProduct && (
         <div className="relative rounded-3xl overflow-hidden bg-slate-900 text-white shadow-2xl border border-slate-800 group">
           {/* Background Ambient Glow */}
           <div 
@@ -88,27 +96,44 @@ export default async function SoftwareHubPage() {
       {/* Manufacturers Carousel / Grid */}
       {manufacturers.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
-            Principales Fabricantes
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
+              Principales Fabricantes
+            </h3>
+            {selectedManufacturer && (
+              <Link href="/software" className="text-xs font-bold text-cyan-600 hover:text-cyan-500 transition-colors">
+                Ver Todos
+              </Link>
+            )}
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {manufacturers.map((m) => (
-              <div 
-                key={m.id}
-                className="glass-card rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 hover:border-cyan-500/40 hover:shadow-md transition-all group cursor-pointer"
-              >
-                <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden group-hover:scale-110 transition-transform">
-                  {m.logo_url ? (
-                    <img src={m.logo_url} alt={m.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <Package className="w-6 h-6 text-slate-400" />
-                  )}
-                </div>
-                <span className="font-bold text-xs text-slate-900 group-hover:text-cyan-600 transition-colors">
-                  {m.name}
-                </span>
-              </div>
-            ))}
+            {manufacturers.map((m) => {
+              const isSelected = selectedManufacturer === m.slug
+              return (
+                <Link
+                  key={m.id}
+                  href={isSelected ? '/software' : `/software?manufacturer=${m.slug}`}
+                  className={`glass-card rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 transition-all group ${
+                    isSelected ? 'border-cyan-500 shadow-md shadow-cyan-500/20 bg-cyan-50' : 'hover:border-cyan-500/40 hover:shadow-md'
+                  }`}
+                >
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden transition-transform ${
+                    isSelected ? 'bg-white shadow-sm' : 'bg-slate-100 group-hover:scale-110'
+                  }`}>
+                    {m.logo_url ? (
+                      <img src={m.logo_url} alt={m.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Package className="w-6 h-6 text-slate-400" />
+                    )}
+                  </div>
+                  <span className={`font-bold text-xs transition-colors ${
+                    isSelected ? 'text-cyan-700' : 'text-slate-900 group-hover:text-cyan-600'
+                  }`}>
+                    {m.name}
+                  </span>
+                </Link>
+              )
+            })}
           </div>
         </div>
       )}
@@ -117,24 +142,26 @@ export default async function SoftwareHubPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-black text-slate-900 tracking-tight">
-            Catálogo de Productos & Sintetizadores
+            {selectedManufacturer ? 'Productos Filtrados' : 'Catálogo de Productos & Sintetizadores'}
           </h2>
           <span className="text-xs font-bold text-slate-400">
-            {allProducts.length} productos disponibles
+            {displayProducts.length} productos disponibles
           </span>
         </div>
 
-        {allProducts.length === 0 ? (
+        {displayProducts.length === 0 ? (
           <div className="p-12 text-center rounded-3xl border border-dashed border-slate-300 bg-slate-50/50 space-y-4">
             <Package className="w-12 h-12 text-slate-400 mx-auto" />
-            <h3 className="text-lg font-bold text-slate-800">No hay productos cargados todavía</h3>
+            <h3 className="text-lg font-bold text-slate-800">
+              {selectedManufacturer ? 'No hay productos de esta marca aún.' : 'Aún no hay productos publicados en el campus.'}
+            </h3>
             <p className="text-xs font-medium text-slate-500 max-w-md mx-auto">
-              Ejecuta el script de esquema SQL en tu panel de Supabase y luego corre el comando de siembra para ver los productos (Nexus 5, VPS Avenger, etc.).
+              La biblioteca está siendo preparada. ¡Pronto subiremos software oficial para que puedas descargarlo!
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {allProducts.map((product) => (
+            {displayProducts.map((product) => (
               <Link 
                 key={product.id}
                 href={`/software/${product.manufacturer?.slug}/${product.slug}`}

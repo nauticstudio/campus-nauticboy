@@ -31,7 +31,8 @@ import {
   deleteSoftwareItemAction,
   updateSoftwareProductAction,
   updateSoftwareItemAction,
-  updateManufacturerAction
+  updateManufacturerAction,
+  deleteManufacturerAction
 } from '@/app/actions/software'
 
 export function AdminSoftwareClient({
@@ -355,6 +356,43 @@ export function AdminSoftwareClient({
           </Dialog>
         </div>
       </div>
+
+      {/* EDIT MANUFACTURER MODAL */}
+      {editingManufacturer && (
+        <Dialog open={!!editingManufacturer} onOpenChange={(open) => !open && setEditingManufacturer(null)}>
+          <DialogContent className="sm:max-w-[425px] bg-white text-slate-900 rounded-3xl p-6">
+            <form onSubmit={handleUpdateManufacturer}>
+              <input type="hidden" name="id" value={editingManufacturer.id} />
+              
+              <DialogHeader className="space-y-2 mb-4">
+                <DialogTitle className="text-xl font-black">Editar Fabricante: {editingManufacturer.name}</DialogTitle>
+                <DialogDescription className="text-xs font-medium text-slate-500">Modifica los detalles de la marca.</DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-600 uppercase">Nombre del Fabricante</label>
+                  <Input name="name" defaultValue={editingManufacturer.name} required className="rounded-xl mt-1" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-600 uppercase">URL del Logo</label>
+                  <Input name="logo_url" defaultValue={editingManufacturer.logo_url || ''} className="rounded-xl mt-1" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-600 uppercase">Descripción</label>
+                  <Input name="description" defaultValue={editingManufacturer.description || ''} className="rounded-xl mt-1" />
+                </div>
+              </div>
+
+              <DialogFooter className="mt-6">
+                <Button type="submit" disabled={loading} className="w-full bg-slate-900 text-white font-bold rounded-xl h-11">
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Actualizar Fabricante'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* EDIT PRODUCT MODAL */}
       {editingProduct && (

@@ -142,6 +142,19 @@ export async function createSoftwareItemAction(formData: FormData) {
 }
 
 // Delete functions
+export async function deleteManufacturerAction(manufacturerId: string) {
+  try {
+    const adminSupabase = await verifyAdmin()
+    const { error } = await adminSupabase.from('software_manufacturers').delete().eq('id', manufacturerId)
+    if (error) throw error
+    revalidatePath('/admin/software')
+    revalidatePath('/software')
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
 export async function deleteSoftwareProductAction(productId: string) {
   try {
     const adminSupabase = await verifyAdmin()
