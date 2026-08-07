@@ -1,6 +1,9 @@
 import { getSoftwareHubData } from '@/lib/data/software'
 import Link from 'next/link'
 import { Search, Sparkles, Layers, Cpu, Sliders, ArrowRight, Download, CheckCircle2, Package, ShieldCheck } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import { getAdminViewMode } from '@/app/actions/view-mode'
+import { InlineCreateSoftwareModal } from '@/components/admin/InlineCreateSoftwareModal'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,6 +19,18 @@ export default async function SoftwareHubPage(props: { searchParams?: Promise<{ 
     : allProducts
 
   const heroProduct = featuredProducts[0] || allProducts[0]
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let showAdminUI = false
+
+  if (user) {
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (profile?.role === 'admin') {
+      const mode = await getAdminViewMode()
+      showAdminUI = mode === 'admin' || !mode
+    }
+  }
 
   return (
     <div className="p-6 md:p-10 lg:p-12 max-w-7xl mx-auto space-y-12">
@@ -141,9 +156,12 @@ export default async function SoftwareHubPage(props: { searchParams?: Promise<{ 
       {/* All Products Catalog */}
       <div id="catalog-grid" className="space-y-6 scroll-mt-28">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-black text-slate-900 tracking-tight">
-            {selectedManufacturer ? 'Productos Filtrados' : 'Catálogo de Productos & Sintetizadores'}
-          </h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-black text-slate-900 tracking-tight">
+              {selectedManufacturer ? 'Productos Filtrados' : 'Catálogo de Productos & Sintetizadores'}
+            </h2>
+            {showAdminUI && <InlineCreateSoftwareModal manufacturers={manufacturers} />}
+          </div>
           <span className="text-xs font-bold text-slate-400">
             {displayProducts.length} productos disponibles
           </span>

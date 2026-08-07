@@ -2,6 +2,11 @@ import { getProductEcosystem } from '@/lib/data/software'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Download, ShieldCheck, Cpu, HardDrive, Sparkles, Layers, CheckCircle2, Music2, Info, FolderArchive, Heart } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import { getAdminViewMode } from '@/app/actions/view-mode'
+import { InlineEditSoftwareModal } from '@/components/admin/InlineEditSoftwareModal'
+import { InlineEditSoftwareItemModal } from '@/components/admin/InlineEditSoftwareItemModal'
+import { InlineCreateSoftwareItemModal } from '@/components/admin/InlineCreateSoftwareItemModal'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +24,23 @@ export default async function SoftwareProductPage({
 
   const { product, manufacturer, grouped } = ecosystem
 
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let showAdminUI = false
+  let allManufacturers: any[] = []
+
+  if (user) {
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (profile?.role === 'admin') {
+      const mode = await getAdminViewMode()
+      showAdminUI = mode === 'admin' || !mode
+      if (showAdminUI) {
+        const { data: m } = await supabase.from('manufacturers').select('*').order('name')
+        allManufacturers = m || []
+      }
+    }
+  }
+
   return (
     <div className="p-6 md:p-10 lg:p-12 max-w-7xl mx-auto space-y-10">
       
@@ -32,6 +54,7 @@ export default async function SoftwareProductPage({
 
       {/* Product Hero Banner */}
       <div className="relative rounded-3xl overflow-hidden bg-slate-950 text-white shadow-2xl border border-slate-800">
+        {showAdminUI && <InlineEditSoftwareModal product={product} manufacturers={allManufacturers} />}
         {/* Background Ambient Glow */}
         {product.cover_image_url && (
           <div 
@@ -127,17 +150,21 @@ export default async function SoftwareProductPage({
       {grouped.factoryContent.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <HardDrive className="w-5 h-5 text-indigo-600" /> Biblioteca Base / Factory Content
-            </h2>
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <HardDrive className="w-5 h-5 text-indigo-600" /> Biblioteca Base / Factory Content
+              </h2>
+              {showAdminUI && <InlineCreateSoftwareItemModal productId={product.id} />}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {grouped.factoryContent.map((fc) => (
               <div 
                 key={fc.id}
-                className="glass-card rounded-2xl p-6 flex items-center justify-between gap-4 border border-indigo-500/20 bg-indigo-500/5"
+                className="relative glass-card rounded-2xl p-6 flex items-center justify-between gap-4 border border-indigo-500/20 bg-indigo-500/5"
               >
+                {showAdminUI && <InlineEditSoftwareItemModal item={fc} />}
                 <div className="space-y-1">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[10px] font-extrabold uppercase">
                     Core Content
@@ -167,17 +194,21 @@ export default async function SoftwareProductPage({
       {grouped.pluginDevices && grouped.pluginDevices.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <Cpu className="w-5 h-5 text-rose-500" /> Plugins & Dispositivos
-            </h2>
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <Cpu className="w-5 h-5 text-rose-500" /> Plugins & Dispositivos
+              </h2>
+              {showAdminUI && <InlineCreateSoftwareItemModal productId={product.id} />}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {grouped.pluginDevices.map((plugin) => (
               <div 
                 key={plugin.id}
-                className="glass-card rounded-2xl p-6 flex items-center justify-between gap-4 border border-rose-500/20 bg-rose-500/5"
+                className="relative glass-card rounded-2xl p-6 flex items-center justify-between gap-4 border border-rose-500/20 bg-rose-500/5"
               >
+                {showAdminUI && <InlineEditSoftwareItemModal item={plugin} />}
                 <div className="space-y-1">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-700 text-[10px] font-extrabold uppercase">
                     Plugin / Device
@@ -208,14 +239,17 @@ export default async function SoftwareProductPage({
       {/* Expansions Ecosystem Grid */}
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
-          <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <Layers className="w-6 h-6 text-cyan-600" /> Expansiones & Bancos de Presets
-            </h2>
-            <p className="text-xs font-semibold text-slate-500 mt-1">
-              Colección completa de expansiones oficiales para {product.name}.
-            </p>
-          </div>
+            <div>
+              <div className="flex items-center gap-4">
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                  <Layers className="w-6 h-6 text-cyan-600" /> Expansiones & Bancos de Presets
+                </h2>
+                {showAdminUI && <InlineCreateSoftwareItemModal productId={product.id} />}
+              </div>
+              <p className="text-xs font-semibold text-slate-500 mt-1">
+                Colección completa de expansiones oficiales para {product.name}.
+              </p>
+            </div>
 
           <span className="text-xs font-extrabold text-cyan-700 bg-cyan-500/10 px-3 py-1.5 rounded-full border border-cyan-500/20 self-start sm:self-auto">
             {grouped.expansions.length} Expansiones
@@ -231,8 +265,9 @@ export default async function SoftwareProductPage({
             {grouped.expansions.map((exp) => (
               <div 
                 key={exp.id}
-                className="glass-card rounded-3xl p-5 flex flex-col justify-between hover:border-cyan-500/40 hover:shadow-xl transition-all duration-300 group"
+                className="relative glass-card rounded-3xl p-5 flex flex-col justify-between hover:border-cyan-500/40 hover:shadow-xl transition-all duration-300 group"
               >
+                {showAdminUI && <InlineEditSoftwareItemModal item={exp} />}
                 <div className="space-y-4">
                   {/* Expansion Cover */}
                   <div className="relative h-48 rounded-2xl overflow-hidden bg-slate-900">

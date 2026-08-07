@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Eye, Shield, User } from 'lucide-react'
+import Link from 'next/link'
+import { Eye, Shield, User, Users } from 'lucide-react'
 import { setAdminViewMode } from '@/app/actions/view-mode'
 
 export function ViewModeSwitcher({ initialMode }: { initialMode: 'admin' | 'student' }) {
@@ -54,6 +55,16 @@ export function ViewModeSwitcher({ initialMode }: { initialMode: 'admin' | 'stud
         <User className="w-4 h-4" />
         Alumno
       </button>
+
+      <div className="pl-3 py-1 ml-1 flex items-center border-l border-slate-700">
+        <Link 
+          href="/admin/users"
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors text-xs font-bold"
+        >
+          <Users className="w-4 h-4" />
+          <span className="hidden sm:inline-block">Usuarios</span>
+        </Link>
+      </div>
     </div>
   )
 }

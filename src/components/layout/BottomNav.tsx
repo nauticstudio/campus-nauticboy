@@ -153,19 +153,7 @@ export function BottomNav({
                 </div>
               )}
 
-              {isAdmin && (
-                <div className="space-y-4 pt-6 border-t border-slate-100">
-                  <h4 className="text-[11px] font-bold text-cyan-600 uppercase tracking-widest flex items-center gap-2">
-                    <Shield className="w-3.5 h-3.5" /> Panel de Administración
-                  </h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Link href="/admin/courses" onClick={() => setMenuOpen(false)} className="p-3 rounded-2xl bg-slate-900 text-white font-bold text-sm text-center hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/20">Cursos</Link>
-                    <Link href="/admin/software" onClick={() => setMenuOpen(false)} className="p-3 rounded-2xl bg-slate-900 text-white font-bold text-sm text-center hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/20">Software</Link>
-                    <Link href="/admin/resources" onClick={() => setMenuOpen(false)} className="p-3 rounded-2xl bg-slate-100 text-slate-900 font-bold text-sm text-center hover:bg-slate-200 transition-colors">Recursos</Link>
-                    <Link href="/admin/users" onClick={() => setMenuOpen(false)} className="p-3 rounded-2xl bg-slate-100 text-slate-900 font-bold text-sm text-center hover:bg-slate-200 transition-colors">Alumnos</Link>
-                  </div>
-                </div>
-              )}
+
             </div>
 
             <div className="pt-4 border-t border-slate-100 mt-auto">
