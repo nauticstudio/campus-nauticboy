@@ -36,7 +36,7 @@ export type SoftwareItem = {
   id: string
   product_id: string
   title: string
-  item_type: 'installer_win' | 'installer_mac' | 'factory_content' | 'expansion' | 'skin' | 'presets' | 'update'
+  item_type: 'installer_win' | 'installer_mac' | 'factory_content' | 'expansion' | 'skin' | 'presets' | 'update' | 'plugin_device'
   description: string | null
   cover_image_url: string | null
   file_size: string | null
@@ -125,6 +125,7 @@ export async function getProductEcosystem(manufacturerSlug: string, productSlug:
   const expansions = typedItems.filter(i => i.item_type === 'expansion')
   const skins = typedItems.filter(i => i.item_type === 'skin')
   const presets = typedItems.filter(i => i.item_type === 'presets')
+  const pluginDevices = typedItems.filter(i => i.item_type === 'plugin_device')
 
   return {
     manufacturer: manufacturer as SoftwareManufacturer,
@@ -136,7 +137,8 @@ export async function getProductEcosystem(manufacturerSlug: string, productSlug:
       factoryContent,
       expansions,
       skins,
-      presets
+      presets,
+      pluginDevices
     }
   }
 }

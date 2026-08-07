@@ -325,6 +325,7 @@ export function AdminSoftwareClient({
                         className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold bg-slate-50 mt-1"
                       >
                         <option value="expansion">Expansión / Banco</option>
+                        <option value="plugin_device">Plugin / Dispositivo Max (.amxd, VST)</option>
                         <option value="installer_win">Instalador Windows</option>
                         <option value="installer_mac">Instalador macOS</option>
                         <option value="factory_content">Factory Library Base</option>
@@ -514,6 +515,7 @@ export function AdminSoftwareClient({
                       className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold bg-slate-50 mt-1"
                     >
                       <option value="expansion">Expansión / Banco</option>
+                      <option value="plugin_device">Plugin / Dispositivo Max (.amxd, VST)</option>
                       <option value="installer_win">Instalador Windows</option>
                       <option value="installer_mac">Instalador macOS</option>
                       <option value="factory_content">Factory Library Base</option>

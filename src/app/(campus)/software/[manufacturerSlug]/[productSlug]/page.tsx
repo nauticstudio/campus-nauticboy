@@ -163,6 +163,48 @@ export default async function SoftwareProductPage({
         </div>
       )}
 
+      {/* Plugins & Devices Section */}
+      {grouped.pluginDevices && grouped.pluginDevices.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <Cpu className="w-5 h-5 text-rose-500" /> Plugins & Dispositivos
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {grouped.pluginDevices.map((plugin) => (
+              <div 
+                key={plugin.id}
+                className="glass-card rounded-2xl p-6 flex items-center justify-between gap-4 border border-rose-500/20 bg-rose-500/5"
+              >
+                <div className="space-y-1">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-700 text-[10px] font-extrabold uppercase">
+                    Plugin / Device
+                  </div>
+                  <h3 className="font-extrabold text-slate-900 text-base">{plugin.title}</h3>
+                  {plugin.description && (
+                    <p className="text-xs font-medium text-slate-500">{plugin.description}</p>
+                  )}
+                  <span className="text-[11px] font-bold text-slate-400 block pt-1">
+                    Tamaño: {plugin.file_size || 'N/A'}
+                  </span>
+                </div>
+
+                <a 
+                  href={`/api/download?id=${plugin.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-rose-600 transition-all flex-shrink-0"
+                >
+                  <Download className="w-4 h-4" /> Descargar
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Expansions Ecosystem Grid */}
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
