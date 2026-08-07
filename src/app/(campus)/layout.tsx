@@ -1,7 +1,6 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Sidebar } from '@/components/layout/Sidebar'
-import { Header } from '@/components/layout/Header'
+import { BottomNav } from '@/components/layout/BottomNav'
 import { CommandMenu } from '@/components/layout/CommandMenu'
 
 export const dynamic = 'force-dynamic'
@@ -102,15 +101,12 @@ export default async function CampusLayout({
         <ViewModeSwitcher initialMode={currentViewMode} />
       )}
 
-      {/* Sidebar for Desktop */}
-      <Sidebar {...sidebarProps} />
+      {/* Floating Bottom Nav */}
+      <BottomNav {...sidebarProps} />
 
-      <div className="flex flex-col flex-1 min-w-0 z-10">
-        {/* Header with Mobile Nav for small screens */}
-        <Header isAdmin={showAdminUI} userName={userName} />
-        
+      <div className="flex flex-col flex-1 min-w-0 z-10 w-full">
         {/* Main Content Area */}
-        <main className="flex-1 w-full relative">
+        <main className="flex-1 w-full relative pb-28 md:pb-32">
           {children}
         </main>
       </div>
