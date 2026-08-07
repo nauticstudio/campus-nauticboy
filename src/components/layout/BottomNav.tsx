@@ -59,7 +59,7 @@ export function BottomNav({
         <NavItem 
           icon={Search} 
           label="Buscar" 
-          onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))} 
+          onClick={() => document.dispatchEvent(new CustomEvent('open-command-menu'))} 
         />
         <NavItem href="/software" icon={Package} label="Software" />
         <NavItem href="/favorites" icon={Heart} label="Favoritos" />
