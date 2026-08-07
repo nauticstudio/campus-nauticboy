@@ -1,7 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { Users, UserPlus, Shield, Search, MoreVertical, CheckCircle, Ban, Mail, Crown } from 'lucide-react'
+import { Users, UserPlus, Shield, Search, MoreVertical, CheckCircle, Ban, Mail, Crown, Loader2 } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { inviteUserAction } from "@/lib/actions/auth"
 
 interface UserProfile {
   id: string
@@ -15,11 +26,35 @@ interface UserProfile {
 export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[] }) {
   const [users] = useState<UserProfile[]>(initialUsers)
   const [searchTerm, setSearchTerm] = useState('')
+  const [isInviteOpen, setIsInviteOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const filteredUsers = users.filter(u => 
-    u.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (u.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   )
+
+  const handleInviteSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage(null)
+
+    const formData = new FormData(e.currentTarget)
+    const res = await inviteUserAction(formData)
+    setLoading(false)
+
+    if (res.error) {
+      setMessage({ type: 'error', text: res.error })
+    } else if (res.success) {
+      setMessage({ type: 'success', text: res.success })
+      setTimeout(() => {
+        setIsInviteOpen(false)
+        setMessage(null)
+        window.location.reload()
+      }, 2000)
+    }
+  }
 
   return (
     <div className="p-6 md:p-10 lg:p-12 space-y-8 max-w-7xl mx-auto">
@@ -34,12 +69,55 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
         </div>
 
         <button 
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-600 text-white font-bold text-xs shadow-md shadow-cyan-600/20 hover:bg-cyan-500 hover:scale-105 active:scale-95 transition-all duration-200"
+          onClick={() => {
+            setMessage(null)
+            setIsInviteOpen(true)
+          }}
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-600 text-white font-bold text-xs shadow-md shadow-cyan-600/20 hover:bg-cyan-500 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
         >
           <UserPlus className="w-4 h-4" />
-          <span>Crear Usuario / Alumno</span>
+          <span>Invitar Alumno por Correo</span>
         </button>
       </div>
+
+      {/* Invite User Dialog */}
+      <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+        <DialogContent className="sm:max-w-[425px] bg-white text-slate-900 rounded-3xl p-6">
+          <form onSubmit={handleInviteSubmit}>
+            <DialogHeader className="space-y-2 mb-4">
+              <DialogTitle className="text-xl font-black">Invitar Alumno al Campus</DialogTitle>
+              <DialogDescription className="text-xs font-medium text-slate-500">
+                Se enviará un enlace de acceso directo y seguro de un solo uso al correo del alumno.
+              </DialogDescription>
+            </DialogHeader>
+
+            {message && (
+              <div className={`p-3 rounded-xl text-xs font-bold mb-4 ${
+                message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
+              }`}>
+                {message.text}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-600 uppercase">Nombre Completo del Alumno</label>
+                <Input name="full_name" placeholder="Ej: Lucas González" required className="rounded-xl mt-1" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-600 uppercase">Correo Electrónico</label>
+                <Input name="email" type="email" placeholder="alumno@ejemplo.com" required className="rounded-xl mt-1" />
+              </div>
+            </div>
+
+            <DialogFooter className="mt-6">
+              <Button type="submit" disabled={loading} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl h-11">
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enviar Invitación Mágica'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Users Table Card */}
       <div className="glass-card rounded-3xl overflow-hidden shadow-sm">
@@ -80,10 +158,10 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
                   <td className="py-4 px-6 flex items-center gap-3">
                     <div className={`relative w-9 h-9 rounded-full text-white font-extrabold flex items-center justify-center text-xs shadow-2xs ${u.role === 'admin' ? 'bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-500 shadow-amber-500/40' : 'bg-gradient-to-tr from-cyan-500 to-blue-600'}`}>
                       {u.role === 'admin' && <Crown className="w-4 h-4 absolute -top-1.5 -right-1 text-yellow-400 drop-shadow-md rotate-[15deg]" fill="currentColor" />}
-                      {u.full_name.charAt(0).toUpperCase()}
+                      {(u.full_name || u.email || 'A').charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <span className="font-extrabold text-slate-900 block text-sm">{u.full_name}</span>
+                      <span className="font-extrabold text-slate-900 block text-sm">{u.full_name || 'Sin nombre'}</span>
                       <span className="text-slate-400 font-medium flex items-center gap-1">
                         <Mail className="w-3 h-3 text-slate-400" /> {u.email}
                       </span>
