@@ -90,6 +90,11 @@ export function InlineCreateSoftwareModal({ manufacturers }: { manufacturers: an
                 <Input name="compatibility" className="rounded-xl mt-1" placeholder="Win 10+ / macOS 11+" />
               </div>
             </div>
+
+            <div>
+              <label className="text-[10px] font-bold text-slate-600 uppercase">Formatos (separados por coma)</label>
+              <Input name="formats" defaultValue="VST3, AU, AAX" className="rounded-xl mt-1" placeholder="Ej. VST3, AU, AAX, .amxd" />
+            </div>
           </div>
 
           <DialogFooter className="mt-6">

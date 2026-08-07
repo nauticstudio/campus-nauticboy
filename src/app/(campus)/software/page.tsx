@@ -1,9 +1,10 @@
 import { getSoftwareHubData } from '@/lib/data/software'
 import Link from 'next/link'
 import { Search, Sparkles, Layers, Cpu, Sliders, ArrowRight, Download, CheckCircle2, Package, ShieldCheck } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getAdminViewMode } from '@/app/actions/view-mode'
 import { InlineCreateSoftwareModal } from '@/components/admin/InlineCreateSoftwareModal'
+import { InlineCreateManufacturerModal } from '@/components/admin/InlineCreateManufacturerModal'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,7 +26,8 @@ export default async function SoftwareHubPage(props: { searchParams?: Promise<{ 
   let showAdminUI = false
 
   if (user) {
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    const adminSupabase = await createAdminClient()
+    const { data: profile } = await adminSupabase.from('profiles').select('role').eq('id', user.id).single()
     if (profile?.role === 'admin') {
       const mode = await getAdminViewMode()
       showAdminUI = mode === 'admin' || !mode
@@ -112,9 +114,12 @@ export default async function SoftwareHubPage(props: { searchParams?: Promise<{ 
       {manufacturers.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
-              Principales Fabricantes
-            </h3>
+            <div className="flex items-center gap-4">
+              <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
+                Principales Fabricantes
+              </h3>
+              {showAdminUI && <InlineCreateManufacturerModal />}
+            </div>
             {selectedManufacturer && (
               <Link href="/software#catalog-grid" className="text-xs font-bold text-cyan-600 hover:text-cyan-500 transition-colors">
                 Ver Todos

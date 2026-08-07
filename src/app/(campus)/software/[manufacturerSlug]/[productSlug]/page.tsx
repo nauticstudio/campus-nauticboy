@@ -2,7 +2,7 @@ import { getProductEcosystem } from '@/lib/data/software'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Download, ShieldCheck, Cpu, HardDrive, Sparkles, Layers, CheckCircle2, Music2, Info, FolderArchive, Heart } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getAdminViewMode } from '@/app/actions/view-mode'
 import { InlineEditSoftwareModal } from '@/components/admin/InlineEditSoftwareModal'
 import { InlineEditSoftwareItemModal } from '@/components/admin/InlineEditSoftwareItemModal'
@@ -30,12 +30,13 @@ export default async function SoftwareProductPage({
   let allManufacturers: any[] = []
 
   if (user) {
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    const adminSupabase = await createAdminClient()
+    const { data: profile } = await adminSupabase.from('profiles').select('role').eq('id', user.id).single()
     if (profile?.role === 'admin') {
       const mode = await getAdminViewMode()
       showAdminUI = mode === 'admin' || !mode
       if (showAdminUI) {
-        const { data: m } = await supabase.from('manufacturers').select('*').order('name')
+        const { data: m } = await adminSupabase.from('software_manufacturers').select('*').order('name')
         allManufacturers = m || []
       }
     }

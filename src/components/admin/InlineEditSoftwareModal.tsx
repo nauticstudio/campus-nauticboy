@@ -96,6 +96,11 @@ export function InlineEditSoftwareModal({
                 <Input name="compatibility" defaultValue={product.compatibility || ''} className="rounded-xl mt-1" />
               </div>
             </div>
+
+            <div>
+              <label className="text-[10px] font-bold text-slate-600 uppercase">Formatos (separados por coma)</label>
+              <Input name="formats" defaultValue={product.formats?.join(', ')} className="rounded-xl mt-1" placeholder="Ej. VST3, AU, AAX, .amxd" />
+            </div>
           </div>
 
           <DialogFooter className="mt-6">
