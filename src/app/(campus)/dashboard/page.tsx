@@ -233,7 +233,7 @@ export default async function DashboardPage() {
           {/* Estadísticas Personales */}
           <div className="glass-card p-6 md:p-8 rounded-[2.5rem]">
             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Tu progreso</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 divide-x divide-slate-100">
+            <div className="grid grid-cols-3 gap-6 md:gap-10 divide-x divide-slate-100">
               <div className="flex flex-col gap-1 px-2 md:px-4">
                 <span className="text-3xl md:text-4xl font-black text-slate-900">{stats.courses}</span>
                 <span className="text-xs md:text-sm font-semibold text-slate-500 uppercase tracking-wider">Cursos</span>
@@ -245,10 +245,6 @@ export default async function DashboardPage() {
               <div className="flex flex-col gap-1 px-4 md:px-8">
                 <span className="text-3xl md:text-4xl font-black text-rose-600">{stats.favorites}</span>
                 <span className="text-xs md:text-sm font-semibold text-slate-500 uppercase tracking-wider">Favoritos</span>
-              </div>
-              <div className="flex flex-col gap-1 px-4 md:px-8">
-                <span className="text-3xl md:text-4xl font-black text-slate-900">0</span>
-                <span className="text-xs md:text-sm font-semibold text-slate-500 uppercase tracking-wider">Hrs Vistas</span>
               </div>
             </div>
           </div>
