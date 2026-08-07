@@ -8,6 +8,18 @@
   --color-border: var(--border);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+
+  --color-cyan-50: #fffaf5;
+  --color-cyan-100: #fff7ed;
+  --color-cyan-200: #ffedd5;
+  --color-cyan-300: #fdba74;
+  --color-cyan-400: #ff7d3b;
+  --color-cyan-500: #ff6213;
+  --color-cyan-600: #ea580c;
+  --color-cyan-700: #c2410c;
+  --color-cyan-800: #9a3412;
+  --color-cyan-900: #7c2d12;
+  --color-cyan-950: #431407;
 }
 
 :root {
@@ -17,18 +29,18 @@
   --card-foreground: #0F172A;
   --popover: #FFFFFF;
   --popover-foreground: #0F172A;
-  --primary: #0284C7;
+  --primary: #ff6213;
   --primary-foreground: #FFFFFF;
-  --secondary: #F1F5F9;
-  --secondary-foreground: #0F172A;
+  --secondary: #FFF7ED;
+  --secondary-foreground: #C2410C;
   --muted: #F8FAFC;
   --muted-foreground: #64748B;
-  --accent: #F1F5F9;
-  --accent-foreground: #0F172A;
+  --accent: #FFF7ED;
+  --accent-foreground: #C2410C;
   --destructive: #EF4444;
   --border: #E2E8F0;
   --input: #E2E8F0;
-  --ring: #38BDF8;
+  --ring: #ff6213;
   --radius: 0.75rem;
 }
 
@@ -37,7 +49,7 @@
     @apply border-slate-200;
   }
   body {
-    @apply bg-[#F8FAFC] text-slate-900 font-sans antialiased selection:bg-cyan-500/20 selection:text-cyan-900;
+    @apply bg-[#F8FAFC] text-slate-900 font-sans antialiased selection:bg-orange-500/20 selection:text-orange-900;
   }
 }
 
