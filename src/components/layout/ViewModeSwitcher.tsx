@@ -23,7 +23,7 @@ export function ViewModeSwitcher({ initialMode }: { initialMode: 'admin' | 'stud
   }
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center p-1.5 rounded-full bg-slate-900 border border-slate-700 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:scale-105">
+    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] flex items-center p-1.5 rounded-full bg-slate-900 border border-slate-700 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:scale-105">
       <div className="px-3 py-1 flex items-center gap-2 border-r border-slate-700">
         <Eye className="w-4 h-4 text-slate-400" />
         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:inline-block">Vista:</span>
