@@ -244,9 +244,19 @@ export async function updateSoftwareProductAction(formData: FormData) {
 
     if (error) throw error
 
+    const { data: m } = await adminSupabase
+      .from('software_manufacturers')
+      .select('slug')
+      .eq('id', manufacturer_id)
+      .single()
+
     revalidatePath('/admin/software')
     revalidatePath('/software')
-    return { success: true }
+    
+    return { 
+      success: true, 
+      redirectUrl: `/software/${m?.slug}/${slug}` 
+    }
   } catch (error: any) {
     return { success: false, error: error.message }
   }

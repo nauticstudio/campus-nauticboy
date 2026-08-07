@@ -33,7 +33,11 @@ export function InlineEditSoftwareModal({
     setLoading(false)
     if (res.success) {
       setOpen(false)
-      window.location.reload()
+      if (res.redirectUrl && res.redirectUrl !== window.location.pathname) {
+        window.location.assign(res.redirectUrl)
+      } else {
+        window.location.reload()
+      }
     } else {
       alert(res.error)
     }
