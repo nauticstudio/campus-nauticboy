@@ -56,6 +56,39 @@ export default async function CampusLayout({
   // Import ViewModeSwitcher dynamically if we are an admin
   const { ViewModeSwitcher } = await import('@/components/layout/ViewModeSwitcher')
 
+  // Fetch Category IDs for Plantillas and Presets
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('id, slug')
+    .in('slug', ['plantillas', 'presets'])
+    
+  const plantillasId = categories?.find(c => c.slug === 'plantillas')?.id
+  const presetsId = categories?.find(c => c.slug === 'presets')?.id
+
+  // Fetch Content Availability for Sidebar
+  const [
+    plantillasRes,
+    presetsRes,
+    announcementsRes,
+    softwareRes
+  ] = await Promise.all([
+    plantillasId ? supabase.from('resources').select('id', { count: 'exact', head: true }).eq('category_id', plantillasId).eq('is_published', true) : Promise.resolve({ count: 0 }),
+    presetsId ? supabase.from('resources').select('id', { count: 'exact', head: true }).eq('category_id', presetsId).eq('is_published', true) : Promise.resolve({ count: 0 }),
+    supabase.from('announcements').select('id', { count: 'exact', head: true }),
+    supabase.from('software_products').select('id', { count: 'exact', head: true }).eq('is_published', true)
+  ])
+
+  const sidebarProps = {
+    isAdmin: showAdminUI,
+    userName: userName,
+    enrolledCourses: enrolledCourses || [],
+    hasPlantillas: (plantillasRes.count || 0) > 0,
+    hasPresets: (presetsRes.count || 0) > 0,
+    hasAnnouncements: (announcementsRes.count || 0) > 0,
+    hasSoftware: (softwareRes.count || 0) > 0,
+    hasProgress: (enrolledCourses?.length || 0) > 0
+  }
+
   return (
     <div className="flex min-h-screen w-full bg-[#F8FAFC] font-sans text-slate-900 selection:bg-cyan-500/20 selection:text-cyan-900 relative overflow-x-hidden">
       
@@ -70,7 +103,7 @@ export default async function CampusLayout({
       )}
 
       {/* Sidebar for Desktop */}
-      <Sidebar isAdmin={showAdminUI} userName={userName} enrolledCourses={enrolledCourses || []} />
+      <Sidebar {...sidebarProps} />
 
       <div className="flex flex-col flex-1 min-w-0 z-10">
         {/* Header with Mobile Nav for small screens */}

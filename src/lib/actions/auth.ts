@@ -17,6 +17,7 @@ export async function login(formData: FormData) {
     email,
     options: {
       emailRedirectTo: `${siteUrl}/api/auth/callback`,
+      shouldCreateUser: false, // Prevents strangers from creating an account
     },
   })
 

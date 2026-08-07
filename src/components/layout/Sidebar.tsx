@@ -9,9 +9,23 @@ interface SidebarProps {
   isAdmin?: boolean
   userName?: string
   enrolledCourses?: { title: string, slug: string }[]
+  hasPlantillas?: boolean
+  hasPresets?: boolean
+  hasAnnouncements?: boolean
+  hasSoftware?: boolean
+  hasProgress?: boolean
 }
 
-export function Sidebar({ isAdmin = false, userName = 'Alumno', enrolledCourses = [] }: SidebarProps) {
+export function Sidebar({ 
+  isAdmin = false, 
+  userName = 'Alumno', 
+  enrolledCourses = [],
+  hasPlantillas = false,
+  hasPresets = false,
+  hasAnnouncements = false,
+  hasSoftware = false,
+  hasProgress = false
+}: SidebarProps) {
   return (
     <aside className="w-64 flex-shrink-0 flex flex-col bg-white/80 backdrop-blur-xl border-r border-slate-200/80 h-screen z-20 sticky top-0 hidden md:flex shadow-[4px_0_24px_-4px_rgba(15,23,42,0.03)]">
       
@@ -65,21 +79,23 @@ export function Sidebar({ isAdmin = false, userName = 'Alumno', enrolledCourses 
           </div>
         )}
 
-        <div>
-          <h4 className="px-3.5 mb-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Academia</h4>
-          <div className="space-y-1">
-            <SidebarItem href="/software" icon={Package} title="Software & Plugins" />
-            <SidebarItem href="/academy/plantillas" icon={Library} title="Plantillas" />
-            <SidebarItem href="/academy/presets" icon={FolderTree} title="Presets" />
+        {(hasSoftware || hasPlantillas || hasPresets) && (
+          <div>
+            <h4 className="px-3.5 mb-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Academia</h4>
+            <div className="space-y-1">
+              {hasSoftware && <SidebarItem href="/software" icon={Package} title="Software & Plugins" />}
+              {hasPlantillas && <SidebarItem href="/academy/plantillas" icon={Library} title="Plantillas" />}
+              {hasPresets && <SidebarItem href="/academy/presets" icon={FolderTree} title="Presets" />}
+            </div>
           </div>
-        </div>
+        )}
 
         <div>
           <h4 className="px-3.5 mb-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Personal</h4>
           <div className="space-y-1">
             <SidebarItem href="/favorites" icon={Heart} title="Favoritos" />
-            <SidebarItem href="/progress" icon={BarChart3} title="Mi Progreso" />
-            <SidebarItem href="/updates" icon={Bell} title="Novedades" />
+            {hasProgress && <SidebarItem href="/progress" icon={BarChart3} title="Mi Progreso" />}
+            {hasAnnouncements && <SidebarItem href="/updates" icon={Bell} title="Novedades" />}
           </div>
         </div>
 

@@ -41,14 +41,22 @@ export default async function DashboardPage() {
 
   // --- STUDENT DATA FETCHING ---
   let courses: any[] = []
+  let hasEnrollments = false
   if (!showAdminUI) {
-    const { data } = await supabase
-      .from('courses')
-      .select('id, title, slug, description, software, is_published')
-      .eq('is_published', true)
-      .order('created_at', { ascending: false })
+    const [{ data: coursesData }, { count: enrollmentsCount }] = await Promise.all([
+      supabase
+        .from('courses')
+        .select('id, title, slug, description, software, is_published')
+        .eq('is_published', true)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('enrollments')
+        .select('user_id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+    ])
     
-    courses = data || []
+    courses = coursesData || []
+    hasEnrollments = (enrollmentsCount || 0) > 0
   }
 
   return (
@@ -162,25 +170,29 @@ export default async function DashboardPage() {
               </div>
             </div>
 
-            <div className="glass-card glass-card-hover p-6 rounded-3xl flex items-center gap-5 group">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500/10 to-orange-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                <Flame className="w-7 h-7" />
-              </div>
-              <div>
-                <span className="text-2xl font-black text-slate-900 tracking-tight">0 Módulos</span>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Completados</p>
-              </div>
-            </div>
+            {hasEnrollments && (
+              <>
+                <div className="glass-card glass-card-hover p-6 rounded-3xl flex items-center gap-5 group">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500/10 to-orange-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                    <Flame className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <span className="text-2xl font-black text-slate-900 tracking-tight">0 Módulos</span>
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Completados</p>
+                  </div>
+                </div>
 
-            <div className="glass-card glass-card-hover p-6 rounded-3xl flex items-center gap-5 group">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                <Trophy className="w-7 h-7" />
-              </div>
-              <div>
-                <span className="text-2xl font-black text-slate-900 tracking-tight">0% Progreso</span>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Promedio General</p>
-              </div>
-            </div>
+                <div className="glass-card glass-card-hover p-6 rounded-3xl flex items-center gap-5 group">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                    <Trophy className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <span className="text-2xl font-black text-slate-900 tracking-tight">0% Progreso</span>
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Promedio General</p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Main Section: Mis Cursos */}
