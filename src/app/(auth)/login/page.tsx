@@ -7,11 +7,13 @@ import { Music2, Lock, Mail, Loader2, ArrowRight } from 'lucide-react'
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
+    setSuccess(null)
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
@@ -19,8 +21,10 @@ export default function LoginPage() {
 
     if (result?.error) {
       setError(result.error)
-      setLoading(false)
+    } else if (result?.success) {
+      setSuccess(result.success)
     }
+    setLoading(false)
   }
 
   return (
@@ -46,6 +50,11 @@ export default function LoginPage() {
               {error}
             </div>
           )}
+          {success && (
+            <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium leading-relaxed">
+              {success}
+            </div>
+          )}
 
           {/* Email Input */}
           <div className="space-y-2">
@@ -66,47 +75,22 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Password Input */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-zinc-300 tracking-wide uppercase">
-                Contraseña
-              </label>
-              <Link
-                href="/forgot-password"
-                className="text-xs text-zinc-400 hover:text-cyan-400 transition-colors"
-              >
-                ¿Olvidaste tu contraseña?
-              </Link>
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
-                <Lock className="w-4 h-4" />
-              </div>
-              <input
-                type="password"
-                name="password"
-                required
-                placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 bg-zinc-950/80 border border-zinc-800 rounded-xl text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500/50 transition-all"
-              />
-            </div>
-          </div>
-
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !!success}
             className="w-full mt-2 py-3 px-4 bg-zinc-100 hover:bg-white text-zinc-950 font-semibold rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/5 disabled:opacity-50 disabled:cursor-not-allowed group"
           >
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin text-zinc-950" />
-                <span>Ingresando...</span>
+                <span>Enviando enlace...</span>
               </>
+            ) : success ? (
+              <span>¡Enviado!</span>
             ) : (
               <>
-                <span>Ingresar al Campus</span>
+                <span>Enviarme enlace de acceso</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </>
             )}

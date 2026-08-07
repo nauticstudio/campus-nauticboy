@@ -37,7 +37,7 @@ export async function updateSession(request: NextRequest) {
                       request.nextUrl.pathname.startsWith('/reset-password')
 
   // If user is not authenticated and not on an auth route, redirect to login
-  if (!user && !isAuthRoute && !request.nextUrl.pathname.startsWith('/api/download')) {
+  if (!user && !isAuthRoute && !request.nextUrl.pathname.startsWith('/api/download') && !request.nextUrl.pathname.startsWith('/api/auth/callback')) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)

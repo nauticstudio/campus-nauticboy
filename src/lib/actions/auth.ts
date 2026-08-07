@@ -5,24 +5,26 @@ import { redirect } from 'next/navigation'
 
 export async function login(formData: FormData) {
   const email = formData.get('email') as string
-  const password = formData.get('password') as string
 
-  if (!email || !password) {
-    return { error: 'Por favor ingresa tu email y contraseña' }
+  if (!email) {
+    return { error: 'Por favor ingresa tu correo electrónico' }
   }
 
   const supabase = await createClient()
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://campus.nauticboy.top'
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithOtp({
     email,
-    password,
+    options: {
+      emailRedirectTo: `${siteUrl}/api/auth/callback`,
+    },
   })
 
   if (error) {
-    return { error: 'Credenciales inválidas. Por favor verifica tu email y contraseña.' }
+    return { error: 'Ocurrió un error al enviar el enlace mágico. Intenta nuevamente.' }
   }
 
-  redirect('/dashboard')
+  return { success: '¡Enlace mágico enviado! Revisa tu bandeja de entrada.' }
 }
 
 export async function logout() {
@@ -71,7 +73,13 @@ export async function inviteUserAction(formData: FormData) {
   })
 
   if (error) {
-    return { error: error.message }
+    let errorMessage = 'Ocurrió un error inesperado al enviar la invitación.';
+    if (typeof error.message === 'string') {
+      errorMessage = error.message;
+    } else if (error && typeof error === 'object') {
+      errorMessage = JSON.stringify(error);
+    }
+    return { error: errorMessage }
   }
 
   return { success: `Invitación enviada exitosamente a ${email}` }
