@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { 
   ArrowLeft, 
   Download, 
-  Heart, 
   Search, 
   Layers,
   Eye,
@@ -13,9 +13,9 @@ import {
   Package
 } from 'lucide-react'
 import { AdminQuickToolbar } from '@/components/admin/AdminQuickToolbar'
-import { createClient } from '@/lib/supabase/client'
+import { setResourcePublishedAction } from '@/app/actions/resources'
 
-interface ResourceItem {
+export interface ResourceItem {
   id: string
   title: string
   description: string | null
@@ -38,17 +38,24 @@ export function CategoryResourcesClient({
   const [resources, setResources] = useState<ResourceItem[]>(initialResources)
   const [isEditMode, setIsEditMode] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const supabase = createClient()
+  const router = useRouter()
 
   const toggleResourceVisibility = async (id: string, currentStatus: boolean) => {
+    // Optimista: la UI responde al instante y revertimos si la acción falla.
     setResources(prev =>
       prev.map(r => (r.id === id ? { ...r, is_published: !currentStatus } : r))
     )
 
-    await supabase
-      .from('resources')
-      .update({ is_published: !currentStatus })
-      .eq('id', id)
+    const result = await setResourcePublishedAction(id, !currentStatus)
+    if (!result.success) {
+      setResources(prev =>
+        prev.map(r => (r.id === id ? { ...r, is_published: currentStatus } : r))
+      )
+      console.error(result.error)
+      return
+    }
+
+    router.refresh()
   }
 
   const filteredResources = resources

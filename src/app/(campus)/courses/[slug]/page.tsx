@@ -1,4 +1,5 @@
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
+import { requireUser } from '@/server/auth/guards'
 import { CourseDetailClient } from './CourseDetailClient'
 import { notFound } from 'next/navigation'
 
@@ -10,10 +11,8 @@ export default async function CourseDetailPage({
   const { slug } = await params
   const supabase = await createClient()
 
-  // Get user profile role
-  const { data: { user } } = await supabase.auth.getUser()
-  const adminSupabase = await createAdminClient()
-  const { data: profile } = user ? await adminSupabase.from('profiles').select('role').eq('id', user.id).single() : { data: null }
+  // El layout ya garantiza la sesión. El rol lo da el guard central.
+  const { profile } = await requireUser()
   const isAdmin = profile?.role === 'admin'
 
   // Fetch course by slug

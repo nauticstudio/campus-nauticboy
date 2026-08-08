@@ -1,16 +1,20 @@
 'use server'
 
-import { createClient } from '@supabase/supabase-js'
+import { z } from 'zod'
+import { revalidatePath } from 'next/cache'
+import { requireAdmin, authErrorToResponse } from '@/server/auth/guards'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error("Missing Supabase URL or Service Role Key")
-}
-
-// Instantiate with service role to bypass RLS recursion error
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+const createCourseSchema = z.object({
+  title: z.string().trim().min(3, 'El título necesita al menos 3 caracteres').max(120),
+  description: z.string().trim().max(2000).optional().default(''),
+  software: z.string().trim().max(120).optional(),
+  slug: z
+    .string()
+    .trim()
+    .min(2)
+    .max(80)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'El slug solo puede contener minúsculas, números y guiones'),
+})
 
 export async function createCourseAction(data: {
   title: string
@@ -19,30 +23,40 @@ export async function createCourseAction(data: {
   slug: string
 }) {
   try {
-    const { data: newCourse, error } = await supabase
+    // La identidad NUNCA viene del cliente: la verificamos en servidor.
+    const { admin } = await requireAdmin()
+
+    const parsed = createCourseSchema.safeParse(data)
+    if (!parsed.success) {
+      return { success: false as const, error: parsed.error.issues[0]?.message ?? 'Datos de curso no válidos' }
+    }
+
+    const { data: newCourse, error } = await admin
       .from('courses')
       .insert({
-        title: data.title,
-        description: data.description,
-        software: data.software || null,
-        slug: data.slug,
-        is_published: false // Courses start as drafts
+        title: parsed.data.title,
+        description: parsed.data.description || null,
+        software: parsed.data.software || null,
+        slug: parsed.data.slug,
+        is_published: false, // Los cursos nacen como borradores.
       })
       .select()
       .single()
 
     if (error) {
-      console.error('Error in createCourseAction:', error)
-      return { success: false, error: error.message }
+      console.error('[createCourseAction] Error de base de datos:', error)
+      return { success: false as const, error: 'No se ha podido crear el curso.' }
     }
 
-    const { revalidatePath } = require('next/cache')
     revalidatePath('/admin/courses')
     revalidatePath('/courses')
 
-    return { success: true, course: newCourse }
-  } catch (error: any) {
-    console.error('Exception in createCourseAction:', error)
-    return { success: false, error: error.message || 'Error desconocido' }
+    return { success: true as const, course: newCourse }
+  } catch (error: unknown) {
+    const authError = authErrorToResponse(error)
+    if (authError) return authError
+
+    console.error('[createCourseAction] Excepción:', error)
+    return { success: false as const, error: 'Ha ocurrido un error inesperado al crear el curso.' }
   }
 }

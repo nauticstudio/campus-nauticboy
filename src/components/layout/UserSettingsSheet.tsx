@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation'
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
   SheetTitle,
   SheetTrigger,
   SheetDescription,
 } from '@/components/ui/sheet'
-import { Settings, User, Shield, Lock, Bell, HardDrive, Crown, Sparkles, Check, Key } from 'lucide-react'
+import { Settings, User, Shield, Lock, Crown, Check, Key } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { updateProfileNameAction } from '@/lib/actions/auth'
 
 interface UserSettingsSheetProps {
   userName: string
@@ -30,12 +30,13 @@ export function UserSettingsSheet({ userName, isAdmin }: UserSettingsSheetProps)
     e.preventDefault()
     setIsLoading(true)
     try {
-      const { createClient } = await import('@/lib/supabase/client')
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (user) {
-        await supabase.from('profiles').update({ full_name: name }).eq('id', user.id)
+      // La actualización del perfil pasa por una Server Action:
+      // nunca mutamos tablas directamente desde el cliente.
+      const result = await updateProfileNameAction(name)
+      if (result?.error) {
+        console.error(result.error)
+        setIsLoading(false)
+        return
       }
       setIsSaved(true)
       router.refresh()

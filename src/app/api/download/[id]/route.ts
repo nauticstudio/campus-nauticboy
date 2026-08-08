@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { checkUser } from '@/server/auth/guards'
 import { getAccessToken } from '@/lib/google-drive/auth'
 
 export async function GET(
@@ -7,15 +7,15 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const supabase = await createClient()
 
-  // 1. Check user authentication
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+  // 1. Autenticación centralizada: sin sesión no hay descarga.
+  const auth = await checkUser()
+  if (!auth.ok) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  const { supabase, user } = auth
 
-  // 2. Fetch resource details from database
+  // 2. El recurso lo lee la sesión del usuario: RLS decide si puede verlo.
   const { data: resource, error: dbError } = await supabase
     .from('resources')
     .select('*')
@@ -26,7 +26,8 @@ export async function GET(
     return NextResponse.json({ error: 'Resource not found' }, { status: 404 })
   }
 
-  // 3. Check access rights using RLS or function check
+  // 3. Control de acceso a recursos restringidos (defensa en profundidad:
+  //    RLS ya filtra, aquí lo comprobamos explícitamente solo si está marcado).
   if (resource.is_restricted) {
     const { data: hasAccess } = await supabase.rpc('user_can_access_resource', {
       p_user_id: user.id,

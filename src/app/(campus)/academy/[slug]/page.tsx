@@ -1,5 +1,7 @@
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
+import { requireUser } from '@/server/auth/guards'
 import { CategoryResourcesClient } from './CategoryResourcesClient'
+import type { ResourceItem } from './CategoryResourcesClient'
 
 export default async function CategoryResourcesPage({ 
   params 
@@ -7,12 +9,11 @@ export default async function CategoryResourcesPage({
   params: Promise<{ slug: string }> 
 }) {
   const { slug } = await params
-  const supabase = await createClient()
 
-  // Get user profile role
-  const { data: { user } } = await supabase.auth.getUser()
-  const adminSupabase = await createAdminClient()
-  const { data: profile } = user ? await adminSupabase.from('profiles').select('role').eq('id', user.id).single() : { data: null }
+  // Punto único de control: toda página del campus exige sesión.
+  // El rol se obtiene del guard (misma llamada que el layout gracias a React.cache).
+  const { profile } = await requireUser()
+  const supabase = await createClient()
   const isAdmin = profile?.role === 'admin'
 
   // Fetch category by slug to get its ID
@@ -22,16 +23,18 @@ export default async function CategoryResourcesPage({
     .eq('slug', slug)
     .single()
 
-  let resources: any[] = []
+  let resources: ResourceItem[] = []
 
   if (category) {
+    // La lectura respeta RLS: los no administradores solo descubren recursos
+    // publicados de categorías visibles. Sin cliente admin.
     const { data } = await supabase
       .from('resources')
       .select('id, title, description, software, file_name, file_size, is_restricted, is_published')
       .eq('category_id', category.id)
       .order('created_at', { ascending: false })
     
-    resources = data || []
+    resources = (data ?? []) as ResourceItem[]
   }
 
   return (

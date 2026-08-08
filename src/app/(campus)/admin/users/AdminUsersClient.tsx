@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Users, UserPlus, Shield, Search, MoreVertical, CheckCircle, Ban, Mail, Crown, Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { UserPlus, Shield, Search, MoreVertical, CheckCircle, Ban, Mail, Crown, Loader2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,7 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
   const [isInviteOpen, setIsInviteOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const router = useRouter()
 
   const filteredUsers = users.filter(u => 
     (u.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -51,7 +53,7 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
       setTimeout(() => {
         setIsInviteOpen(false)
         setMessage(null)
-        window.location.reload()
+        router.refresh()
       }, 2000)
     }
   }
