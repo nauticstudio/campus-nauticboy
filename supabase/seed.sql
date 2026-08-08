@@ -37,7 +37,8 @@ CREATE TABLE modules (
   course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   description TEXT,
-  sort_order INTEGER NOT NULL DEFAULT 0
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  is_published BOOLEAN NOT NULL DEFAULT FALSE -- los módulos nacen como borradores
 );
 
 -- =============================================
@@ -160,6 +161,27 @@ CREATE INDEX idx_progress_user ON progress(user_id);
 CREATE INDEX idx_modules_course ON modules(course_id);
 
 -- =============================================
+-- FUNCIÓN: is_admin() — rompe la recursión de RLS
+-- =============================================
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid()
+      AND role = 'admin'
+      AND status = 'active'
+  );
+$$;
+REVOKE ALL ON FUNCTION public.is_admin() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_admin() FROM anon;
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
+
+-- =============================================
 -- FUNCIÓN: verificar acceso a recurso
 -- =============================================
 CREATE OR REPLACE FUNCTION user_can_access_resource(
@@ -171,19 +193,21 @@ BEGIN
     RETURN false;
   END IF;
 
-  -- Si el recurso no es restringido, acceso libre
   IF NOT (SELECT is_restricted FROM resources WHERE id = p_resource_id) THEN
     RETURN true;
   END IF;
 
-  -- Si es restringido, verificar enrollment en algún curso que contenga el recurso
+  -- Restringido: enrollment en un curso Y módulo publicado que contenga el recurso
   RETURN EXISTS (
     SELECT 1
     FROM enrollments e
     JOIN modules m ON m.course_id = e.course_id
+    JOIN courses c ON c.id = m.course_id
     JOIN module_resources mr ON mr.module_id = m.id
     WHERE e.user_id = p_user_id
       AND mr.resource_id = p_resource_id
+      AND c.is_published = true
+      AND m.is_published = true
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
@@ -214,6 +238,34 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
 -- =============================================
+-- TRIGGER: impedir escalada de privilegios en `profiles`
+-- =============================================
+-- Nadie salvo el service role puede modificar role / status / email desde
+-- el cliente. El usuario puede seguir editando su nombre/avatar.
+CREATE OR REPLACE FUNCTION public.prevent_profile_privilege_escalation()
+RETURNS trigger AS $$
+BEGIN
+  IF auth.role() = 'service_role' THEN
+    RETURN NEW;
+  END IF;
+
+  IF NEW.role    IS DISTINCT FROM OLD.role
+     OR NEW.status IS DISTINCT FROM OLD.status
+     OR NEW.email  IS DISTINCT FROM OLD.email THEN
+    RAISE EXCEPTION 'No puedes modificar role, status o email de tu perfil.'
+      USING ERRCODE = '42501';
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+DROP TRIGGER IF EXISTS trg_prevent_profile_privilege_escalation ON public.profiles;
+CREATE TRIGGER trg_prevent_profile_privilege_escalation
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE PROCEDURE public.prevent_profile_privilege_escalation();
+
+-- =============================================
 -- RLS (Row Level Security)
 -- =============================================
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -229,20 +281,29 @@ ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 
 -- Profiles: usuario puede leer su propio perfil. Admin puede leer todos.
 CREATE POLICY "Users can view own profile" ON profiles FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Admin can view all profiles" ON profiles FOR SELECT USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
-CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Admin can view all profiles" ON profiles FOR SELECT USING (public.is_admin());
+-- Solo campos no privilegiados se pueden modificar desde el cliente:
+-- el trigger `trg_prevent_profile_privilege_escalation` bloquea role/status/email.
+CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
 
 -- Courses: todos pueden leer los cursos publicados. Admin puede leer todos y modificar.
 CREATE POLICY "Everyone can view published courses" ON courses FOR SELECT USING (is_published = true);
-CREATE POLICY "Admin full access courses" ON courses USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Admin full access courses" ON courses FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- Modules: todos pueden ver los módulos.
-CREATE POLICY "Everyone can view modules" ON modules FOR SELECT USING (true);
-CREATE POLICY "Admin full access modules" ON modules USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
+-- Modules: todos pueden ver los módulos PUBLICADOS de cursos PUBLICADOS.
+CREATE POLICY "Everyone can view published modules" ON modules
+  FOR SELECT USING (
+    auth.uid() IS NOT NULL
+    AND is_published = true
+    AND EXISTS (
+      SELECT 1 FROM courses WHERE courses.id = modules.course_id AND courses.is_published = true
+    )
+  );
+CREATE POLICY "Admin full access modules" ON modules FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- Categories: todos pueden verlas.
 CREATE POLICY "Everyone can view categories" ON categories FOR SELECT USING (true);
-CREATE POLICY "Admin full access categories" ON categories USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Admin full access categories" ON categories FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- Resources: los alumnos solo leen recursos publicados a los que tienen acceso.
 CREATE POLICY "Users can view accessible resources" ON resources
@@ -255,15 +316,15 @@ CREATE POLICY "Users can view accessible resources" ON resources
       OR user_can_access_resource(auth.uid(), id)
     )
   );
-CREATE POLICY "Admin full access resources" ON resources USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Admin full access resources" ON resources FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- Module_resources: lectura libre.
-CREATE POLICY "Everyone can view module_resources" ON module_resources FOR SELECT USING (true);
-CREATE POLICY "Admin full access module_resources" ON module_resources USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
+-- Module_resources: solo usuarios autenticados (metadata interna del campus).
+CREATE POLICY "Everyone can view module_resources" ON module_resources FOR SELECT USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Admin full access module_resources" ON module_resources FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- Enrollments: usuario puede ver las suyas.
 CREATE POLICY "Users can view own enrollments" ON enrollments FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Admin full access enrollments" ON enrollments USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Admin full access enrollments" ON enrollments FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- Favorites: usuario puede gestionar las suyas.
 CREATE POLICY "Users can view own favorites" ON favorites FOR SELECT USING (auth.uid() = user_id);
@@ -273,9 +334,9 @@ CREATE POLICY "Users can manage own favorites" ON favorites FOR ALL USING (auth.
 CREATE POLICY "Users can view own progress" ON progress FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can manage own progress" ON progress FOR ALL USING (auth.uid() = user_id);
 
--- Announcements: todos pueden leer.
-CREATE POLICY "Everyone can view announcements" ON announcements FOR SELECT USING (true);
-CREATE POLICY "Admin full access announcements" ON announcements USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
+-- Announcements: solo usuarios autenticados (contenido interno del campus).
+CREATE POLICY "Everyone can view announcements" ON announcements FOR SELECT USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Admin full access announcements" ON announcements FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- =============================================
 -- SEED DATA

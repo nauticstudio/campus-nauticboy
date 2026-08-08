@@ -91,26 +91,27 @@ ALTER TABLE software_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE software_product_categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE software_product_tags ENABLE ROW LEVEL SECURITY;
 
--- 8. POLICIES (Public Read Access)
+-- 8. POLICIES (lectura solo para usuarios autenticados — el catálogo es
+-- contenido del campus; ver migración 00003_close_modules_policy_gaps.sql)
 DROP POLICY IF EXISTS "Public Read Manufacturers" ON software_manufacturers;
-CREATE POLICY "Public Read Manufacturers" ON software_manufacturers FOR SELECT USING (true);
+CREATE POLICY "Public Read Manufacturers" ON software_manufacturers FOR SELECT USING (auth.uid() IS NOT NULL);
 
 DROP POLICY IF EXISTS "Public Read Categories" ON software_categories;
-CREATE POLICY "Public Read Categories" ON software_categories FOR SELECT USING (true);
+CREATE POLICY "Public Read Categories" ON software_categories FOR SELECT USING (auth.uid() IS NOT NULL);
 
 DROP POLICY IF EXISTS "Public Read Tags" ON software_tags;
-CREATE POLICY "Public Read Tags" ON software_tags FOR SELECT USING (true);
+CREATE POLICY "Public Read Tags" ON software_tags FOR SELECT USING (auth.uid() IS NOT NULL);
 
 DROP POLICY IF EXISTS "Public Read Products" ON software_products;
-CREATE POLICY "Public Read Products" ON software_products FOR SELECT USING (is_published = true);
+CREATE POLICY "Public Read Products" ON software_products FOR SELECT USING (auth.uid() IS NOT NULL AND is_published = true);
 
 DROP POLICY IF EXISTS "Public Read Items" ON software_items;
-CREATE POLICY "Public Read Items" ON software_items FOR SELECT USING (is_published = true);
+CREATE POLICY "Public Read Items" ON software_items FOR SELECT USING (auth.uid() IS NOT NULL AND is_published = true);
 
 DROP POLICY IF EXISTS "Public Read Product Categories" ON software_product_categories;
-CREATE POLICY "Public Read Product Categories" ON software_product_categories FOR SELECT USING (true);
+CREATE POLICY "Public Read Product Categories" ON software_product_categories FOR SELECT USING (auth.uid() IS NOT NULL);
 
 DROP POLICY IF EXISTS "Public Read Product Tags" ON software_product_tags;
-CREATE POLICY "Public Read Product Tags" ON software_product_tags FOR SELECT USING (true);
+CREATE POLICY "Public Read Product Tags" ON software_product_tags FOR SELECT USING (auth.uid() IS NOT NULL);
 
 NOTIFY pgrst, 'reload schema';
