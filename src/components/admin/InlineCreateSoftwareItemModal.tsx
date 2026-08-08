@@ -65,11 +65,9 @@ export function InlineCreateSoftwareItemModal({ productId }: { productId: string
                 >
                   <option value="expansion">Expansión / Banco</option>
                   <option value="plugin_device">Plugin / Dispositivo Max (.amxd, VST)</option>
-                  <option value="installer_win">Instalador Windows</option>
-                  <option value="installer_mac">Instalador macOS</option>
                   <option value="factory_content">Factory Library Base</option>
                   <option value="skin">Skin / Apariencia</option>
-                  <option value="presets">Presets Sueltos</option>
+                  <option value="preset_pack">Presets Sueltos</option>
                 </select>
               </div>
 

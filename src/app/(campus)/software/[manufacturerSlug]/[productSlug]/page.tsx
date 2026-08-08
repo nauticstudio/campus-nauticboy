@@ -7,6 +7,7 @@ import { getAdminViewMode } from '@/app/actions/view-mode'
 import { InlineEditSoftwareModal } from '@/components/admin/InlineEditSoftwareModal'
 import { InlineEditSoftwareItemModal } from '@/components/admin/InlineEditSoftwareItemModal'
 import { InlineCreateSoftwareItemModal } from '@/components/admin/InlineCreateSoftwareItemModal'
+import { InlineCreateInstallerModal } from '@/components/admin/InlineCreateInstallerModal'
 
 export const dynamic = 'force-dynamic'
 
@@ -110,28 +111,34 @@ export default async function SoftwareProductPage({
             {/* Quick Installers Actions */}
             <div className="pt-6 flex flex-wrap items-center gap-4">
               {grouped.installersWin.map((win) => (
-                <a 
-                  key={win.id}
-                  href={`/api/download?id=${win.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-cyan-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:bg-cyan-400 transition-all shadow-lg shadow-cyan-500/25 active:scale-95"
-                >
-                  <Download className="w-4 h-4" /> Descargar Windows ({win.file_size || 'ZIP'})
-                </a>
+                <div key={win.id} className="relative group/installer flex items-center gap-2">
+                  <a 
+                    href={`/api/download?id=${win.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-cyan-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:bg-cyan-400 transition-all shadow-lg shadow-cyan-500/25 active:scale-95"
+                  >
+                    <Download className="w-4 h-4" /> Descargar Windows ({win.file_size || 'ZIP'})
+                  </a>
+                  {showAdminUI && <InlineEditSoftwareItemModal item={win} />}
+                </div>
               ))}
 
               {grouped.installersMac.map((mac) => (
-                <a 
-                  key={mac.id}
-                  href={`/api/download?id=${mac.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider hover:bg-slate-700 border border-slate-700 transition-all active:scale-95"
-                >
-                  <Download className="w-4 h-4 text-cyan-400" /> Descargar macOS ({mac.file_size || 'PKG'})
-                </a>
+                <div key={mac.id} className="relative group/installer flex items-center gap-2">
+                  <a 
+                    href={`/api/download?id=${mac.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider hover:bg-slate-700 border border-slate-700 transition-all active:scale-95"
+                  >
+                    <Download className="w-4 h-4 text-cyan-400" /> Descargar macOS ({mac.file_size || 'PKG'})
+                  </a>
+                  {showAdminUI && <InlineEditSoftwareItemModal item={mac} />}
+                </div>
               ))}
+
+              {showAdminUI && <InlineCreateInstallerModal productId={product.id} />}
             </div>
           </div>
 
