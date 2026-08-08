@@ -1,8 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+import { requireUser } from '@/server/auth/guards'
 import { redirect } from 'next/navigation'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { CommandMenu } from '@/components/layout/CommandMenu'
-import type { Profile } from '@/lib/supabase/types'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -12,21 +11,9 @@ export default async function CampusLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // La política RLS correcta (migration 00001) ya hace segura esta lectura:
-  // solo devuelve el propio perfil del usuario autenticado.
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, role')
-    .eq('id', user.id)
-    .single<Pick<Profile, 'full_name' | 'role'>>()
+  // E3: el guard central es la única puerta de acceso. Devuelve el mismo cliente
+  // memoizado que usaremos para las lecturas.
+  const { user, profile, supabase } = await requireUser()
 
   const isAdmin = profile?.role === 'admin'
   const userName = profile?.full_name || user.email?.split('@')[0] || 'Alumno'

@@ -11,6 +11,13 @@
 
 ### PR 3
 - `GET /api/search`: `q` validada (2–64 chars, trim, sin caracteres especiales `.or()`), sin `@ts-ignore` en el embed `categories(slug)`.
+
+### 🐛 Fix RBAC (E3) — 2026-08-08 20:15
+**Síntoma:** Al logearse como `nauticboyofficial` (admin) se veía exactamente lo mismo que como `lucho` (alumno), sin el ViewModeSwitcher/“modo dios”.
+
+**Causa:** `(campus)/layout.tsx` y `dashboard/page.tsx` recreaban el chequeo de permisos a mano (`createClient` → `supabase.auth.getUser()` → `profiles.select('role')`), saltándose el DAL central (`requireUser()` en `src/server/auth/guards.ts`). El guard memoizaba perfil y rol con `React.cache`, pero los dos componentes rompían la cadena; además, la lectura directa del perfil podía quedar desactualizada.
+
+**Fix:** ambos componentes ahora usan `const { user, profile, supabase } = await requireUser()` — una sola llamada autenticada server-side, cacheada por ruta, que garantiza RBAC correcto y que no hay ni doble query ni mismatch.
 - `zod ^4.4.3` añadido como dependencia directa.
 - `src/lib/auth/schemas.ts`: esquemas compartidos (`loginSchema`, `inviteUserSchema`, `updateProfileNameSchema`).
 - `src/lib/actions/auth.ts`: toda la validación pasa por `safeParse` con mensajes en español.

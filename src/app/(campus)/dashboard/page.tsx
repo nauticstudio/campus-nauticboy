@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { 
-  BookOpen, Sparkles, Trophy, Flame, PlayCircle, ArrowRight, Clock, 
-  Package, Headphones, Users, Cpu, Download, Shield, Heart, Library, 
+import { createAdminClient } from '@/lib/supabase/server'
+import { requireUser } from '@/server/auth/guards'
+import {
+  BookOpen, Sparkles, Trophy, Flame, PlayCircle, ArrowRight, Clock,
+  Package, Headphones, Users, Cpu, Download, Shield, Heart, Library,
   MessageCircle, CheckCircle2, Activity, Sliders, Waves, MonitorPlay, Speaker
 } from 'lucide-react'
 import { getAdminViewMode } from '@/app/actions/view-mode'
@@ -11,15 +12,11 @@ import { getDashboardFeatured, type SoftwareFeatured } from '@/lib/data/software
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-
-  // Fetch current user
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) return null
-
-  // Leer el perfil con la sesión del usuario: la política RLS ya es correcta.
-  const { data: profile } = await supabase.from('profiles').select('full_name, role').eq('id', user.id).single()
+  // La lectura de usuario/perfil es idéntica a la del layout: usamos el guard
+  // memoizado en React.cache para no repetirla.  Esto arregla el bug del RBAC:
+  // antes este componente hacia `createClient` y leía el perfil `by hand`,
+  // rompiendo la cadena de `React.cache` y empleando el cliente incorrecto.
+  const { user, profile, supabase } = await requireUser()
   const isAdmin = profile?.role === 'admin'
   const userName = profile?.full_name ? profile.full_name.split(' ')[0] : 'Alumno'
 
