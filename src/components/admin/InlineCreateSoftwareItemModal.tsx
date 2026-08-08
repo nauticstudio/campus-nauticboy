@@ -43,7 +43,7 @@ export function InlineCreateSoftwareItemModal({ productId }: { productId: string
       
       <DialogContent className="sm:max-w-[550px] bg-white text-slate-900 rounded-3xl p-6 border-slate-200">
         <form onSubmit={handleCreateItem}>
-          <input type="hidden" name="software_id" value={productId} />
+          <input type="hidden" name="product_id" value={productId} />
 
           <DialogHeader className="space-y-2 mb-4">
             <DialogTitle className="text-xl font-black">Añadir Archivo al Producto</DialogTitle>
