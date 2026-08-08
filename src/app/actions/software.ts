@@ -1,244 +1,219 @@
 'use server'
 
-import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { requireAdmin } from '@/server/auth/guards'
+import type { SoftwareItem } from '@/lib/data/software'
 
-// Helper to check admin
 async function verifyAdmin() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('No autorizado')
-
-  const adminSupabase = await createAdminClient()
-  const { data: profile } = await adminSupabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') throw new Error('No tienes permisos de administrador')
-
-  return adminSupabase
+  const { admin } = await requireAdmin()
+  return admin
 }
 
 function slugify(text: string) {
-  return text
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w\-]+/g, '')
-    .replace(/\-\-+/g, '-')
+  return text.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-')
 }
 
-// 1. Create Manufacturer
-export async function createManufacturerAction(formData: FormData) {
+function gStr(formData: FormData, key: string): string | null {
+  const v = formData.get(key)
+  return typeof v === 'string' ? v.trim() : null
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function toUUID(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const v = value.trim()
+  return UUID_RE.test(v) ? v : null
+}
+
+// Tipo uniforme de retorno: el cliente siempre ve `success` y opcionalmente `error`/`redirectUrl`.
+type ActionResult = {
+  success: boolean
+  error?: string
+  redirectUrl?: string
+}
+
+// ---- Manufacturer -------------------------------------------------------
+export async function createManufacturerAction(formData: FormData): Promise<ActionResult> {
   try {
     const adminSupabase = await verifyAdmin()
-    const name = formData.get('name') as string
-    const logo_url = formData.get('logo_url') as string
-    const description = formData.get('description') as string
-
-    if (!name) throw new Error('El nombre del fabricante es obligatorio')
-
-    const slug = slugify(name)
+    const name = gStr(formData, 'name')
+    if (!name || name.length < 2) {
+      console.error('[software] createManufacturer: nombre inválido')
+      return { success: false, error: 'El nombre del fabricante debe tener al menos 2 caracteres.' }
+    }
 
     const { error } = await adminSupabase
       .from('software_manufacturers')
-      .insert({ name, slug, logo_url, description })
+      .insert({
+        name,
+        slug: slugify(name),
+        logo_url: gStr(formData, 'logo_url') || null,
+        description: gStr(formData, 'description') || null,
+      })
 
     if (error) throw error
-
     revalidatePath('/admin/software')
     revalidatePath('/software')
     return { success: true }
-  } catch (error: any) {
-    return { success: false, error: error.message }
+  } catch (error) {
+    console.error('[software] createManufacturer:', error)
+    return { success: false, error: 'Error al crear el fabricante.' }
   }
 }
 
-// 2. Create Software Product
-export async function createSoftwareProductAction(formData: FormData) {
+export async function updateManufacturerAction(formData: FormData): Promise<ActionResult> {
   try {
     const adminSupabase = await verifyAdmin()
-    const manufacturer_id = formData.get('manufacturer_id') as string
-    const name = formData.get('name') as string
-    const tagline = formData.get('tagline') as string
-    const description = formData.get('description') as string
-    const cover_image_url = formData.get('cover_image_url') as string
-    const version = formData.get('version') as string || '1.0'
-    const compatibility = formData.get('compatibility') as string || 'Windows 10/11 & macOS 12+'
-    const formats = (formData.get('formats') as string || 'VST3, AU, AAX').split(',').map(s => s.trim())
-    const is_featured = formData.get('is_featured') === 'true'
+    const id = toUUID(formData.get('id'))
+    const name = gStr(formData, 'name')
+    if (!id) {
+      console.error('[software] updateManufacturer: id inválido')
+      return { success: false, error: 'ID del fabricante inválido.' }
+    }
+    if (!name || name.length < 2) {
+      console.error('[software] updateManufacturer: nombre inválido')
+      return { success: false, error: 'El nombre debe tener al menos 2 caracteres.' }
+    }
 
-    if (!manufacturer_id || !name) throw new Error('Fabricante y Nombre son requeridos')
+    const { error } = await adminSupabase
+      .from('software_manufacturers')
+      .update({
+        name,
+        slug: slugify(name),
+        logo_url: gStr(formData, 'logo_url') || null,
+        description: gStr(formData, 'description') || null,
+      })
+      .eq('id', id)
 
-    const slug = slugify(name)
+    if (error) throw error
+    revalidatePath('/admin/software')
+    revalidatePath('/software')
+    return { success: true }
+  } catch (error) {
+    console.error('[software] updateManufacturer:', error)
+    return { success: false, error: 'Error al actualizar el fabricante.' }
+  }
+}
+
+export async function deleteManufacturerAction(manufacturerId: string): Promise<ActionResult> {
+  try {
+    const id = toUUID(manufacturerId)
+    if (!id) {
+      console.error('[software] deleteManufacturer: id inválido')
+      return { success: false, error: 'ID del fabricante inválido.' }
+    }
+    const adminSupabase = await verifyAdmin()
+
+    const { error } = await adminSupabase
+      .from('software_manufacturers')
+      .delete()
+      .eq('id', id)
+    if (error) throw error
+    revalidatePath('/admin/software')
+    revalidatePath('/software')
+    return { success: true }
+  } catch (error) {
+    console.error('[software] deleteManufacturer:', error)
+    return { success: false, error: 'Error al eliminar el fabricante.' }
+  }
+}
+
+// ---- Product -------------------------------------------------------------
+function readProductForm(formData: FormData) {
+  const manufacturerId = gStr(formData, 'manufacturer_id')
+  const name = gStr(formData, 'name')
+  if (!manufacturerId || !name) return null
+
+  return {
+    id: gStr(formData, 'id'),
+    manufacturerId,
+    name,
+    slug: slugify(name),
+    tagline: gStr(formData, 'tagline') || null,
+    description: gStr(formData, 'description') || null,
+    coverImageUrl: gStr(formData, 'cover_image_url') || null,
+    version: gStr(formData, 'version') || '1.0',
+    compatibility: gStr(formData, 'compatibility') || 'Windows 10/11 & macOS 12+',
+    formats: (gStr(formData, 'formats') || 'VST3, AU, AAX').split(',').map(s => s.trim()).filter(Boolean),
+    isFeatured: gStr(formData, 'is_featured') === 'true',
+  }
+}
+
+export async function createSoftwareProductAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const adminSupabase = await verifyAdmin()
+    const parsed = readProductForm(formData)
+    if (!parsed) {
+      console.error('[software] createProduct: campos requeridos')
+      return { success: false, error: 'Fabricante y Nombre son obligatorios.' }
+    }
+
+    const manufacturerId = toUUID(parsed.manufacturerId)
+    if (!manufacturerId) {
+      console.error('[software] createProduct: manufacturer_id inválido')
+      return { success: false, error: 'Fabricante inválido.' }
+    }
 
     const { error } = await adminSupabase
       .from('software_products')
       .insert({
-        manufacturer_id,
-        name,
-        slug,
-        tagline,
-        description,
-        cover_image_url,
-        version,
-        compatibility,
-        formats,
-        is_featured,
-        is_published: true
+        manufacturer_id: manufacturerId,
+        name: parsed.name,
+        slug: parsed.slug,
+        tagline: parsed.tagline,
+        description: parsed.description,
+        cover_image_url: parsed.coverImageUrl,
+        version: parsed.version,
+        compatibility: parsed.compatibility,
+        formats: parsed.formats,
+        is_featured: parsed.isFeatured,
+        is_published: true,
       })
 
     if (error) throw error
-
     revalidatePath('/admin/software')
     revalidatePath('/software')
     return { success: true }
-  } catch (error: any) {
-    return { success: false, error: error.message }
+  } catch (error) {
+    console.error('[software] createProduct:', error)
+    return { success: false, error: 'Error al crear el producto.' }
   }
 }
 
-// 3. Create Software Item (Installer, Expansion, Factory, etc.)
-export async function createSoftwareItemAction(formData: FormData) {
+export async function updateSoftwareProductAction(formData: FormData): Promise<ActionResult> {
   try {
     const adminSupabase = await verifyAdmin()
-    const product_id = formData.get('product_id') as string
-    const title = formData.get('title') as string
-    const item_type = formData.get('item_type') as any || 'expansion'
-    const description = formData.get('description') as string
-    const cover_image_url = formData.get('cover_image_url') as string
-    const file_size = formData.get('file_size') as string
-    const version = formData.get('version') as string
-    const download_url = formData.get('download_url') as string
-    const preset_count = parseInt(formData.get('preset_count') as string || '0', 10)
-    const genre_tag = formData.get('genre_tag') as string
-
-    if (!product_id || !title || !download_url) {
-      throw new Error('Producto, Título y Link de Google Drive son obligatorios')
+    const parsed = readProductForm(formData)
+    if (!parsed) {
+      console.error('[software] updateProduct: campos requeridos')
+      return { success: false, error: 'Fabricante y Nombre son obligatorios.' }
     }
 
-    const { error } = await adminSupabase
-      .from('software_items')
-      .insert({
-        product_id,
-        title,
-        item_type,
-        description,
-        cover_image_url,
-        file_size,
-        version,
-        download_url,
-        preset_count,
-        genre_tag,
-        is_published: true
-      })
-
-    if (error) throw error
-
-    revalidatePath('/admin/software')
-    revalidatePath('/software')
-    return { success: true }
-  } catch (error: any) {
-    return { success: false, error: error.message }
-  }
-}
-
-// Delete functions
-export async function deleteManufacturerAction(manufacturerId: string) {
-  try {
-    const adminSupabase = await verifyAdmin()
-    const { error } = await adminSupabase.from('software_manufacturers').delete().eq('id', manufacturerId)
-    if (error) throw error
-    revalidatePath('/admin/software')
-    revalidatePath('/software')
-    return { success: true }
-  } catch (error: any) {
-    return { success: false, error: error.message }
-  }
-}
-
-export async function deleteSoftwareProductAction(productId: string) {
-  try {
-    const adminSupabase = await verifyAdmin()
-    const { error } = await adminSupabase.from('software_products').delete().eq('id', productId)
-    if (error) throw error
-    revalidatePath('/admin/software')
-    revalidatePath('/software')
-    return { success: true }
-  } catch (error: any) {
-    return { success: false, error: error.message }
-  }
-}
-
-export async function deleteSoftwareItemAction(itemId: string) {
-  try {
-    const adminSupabase = await verifyAdmin()
-    const { error } = await adminSupabase.from('software_items').delete().eq('id', itemId)
-    if (error) throw error
-    revalidatePath('/admin/software')
-    revalidatePath('/software')
-    return { success: true }
-  } catch (error: any) {
-    return { success: false, error: error.message }
-  }
-}
-
-// UPDATE FUNCTIONS
-export async function updateManufacturerAction(formData: FormData) {
-  try {
-    const adminSupabase = await verifyAdmin()
-    const id = formData.get('id') as string
-    const name = formData.get('name') as string
-    const logo_url = formData.get('logo_url') as string
-    const description = formData.get('description') as string
-
-    if (!id || !name) throw new Error('ID y Nombre son obligatorios')
-
-    const slug = slugify(name)
-
-    const { error } = await adminSupabase
-      .from('software_manufacturers')
-      .update({ name, slug, logo_url, description })
-      .eq('id', id)
-
-    if (error) throw error
-
-    revalidatePath('/admin/software')
-    revalidatePath('/software')
-    return { success: true }
-  } catch (error: any) {
-    return { success: false, error: error.message }
-  }
-}
-
-export async function updateSoftwareProductAction(formData: FormData) {
-  try {
-    const adminSupabase = await verifyAdmin()
-    const id = formData.get('id') as string
-    const manufacturer_id = formData.get('manufacturer_id') as string
-    const name = formData.get('name') as string
-    const tagline = formData.get('tagline') as string
-    const description = formData.get('description') as string
-    const cover_image_url = formData.get('cover_image_url') as string
-    const version = formData.get('version') as string
-    const compatibility = formData.get('compatibility') as string
-    const formats = (formData.get('formats') as string || 'VST3, AU, AAX').split(',').map(s => s.trim())
-
-    if (!id || !name) throw new Error('ID y Nombre son obligatorios')
-
-    const slug = slugify(name)
+    const id = toUUID(formData.get('id'))
+    const manufacturerId = toUUID(parsed.manufacturerId)
+    if (!id) {
+      console.error('[software] updateProduct: id inválido')
+      return { success: false, error: 'ID del producto inválido.' }
+    }
+    if (!manufacturerId) {
+      console.error('[software] updateProduct: manufacturer_id inválido')
+      return { success: false, error: 'Fabricante inválido.' }
+    }
 
     const { error } = await adminSupabase
       .from('software_products')
       .update({
-        manufacturer_id,
-        name,
-        slug,
-        tagline,
-        description,
-        cover_image_url,
-        version,
-        compatibility,
-        formats,
-        updated_at: new Date().toISOString()
+        manufacturer_id: manufacturerId,
+        name: parsed.name,
+        slug: parsed.slug,
+        tagline: parsed.tagline,
+        description: parsed.description,
+        cover_image_url: parsed.coverImageUrl,
+        version: parsed.version,
+        compatibility: parsed.compatibility,
+        formats: parsed.formats,
+        updated_at: new Date().toISOString(),
       })
       .eq('id', id)
 
@@ -247,60 +222,184 @@ export async function updateSoftwareProductAction(formData: FormData) {
     const { data: m } = await adminSupabase
       .from('software_manufacturers')
       .select('slug')
-      .eq('id', manufacturer_id)
+      .eq('id', manufacturerId)
       .single()
 
     revalidatePath('/admin/software')
     revalidatePath('/software')
-    
-    return { 
-      success: true, 
-      redirectUrl: `/software/${m?.slug}/${slug}` 
-    }
-  } catch (error: any) {
-    return { success: false, error: error.message }
+    return { success: true, redirectUrl: `/software/${m?.slug}/${parsed.slug}` }
+  } catch (error) {
+    console.error('[software] updateProduct:', error)
+    return { success: false, error: 'Error al actualizar el producto.' }
   }
 }
 
-export async function updateSoftwareItemAction(formData: FormData) {
+export async function deleteSoftwareProductAction(productId: string): Promise<ActionResult> {
+  try {
+    const id = toUUID(productId)
+    if (!id) {
+      console.error('[software] deleteProduct: id inválido')
+      return { success: false, error: 'ID del producto inválido.' }
+    }
+    const adminSupabase = await verifyAdmin()
+
+    const { error } = await adminSupabase
+      .from('software_products')
+      .delete()
+      .eq('id', id)
+    if (error) throw error
+    revalidatePath('/admin/software')
+    revalidatePath('/software')
+    return { success: true }
+  } catch (error) {
+    console.error('[software] deleteProduct:', error)
+    return { success: false, error: 'Error al eliminar el producto.' }
+  }
+}
+
+// ---- Item ----------------------------------------------------------------
+const SOFTWARE_ITEM_TYPES = new Set<SoftwareItem['item_type']>([
+  'installer_win',
+  'installer_mac',
+  'factory_content',
+  'expansion',
+  'skin',
+  'presets',
+  'update',
+  'plugin_device',
+])
+
+function readItemForm(formData: FormData) {
+  const product_id = gStr(formData, 'product_id')
+  const title = gStr(formData, 'title')
+  const download_url = gStr(formData, 'download_url')
+
+  if (!product_id || !title || !download_url) return null
+  if (!download_url.startsWith('https://')) return null
+
+  const presetRaw = gStr(formData, 'preset_count') || '0'
+  const preset = Number.parseInt(presetRaw, 10)
+
+  const itemTypeRaw = gStr(formData, 'item_type')
+  const item_type = SOFTWARE_ITEM_TYPES.has(itemTypeRaw as SoftwareItem['item_type'])
+    ? (itemTypeRaw as SoftwareItem['item_type'])
+    : 'expansion'
+
+  return {
+    id: gStr(formData, 'id'),
+    product_id,
+    title,
+    item_type,
+    description: gStr(formData, 'description') || null,
+    cover_image_url: gStr(formData, 'cover_image_url') || null,
+    file_size: gStr(formData, 'file_size') || null,
+    version: gStr(formData, 'version') || null,
+    download_url,
+    preset_count: Number.isNaN(preset) ? 0 : preset,
+    genre_tag: gStr(formData, 'genre_tag') || null,
+  }
+}
+
+export async function createSoftwareItemAction(formData: FormData): Promise<ActionResult> {
   try {
     const adminSupabase = await verifyAdmin()
-    const id = formData.get('id') as string
-    const title = formData.get('title') as string
-    const item_type = formData.get('item_type') as any
-    const description = formData.get('description') as string
-    const cover_image_url = formData.get('cover_image_url') as string
-    const file_size = formData.get('file_size') as string
-    const version = formData.get('version') as string
-    const download_url = formData.get('download_url') as string
-    const preset_count = parseInt(formData.get('preset_count') as string || '0', 10)
-    const genre_tag = formData.get('genre_tag') as string
+    const parsed = readItemForm(formData)
+    if (!parsed) {
+      console.error('[software] createItem: campos inválidos')
+      return { success: false, error: 'Producto, Título y Link de Google Drive son obligatorios y válidos.' }
+    }
 
-    if (!id || !title || !download_url) {
-      throw new Error('ID, Título y Link de Google Drive son obligatorios')
+    const productId = toUUID(parsed.product_id)
+    if (!productId) {
+      console.error('[software] createItem: product_id inválido')
+      return { success: false, error: 'El ID del producto es inválido.' }
+    }
+
+    const { error } = await adminSupabase
+      .from('software_items')
+      .insert({
+        product_id: productId,
+        title: parsed.title,
+        item_type: parsed.item_type,
+        description: parsed.description,
+        cover_image_url: parsed.cover_image_url,
+        file_size: parsed.file_size,
+        version: parsed.version,
+        download_url: parsed.download_url,
+        preset_count: parsed.preset_count,
+        genre_tag: parsed.genre_tag,
+        is_published: true,
+      })
+
+    if (error) throw error
+    revalidatePath('/admin/software')
+    revalidatePath('/software')
+    return { success: true }
+  } catch (error) {
+    console.error('[software] createItem:', error)
+    return { success: false, error: 'Error al crear el ítem.' }
+  }
+}
+
+export async function updateSoftwareItemAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const adminSupabase = await verifyAdmin()
+    const parsed = readItemForm(formData)
+    if (!parsed) {
+      console.error('[software] updateItem: campos inválidos')
+      return { success: false, error: 'Producto, Título y Link de Google Drive son obligatorios y válidos.' }
+    }
+
+    const id = toUUID(formData.get('id'))
+    if (!id) {
+      console.error('[software] updateItem: id inválido')
+      return { success: false, error: 'ID del ítem inválido.' }
     }
 
     const { error } = await adminSupabase
       .from('software_items')
       .update({
-        title,
-        item_type,
-        description,
-        cover_image_url,
-        file_size,
-        version,
-        download_url,
-        preset_count,
-        genre_tag
+        title: parsed.title,
+        item_type: parsed.item_type,
+        description: parsed.description,
+        cover_image_url: parsed.cover_image_url,
+        file_size: parsed.file_size,
+        version: parsed.version,
+        download_url: parsed.download_url,
+        preset_count: parsed.preset_count,
+        genre_tag: parsed.genre_tag,
       })
       .eq('id', id)
 
     if (error) throw error
-
     revalidatePath('/admin/software')
     revalidatePath('/software')
     return { success: true }
-  } catch (error: any) {
-    return { success: false, error: error.message }
+  } catch (error) {
+    console.error('[software] updateItem:', error)
+    return { success: false, error: 'Error al actualizar el ítem.' }
+  }
+}
+
+export async function deleteSoftwareItemAction(itemId: string): Promise<ActionResult> {
+  try {
+    const id = toUUID(itemId)
+    if (!id) {
+      console.error('[software] deleteItem: id inválido')
+      return { success: false, error: 'ID del ítem inválido.' }
+    }
+    const adminSupabase = await verifyAdmin()
+
+    const { error } = await adminSupabase
+      .from('software_items')
+      .delete()
+      .eq('id', id)
+    if (error) throw error
+    revalidatePath('/admin/software')
+    revalidatePath('/software')
+    return { success: true }
+  } catch (error) {
+    console.error('[software] deleteItem:', error)
+    return { success: false, error: 'Error al eliminar el ítem.' }
   }
 }

@@ -1,4 +1,4 @@
-import { createAdminClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 
 export type SoftwareManufacturer = {
   id: string
@@ -32,6 +32,22 @@ export type SoftwareProduct = {
   categories?: SoftwareCategory[]
 }
 
+export type SoftwareFeatured = Pick<
+  SoftwareProduct,
+  'id' | 'name' | 'slug' | 'description' | 'cover_image_url'
+>
+
+// Fetch featured products for dashboard
+export async function getDashboardFeatured() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('software_products')
+    .select('id, name, slug, description, cover_image_url')
+    .eq('is_published', true)
+    .limit(4)
+  return { featuredSoftware: (data || []) as SoftwareFeatured[] }
+}
+
 export type SoftwareItem = {
   id: string
   product_id: string
@@ -49,7 +65,7 @@ export type SoftwareItem = {
 
 // Fetch all hub data
 export async function getSoftwareHubData() {
-  const supabase = await createAdminClient()
+  const supabase = await createClient()
 
   // Featured Products
   const { data: featuredProducts } = await supabase
@@ -86,7 +102,7 @@ export async function getSoftwareHubData() {
 
 // Fetch single product ecosystem by slugs
 export async function getProductEcosystem(manufacturerSlug: string, productSlug: string) {
-  const supabase = await createAdminClient()
+  const supabase = await createClient()
 
   // Get Manufacturer
   const { data: manufacturer } = await supabase

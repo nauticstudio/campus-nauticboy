@@ -6,6 +6,7 @@ import {
   MessageCircle, CheckCircle2, Activity, Sliders, Waves, MonitorPlay, Speaker
 } from 'lucide-react'
 import { getAdminViewMode } from '@/app/actions/view-mode'
+import { getDashboardFeatured, type SoftwareFeatured } from '@/lib/data/software'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,19 +18,20 @@ export default async function DashboardPage() {
   
   if (!user) return null
 
-  // Check role & profile
-  const adminSupabase = await createAdminClient()
-  const { data: profile } = await adminSupabase.from('profiles').select('full_name, role').eq('id', user.id).single()
+  // Leer el perfil con la sesión del usuario: la política RLS ya es correcta.
+  const { data: profile } = await supabase.from('profiles').select('full_name, role').eq('id', user.id).single()
   const isAdmin = profile?.role === 'admin'
   const userName = profile?.full_name ? profile.full_name.split(' ')[0] : 'Alumno'
-  
+
   let currentViewMode = await getAdminViewMode()
   if (isAdmin && !currentViewMode) currentViewMode = 'admin'
   const showAdminUI = isAdmin && currentViewMode === 'admin'
 
   // --- ADMIN DATA FETCHING ---
+  // Solo si es admin se pide el client service-role; nunca antes.
   let adminStats = { users: 0, products: 0, courses: 0, items: 0 }
   if (showAdminUI) {
+    const adminSupabase = await createAdminClient()
     const [uRes, pRes, cRes, iRes] = await Promise.all([
       adminSupabase.from('profiles').select('id', { count: 'exact', head: true }),
       adminSupabase.from('software_products').select('id', { count: 'exact', head: true }),
@@ -45,18 +47,18 @@ export default async function DashboardPage() {
   }
 
   // --- STUDENT DATA FETCHING ---
-  let featuredSoftware: any[] = []
+  let featuredSoftware: SoftwareFeatured[] = []
   let stats = { courses: 0, software: 0, favorites: 0 }
 
   if (!showAdminUI) {
-    const [{ count: enrollmentsCount }, { count: softwareCount }, { count: favoritesCount }, { data: featuredData }] = await Promise.all([
+    const [{ count: enrollmentsCount }, { count: softwareCount }, { count: favoritesCount }] = await Promise.all([
       supabase.from('enrollments').select('user_id', { count: 'exact', head: true }).eq('user_id', user.id),
       supabase.from('software_products').select('id', { count: 'exact', head: true }).eq('is_published', true),
       supabase.from('favorites').select('user_id', { count: 'exact', head: true }).eq('user_id', user.id),
-      supabase.from('software_products').select('id, name, slug, description, cover_image_url').eq('is_published', true).limit(4)
     ])
-    
-    featuredSoftware = featuredData || []
+
+    const { featuredSoftware: featured } = await getDashboardFeatured()
+    featuredSoftware = featured
     stats = {
       courses: enrollmentsCount || 0,
       software: softwareCount || 0,

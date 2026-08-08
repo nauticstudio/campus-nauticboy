@@ -1,7 +1,8 @@
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { CommandMenu } from '@/components/layout/CommandMenu'
+import type { Profile } from '@/lib/supabase/types'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -19,13 +20,13 @@ export default async function CampusLayout({
     redirect('/login')
   }
 
-  // Use admin client to bypass RLS infinite recursion bug in profiles table
-  const adminSupabase = await createAdminClient()
-  const { data: profile } = await adminSupabase
+  // La política RLS correcta (migration 00001) ya hace segura esta lectura:
+  // solo devuelve el propio perfil del usuario autenticado.
+  const { data: profile } = await supabase
     .from('profiles')
     .select('full_name, role')
     .eq('id', user.id)
-    .single()
+    .single<Pick<Profile, 'full_name' | 'role'>>()
 
   const isAdmin = profile?.role === 'admin'
   const userName = profile?.full_name || user.email?.split('@')[0] || 'Alumno'
