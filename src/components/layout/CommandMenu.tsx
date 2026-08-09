@@ -111,7 +111,7 @@ export function CommandMenu() {
         </CommandEmpty>
         
         {loading && hasResults && (
-          <div className="absolute top-12 right-4 text-cyan-500">
+          <div className="absolute top-12 right-4 text-primary">
             <Loader2 className="w-4 h-4 animate-spin" />
           </div>
         )}
@@ -123,7 +123,7 @@ export function CommandMenu() {
                 key={course.id}
                 onSelect={() => runCommand(() => router.push(`/courses/${course.slug}`))}
               >
-                <BookOpen className="mr-2 h-4 w-4 text-cyan-400" />
+                <BookOpen className="mr-2 h-4 w-4 text-primary" />
                 <div className="flex flex-col">
                   <span>{course.title}</span>
                   {course.description && <span className="text-[10px] text-slate-500 line-clamp-1">{course.description}</span>}

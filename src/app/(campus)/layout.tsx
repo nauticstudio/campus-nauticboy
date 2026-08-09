@@ -1,7 +1,7 @@
 import { requireUser } from '@/server/auth/guards'
-import { redirect } from 'next/navigation'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { CommandMenu } from '@/components/layout/CommandMenu'
+import { TopBar } from '@/components/layout/TopBar'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -17,6 +17,7 @@ export default async function CampusLayout({
 
   const isAdmin = profile?.role === 'admin'
   const userName = profile?.full_name || user.email?.split('@')[0] || 'Alumno'
+  const userEmail = user.email ?? ''
 
   // Fetch View Mode (Admin only setting, defaults to 'admin' if they are an admin)
   const { getAdminViewMode } = await import('@/app/actions/view-mode')
@@ -34,7 +35,7 @@ export default async function CampusLayout({
   const devBadge =
     process.env.NODE_ENV === 'development' ? (
       <div
-        className="fixed bottom-28 left-3 z-[70] rounded-md bg-black/80 px-2.5 py-1.5 text-[11px] font-mono text-cyan-200 shadow-lg backdrop-blur"
+        className="fixed bottom-28 left-3 z-[70] rounded-md bg-ink-950/85 px-2.5 py-1.5 text-[11px] font-mono text-ink-200 shadow-lg backdrop-blur"
         aria-hidden
       >
         role={<span className="text-emerald-300">{profile?.role ?? 'null'}</span>}{' '}
@@ -93,12 +94,13 @@ export default async function CampusLayout({
   }
 
   return (
-    <div className="flex min-h-screen w-full bg-[#F8FAFC] font-sans text-slate-900 selection:bg-cyan-500/20 selection:text-cyan-900 relative overflow-x-hidden">
-      
-      {/* Premium Light Ambient Background Glows */}
-      <div className="fixed -top-40 -left-40 w-96 h-96 bg-cyan-400/15 rounded-full blur-3xl pointer-events-none z-0 animate-pulse-subtle" />
-      <div className="fixed top-1/3 -right-40 w-[30rem] h-[30rem] bg-indigo-400/10 rounded-full blur-3xl pointer-events-none z-0" />
-      <div className="fixed -bottom-40 left-1/3 w-[28rem] h-[28rem] bg-emerald-400/10 rounded-full blur-3xl pointer-events-none z-0" />
+    <div className="flex min-h-screen w-full bg-background text-foreground relative overflow-x-hidden">
+
+      {/* Pearl ambient: glows coral/índigo suaves + grano editorial */}
+      <div className="fixed -top-40 -left-40 w-96 h-96 bg-coral-400/14 rounded-full blur-3xl pointer-events-none z-0 animate-pulse-subtle" />
+      <div className="fixed top-1/3 -right-40 w-[30rem] h-[30rem] bg-ink-300/10 rounded-full blur-3xl pointer-events-none z-0" />
+      <div className="fixed -bottom-40 left-1/3 w-[28rem] h-[28rem] bg-coral-300/10 rounded-full blur-3xl pointer-events-none z-0" />
+      <div className="grain-overlay fixed inset-0 z-0" />
 
       {/* Admin View Mode Switcher (Global Floating Toggle) */}
       {isAdmin && currentViewMode && (
@@ -109,6 +111,9 @@ export default async function CampusLayout({
       <BottomNav {...sidebarProps} />
 
       <div className="flex flex-col flex-1 min-w-0 z-10 w-full">
+        {/* TopBar editorial (desktop) */}
+        <TopBar userName={userName} userEmail={userEmail} isAdmin={showAdminUI} />
+
         {/* Main Content Area */}
         <main className="flex-1 w-full relative pb-28 md:pb-32">
           {children}

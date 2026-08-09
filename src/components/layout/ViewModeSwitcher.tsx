@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Eye, Shield, User, Users } from 'lucide-react'
 import { setAdminViewMode } from '@/app/actions/view-mode'
@@ -9,62 +8,58 @@ import { setAdminViewMode } from '@/app/actions/view-mode'
 export function ViewModeSwitcher({ initialMode }: { initialMode: 'admin' | 'student' }) {
   const [mode, setMode] = useState<'admin' | 'student'>(initialMode)
   const [isPending, setIsPending] = useState(false)
-  const router = useRouter()
 
-  const handleToggle = async () => {
-    if (isPending) return
+  const handleToggle = async (newMode: 'admin' | 'student') => {
+    if (isPending || newMode === mode) return
     setIsPending(true)
-    const newMode = mode === 'admin' ? 'student' : 'admin'
-    
     await setAdminViewMode(newMode)
     setMode(newMode)
-    
-    // Hard refresh to re-evaluate server components (like the sidebar)
+    // Hard refresh para re-evaluar server components (sidebar, listados)
     window.location.reload()
   }
 
   return (
-    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] flex items-center p-1.5 rounded-full bg-slate-900 border border-slate-700 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:scale-105">
-      <div className="px-3 py-1 flex items-center gap-2 border-r border-slate-700">
-        <Eye className="w-4 h-4 text-slate-400" />
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:inline-block">Vista:</span>
+    <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-1 p-1 rounded-full bg-ink-900/95 border border-ink-700 shadow-[0_12px_40px_-8px_rgba(11,28,41,0.5)] backdrop-blur-xl">
+      <div className="hidden sm:flex items-center gap-1.5 pl-3 pr-1 text-[10px] font-bold text-ink-400 uppercase tracking-widest">
+        <Eye className="w-3.5 h-3.5" /> Vista
       </div>
 
       <button
-        onClick={handleToggle}
+        onClick={() => handleToggle('admin')}
         disabled={isPending}
-        className={`relative flex items-center gap-2 px-5 py-2 rounded-full text-xs font-black transition-all ${
-          mode === 'admin' 
-            ? 'bg-cyan-500 text-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.4)]' 
-            : 'bg-transparent text-slate-400 hover:text-slate-200'
+        aria-pressed={mode === 'admin'}
+        className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+          mode === 'admin'
+            ? 'bg-primary text-white shadow-[0_4px_14px_-2px_rgba(255,98,19,0.55)]'
+            : 'text-ink-300 hover:text-white'
         }`}
       >
-        <Shield className="w-4 h-4" />
+        <Shield className="w-3.5 h-3.5" />
         Admin
       </button>
 
       <button
-        onClick={handleToggle}
+        onClick={() => handleToggle('student')}
         disabled={isPending}
-        className={`relative flex items-center gap-2 px-5 py-2 rounded-full text-xs font-black transition-all ${
-          mode === 'student' 
-            ? 'bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]' 
-            : 'bg-transparent text-slate-400 hover:text-slate-200'
+        aria-pressed={mode === 'student'}
+        className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+          mode === 'student'
+            ? 'bg-ink-100 text-ink-900'
+            : 'text-ink-300 hover:text-white'
         }`}
       >
-        <User className="w-4 h-4" />
+        <User className="w-3.5 h-3.5" />
         Alumno
       </button>
 
-      <div className="pl-3 py-1 ml-1 flex items-center border-l border-slate-700">
-        <Link 
-          href="/admin/users"
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors text-xs font-bold"
-        >
-          <Users className="w-4 h-4" />
-          <span className="hidden sm:inline-block">Usuarios</span>
-        </Link>
-      </div>
+      <Link
+        href="/admin/users"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-ink-300 hover:bg-ink-800 hover:text-white transition-colors"
+        aria-label="Gestionar usuarios"
+      >
+        <Users className="w-3.5 h-3.5" />
+        <span className="hidden md:inline-block">Usuarios</span>
+      </Link>
     </div>
   )
 }

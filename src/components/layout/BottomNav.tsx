@@ -35,7 +35,7 @@ export function BottomNav({
     const isActive = href ? (pathname === href || (pathname.startsWith(href + '/') && href !== '/dashboard')) : false
     
     const content = (
-      <div className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all duration-300 ${isActive ? 'bg-cyan-500/10 text-cyan-600 shadow-inner' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/50'}`}>
+      <div className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all duration-300 ${isActive ? 'bg-cyan-500/10 text-primary shadow-inner' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/50'}`}>
         <Icon className={`w-6 h-6 ${isActive ? 'animate-pulse-subtle' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
         <span className="text-[9px] font-bold mt-1 opacity-0 h-0 group-hover:opacity-100 group-hover:h-auto md:opacity-100 md:h-auto transition-all">{label}</span>
       </div>
@@ -54,7 +54,7 @@ export function BottomNav({
 
   return (
     <div className="fixed bottom-4 left-4 right-4 md:bottom-8 md:left-1/2 md:-translate-x-1/2 md:w-auto md:right-auto z-50 flex items-center justify-center">
-      <div className="bg-white/70 backdrop-blur-3xl border border-white/40 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.15)] rounded-3xl p-1.5 flex items-center gap-1 md:gap-2">
+      <div className="bg-white/85 backdrop-blur-2xl border border-sand-200 shadow-[0_20px_60px_-15px_rgba(11,28,41,0.18)] rounded-3xl p-1.5 flex items-center gap-1 md:gap-2">
         <NavItem href="/dashboard" icon={Home} label="Inicio" />
         <NavItem 
           icon={Search} 
@@ -74,14 +74,14 @@ export function BottomNav({
           <SheetContent side="bottom" className="h-[85vh] md:h-[70vh] md:max-w-md md:mx-auto rounded-t-[2.5rem] md:rounded-3xl md:mb-24 p-6 bg-white/95 backdrop-blur-3xl flex flex-col gap-6 shadow-2xl border-slate-200/50">
             <SheetHeader className="text-left border-b border-slate-100 pb-4">
               <SheetTitle className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-indigo-600 p-0.5 shadow-md shadow-cyan-500/20">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-ink-700 to-ink-900 p-0.5 shadow-md shadow-cyan-500/20">
                   <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
-                    <Music2 className="w-6 h-6 text-cyan-600" />
+                    <Music2 className="w-6 h-6 text-primary" />
                   </div>
                 </div>
                 <div>
                   <h3 className="font-black text-slate-900 text-xl tracking-tight">Hola, {userName}</h3>
-                  <p className="text-xs font-bold text-cyan-600 tracking-wider uppercase mt-0.5">{isAdmin ? 'Administrador' : 'Alumno Pro'}</p>
+                  <p className="text-xs font-bold text-primary tracking-wider uppercase mt-0.5">{isAdmin ? 'Administrador' : 'Alumno Pro'}</p>
                 </div>
               </SheetTitle>
               <SheetDescription className="sr-only">Menú de navegación adicional</SheetDescription>
