@@ -5,7 +5,7 @@ import { checkAdmin } from '@/server/auth/guards'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import * as z from 'zod'
-import { loginSchema, inviteUserSchema, updateProfileNameSchema } from '@/lib/auth/schemas'
+import { loginSchema, inviteUserSchema, updateProfileNameSchema, updateEmailSchema } from '@/lib/auth/schemas'
 
 /** Devuelve el primer mensaje de validación de zod (en español, ver schemas). */
 function firstIssueMessage(error: z.ZodError): string {
@@ -85,6 +85,76 @@ export async function updateProfileNameAction(fullName: string) {
   if (error) {
     console.error('[updateProfileNameAction] Error:', error)
     return { error: 'No se ha podido actualizar el nombre.' }
+  }
+
+  revalidatePath('/', 'layout')
+  return { success: true }
+}
+
+export async function updateEmailAction(email: string) {
+  const parsed = updateEmailSchema.safeParse({ email })
+  if (!parsed.success) {
+    return { error: firstIssueMessage(parsed.error) }
+  }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return { error: 'Debes iniciar sesión.' }
+  }
+
+  const newEmail = parsed.data.email
+  if (user.email && newEmail.toLowerCase() === user.email.toLowerCase()) {
+    return { error: 'El nuevo correo debe ser distinto al actual.' }
+  }
+
+  // Supabase envía el enlace de confirmación al correo NUEVO (y al antiguo si
+  // activas "Secure email change"). Hasta confirmar, auth.users.email sigue
+  // siendo el anterior, así que el usuario nunca pierde el acceso.
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://campus.nauticboy.top'
+  const { error } = await supabase.auth.updateUser(
+    { email: newEmail },
+    {
+      emailRedirectTo: `${siteUrl}/api/auth/callback?next=${encodeURIComponent('/settings/profile?email=updated')}`,
+    }
+  )
+
+  if (error) {
+    console.error('[updateEmailAction] Error de Supabase:', error)
+
+    const code = (error as { code?: string }).code
+    if (code === 'email_exists' || /already registered|already in use/i.test(error.message)) {
+      return { error: 'Ese correo ya está registrado en otra cuenta.' }
+    }
+    if (code === 'over_email_send_rate_limit' || error.status === 429) {
+      return { error: 'Has solicitado demasiados cambios. Espera un minuto e inténtalo de nuevo.' }
+    }
+    return { error: 'No se ha podido iniciar el cambio de correo. Inténtalo de nuevo.' }
+  }
+
+  return {
+    success: true,
+    message: 'Te hemos enviado un enlace de confirmación al nuevo correo. Ábrelo para completar el cambio.',
+  }
+}
+
+export async function syncProfileEmailAction() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user?.email) {
+    return { error: 'Debes iniciar sesión.' }
+  }
+
+  // El trigger de la migración 00004 permite actualizar email SOLO a un valor
+  // que ya esté confirmado en auth.users.email. RLS sigue limitando a tu propia fila.
+  const { error } = await supabase
+    .from('profiles')
+    .update({ email: user.email })
+    .eq('id', user.id)
+
+  if (error) {
+    console.error('[syncProfileEmailAction] Error:', error)
+    return { error: 'El correo se verificó, pero no se pudo actualizar tu perfil. Inténtalo de nuevo.' }
   }
 
   revalidatePath('/', 'layout')

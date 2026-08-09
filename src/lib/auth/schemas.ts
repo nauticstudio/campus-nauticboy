@@ -30,6 +30,8 @@ export const updateProfileNameSchema = z.object({
   full_name: fullNameSchema,
 })
 
+export const updateEmailSchema = z.object({ email: emailSchema })
+
 export type LoginInput = z.infer<typeof loginSchema>
 export type InviteUserInput = z.infer<typeof inviteUserSchema>
 export type UpdateProfileNameInput = z.infer<typeof updateProfileNameSchema>
