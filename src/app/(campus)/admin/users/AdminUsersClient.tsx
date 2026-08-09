@@ -65,10 +65,10 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-cyan-600 font-bold text-xs uppercase tracking-widest mb-1">
+          <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest mb-1">
             <Shield className="w-3.5 h-3.5" /> Panel de Administración
           </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Gestión de Usuarios</h1>
+          <h1 className="font-display text-3xl font-semibold text-ink-900 tracking-editorial">Gestión de Usuarios</h1>
         </div>
 
         <button 
@@ -76,7 +76,7 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
             setMessage(null)
             setIsInviteOpen(true)
           }}
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-600 text-white font-bold text-xs shadow-md shadow-cyan-600/20 hover:bg-cyan-500 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary text-white font-bold text-xs shadow-md hover:bg-primary/95 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
         >
           <UserPlus className="w-4 h-4" />
           <span>Invitar Alumno por Correo</span>
@@ -85,11 +85,11 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
 
       {/* Invite User Dialog */}
       <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-white text-slate-900 rounded-3xl p-6">
+        <DialogContent className="sm:max-w-[425px] bg-white text-ink-900 rounded-[var(--radius)] p-6">
           <form onSubmit={handleInviteSubmit}>
             <DialogHeader className="space-y-2 mb-4">
-              <DialogTitle className="text-xl font-black">Invitar Alumno al Campus</DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-500">
+              <DialogTitle className="font-display text-xl font-semibold">Invitar Alumno al Campus</DialogTitle>
+              <DialogDescription className="text-xs font-medium text-ink-500">
                 Se enviará un enlace de acceso directo y seguro de un solo uso al correo del alumno.
               </DialogDescription>
             </DialogHeader>
@@ -104,17 +104,17 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
 
             <div className="space-y-4">
               <div>
-                <label className="text-[10px] font-bold text-slate-600 uppercase">Nombre Completo del Alumno</label>
+                <label className="text-[10px] font-bold text-ink-600 uppercase">Nombre Completo del Alumno</label>
                 <Input name="full_name" placeholder="Ej: Lucas González" required className="rounded-xl mt-1" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-600 uppercase">Correo Electrónico</label>
+                <label className="text-[10px] font-bold text-ink-600 uppercase">Correo Electrónico</label>
                 <Input name="email" type="email" placeholder="alumno@ejemplo.com" required className="rounded-xl mt-1" />
               </div>
             </div>
 
             <DialogFooter className="mt-6">
-              <Button type="submit" disabled={loading} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl h-11">
+              <Button type="submit" disabled={loading} className="w-full bg-ink-900 hover:bg-ink-800 text-white font-bold rounded-xl h-11">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enviar Invitación Mágica'}
               </Button>
             </DialogFooter>
@@ -123,22 +123,22 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
       </Dialog>
 
       {/* Users Table Card */}
-      <div className="glass-card rounded-3xl overflow-hidden shadow-sm">
+      <div className="glass-card rounded-[var(--radius)] overflow-hidden shadow-sm">
         
         {/* Table Search Header */}
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between gap-4">
+        <div className="p-5 border-b border-sand-200 flex items-center justify-between gap-4">
           <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+            <Search className="w-4 h-4 text-ink-400 absolute left-3.5 top-3.5" />
             <input 
               type="text" 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por nombre o correo..." 
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+              className="w-full bg-sand-100 border border-sand-300 rounded-xl pl-10 pr-4 py-2 text-xs font-semibold text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-coral-500/25"
             />
           </div>
 
-          <span className="text-xs font-semibold text-slate-400 hidden sm:inline">
+          <span className="text-xs font-semibold text-ink-400 hidden sm:inline">
             Total: {filteredUsers.length} Usuarios Registrados
           </span>
         </div>
@@ -146,7 +146,7 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-semibold">
-            <thead className="bg-slate-50/80 text-slate-400 uppercase tracking-wider text-[10px]">
+            <thead className="bg-sand-100/80 text-ink-400 uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="py-4 px-6">Usuario</th>
                 <th className="py-4 px-6">Rol</th>
@@ -155,18 +155,18 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
                 <th className="py-4 px-6 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-sand-200">
               {filteredUsers.map(u => (
-                <tr key={u.id} className="hover:bg-slate-50/60 transition-colors">
+                <tr key={u.id} className="hover:bg-sand-100/60 transition-colors">
                   <td className="py-4 px-6 flex items-center gap-3">
-                    <div className={`relative w-9 h-9 rounded-full text-white font-extrabold flex items-center justify-center text-xs shadow-2xs ${u.role === 'admin' ? 'bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-500 shadow-amber-500/40' : 'bg-gradient-to-tr from-cyan-500 to-blue-600'}`}>
+                    <div className={`relative w-9 h-9 rounded-full text-white font-extrabold flex items-center justify-center text-xs shadow-2xs ${u.role === 'admin' ? 'bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-500 shadow-amber-500/40' : 'bg-gradient-to-tr from-coral-500 to-coral-700'}`}>
                       {u.role === 'admin' && <Crown className="w-4 h-4 absolute -top-1.5 -right-1 text-yellow-400 drop-shadow-md rotate-[15deg]" fill="currentColor" />}
                       {(u.full_name || u.email || 'A').charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <span className="font-extrabold text-slate-900 block text-sm">{u.full_name || 'Sin nombre'}</span>
-                      <span className="text-slate-400 font-medium flex items-center gap-1">
-                        <Mail className="w-3 h-3 text-slate-400" /> {u.email}
+                      <span className="font-extrabold text-ink-900 block text-sm">{u.full_name || 'Sin nombre'}</span>
+                      <span className="text-ink-400 font-medium flex items-center gap-1">
+                        <Mail className="w-3 h-3 text-ink-400" /> {u.email}
                       </span>
                     </div>
                   </td>
@@ -175,7 +175,7 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 ${
                       u.role === 'admin' 
                         ? 'bg-amber-100 text-amber-800 border-amber-200' 
-                        : 'bg-slate-100 text-slate-700 border-slate-200'
+                        : 'bg-sand-100 text-ink-700 border-sand-300'
                     }`}>
                       {u.role === 'admin' && <Crown className="w-3 h-3 text-amber-600" />}
                       {u.role === 'admin' ? 'Fundador & Admin' : 'Alumno'}
@@ -200,12 +200,12 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
                     </span>
                   </td>
 
-                  <td className="py-4 px-6 text-slate-500 font-medium">
+                  <td className="py-4 px-6 text-ink-500 font-medium">
                     {formatDate(u.created_at)}
                   </td>
 
                   <td className="py-4 px-6 text-right">
-                    <button className="p-2 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100">
+                    <button className="p-2 rounded-lg text-ink-400 hover:text-ink-900 hover:bg-sand-100">
                       <MoreVertical className="w-4 h-4" />
                     </button>
                   </td>
