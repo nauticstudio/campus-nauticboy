@@ -29,6 +29,22 @@ export default async function CampusLayout({
   // El booleano que determina si debemos MOSTRAR las interfaces de admin
   const showAdminUI = isAdmin && currentViewMode === 'admin'
 
+  // Dev badge: muestra el estado real del guard para verificar RBAC sin
+  // abrir DevTools. Solo se renderiza en desarrollo; nunca en producción.
+  const devBadge =
+    process.env.NODE_ENV === 'development' ? (
+      <div
+        className="fixed bottom-28 left-3 z-[70] rounded-md bg-black/80 px-2.5 py-1.5 text-[11px] font-mono text-cyan-200 shadow-lg backdrop-blur"
+        aria-hidden
+      >
+        role={<span className="text-emerald-300">{profile?.role ?? 'null'}</span>}{' '}
+        · mode=<span className="text-amber-300">{currentViewMode}</span>{' '}
+        · adminUI=<span className={showAdminUI ? 'text-emerald-300' : 'text-red-400'}>
+          {String(showAdminUI)}
+        </span>
+      </div>
+    ) : null
+
   // Fetch enrolled courses for the sidebar
   const { data: enrollments } = await supabase
     .from('enrollments')
@@ -101,6 +117,9 @@ export default async function CampusLayout({
 
       {/* Global Cmd+K Menu */}
       <CommandMenu />
+
+      {/* Dev-only RBAC badge */}
+      {devBadge}
     </div>
   )
 }
