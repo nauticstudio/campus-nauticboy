@@ -24,18 +24,18 @@ export default async function ProgressPage() {
     <div className="p-6 md:p-10 lg:p-12 space-y-10 max-w-6xl mx-auto">
       
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-8 md:p-12 text-white shadow-xl shadow-slate-900/10">
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-[var(--radius)] bg-ink-900 p-8 md:p-12 text-white shadow-[var(--shadow-hero)]">
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-coral-500/25 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative z-10 space-y-4 max-w-2xl">
-          <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 border border-amber-500/20 px-3.5 py-1 text-xs font-bold text-amber-400 backdrop-blur-md">
+          <div className="inline-flex items-center gap-2 rounded-full bg-coral-500/10 border border-white/15 px-3.5 py-1 text-xs font-bold text-amber-200 backdrop-blur-md">
             <Trophy className="w-3.5 h-3.5 animate-pulse" />
             <span>Mi Evolución de Productor</span>
           </div>
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white">
-            Seguimiento de Progreso 📈
+          <h1 className="font-display text-3xl md:text-5xl font-semibold tracking-editorial text-white">
+            Seguimiento de Progreso
           </h1>
-          <p className="text-slate-300 text-base md:text-lg font-medium leading-relaxed">
+          <p className="text-ink-200 text-base md:text-lg font-medium leading-relaxed">
             Revisa tus logros, módulos completados y el estado general de tus programas de estudio.
           </p>
         </div>
@@ -44,33 +44,33 @@ export default async function ProgressPage() {
       {/* Global Progress Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         
-        <div className="glass-card glass-card-hover p-6 rounded-3xl flex items-center gap-5 group">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500/10 to-yellow-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+        <div className="glass-card glass-card-hover p-6 rounded-[var(--radius)] flex items-center gap-5 group">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500/10 to-yellow-500/10 border border-white/15 flex items-center justify-center text-primary group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
             <Award className="w-7 h-7" />
           </div>
           <div>
-            <span className="text-2xl font-black text-slate-900 tracking-tight">0 Cursos</span>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Completados al 100%</p>
+            <span className="font-display text-2xl font-semibold tracking-editorial text-ink-900 tracking-tight">0 Cursos</span>
+            <p className="text-xs font-semibold text-ink-500 uppercase tracking-wider mt-0.5">Completados al 100%</p>
           </div>
         </div>
 
-        <div className="glass-card glass-card-hover p-6 rounded-3xl flex items-center gap-5 group">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-600 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+        <div className="glass-card glass-card-hover p-6 rounded-[var(--radius)] flex items-center gap-5 group">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-ink-400/15 to-ink-500/10 border border-ink-300/40 flex items-center justify-center text-primary group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
             <CheckCircle2 className="w-7 h-7" />
           </div>
           <div>
-            <span className="text-2xl font-black text-slate-900 tracking-tight">0 Módulos</span>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Superados</p>
+            <span className="font-display text-2xl font-semibold tracking-editorial text-ink-900 tracking-tight">0 Módulos</span>
+            <p className="text-xs font-semibold text-ink-500 uppercase tracking-wider mt-0.5">Superados</p>
           </div>
         </div>
 
-        <div className="glass-card glass-card-hover p-6 rounded-3xl flex items-center gap-5 group">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+        <div className="glass-card glass-card-hover p-6 rounded-[var(--radius)] flex items-center gap-5 group">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-ink-400/15 to-ink-500/10 border border-ink-300/40 flex items-center justify-center text-ink-700 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
             <Flame className="w-7 h-7" />
           </div>
           <div>
-            <span className="text-2xl font-black text-slate-900 tracking-tight">0% Total</span>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Avance Promedio</p>
+            <span className="font-display text-2xl font-semibold tracking-editorial text-ink-900 tracking-tight">0% Total</span>
+            <p className="text-xs font-semibold text-ink-500 uppercase tracking-wider mt-0.5">Avance Promedio</p>
           </div>
         </div>
 
@@ -78,30 +78,30 @@ export default async function ProgressPage() {
 
       {/* Courses Progress Detailed List */}
       <div className="space-y-6">
-        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Detalle por Programa</h2>
+        <h2 className="text-2xl font-extrabold text-ink-900 tracking-tight">Detalle por Programa</h2>
 
         {coursesProgress.length === 0 ? (
-          <div className="glass-card rounded-3xl p-12 text-center space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center mx-auto">
+          <div className="glass-card rounded-[var(--radius)] p-12 text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-coral-100 text-primary flex items-center justify-center mx-auto">
               <Package className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-extrabold text-slate-900">No hay cursos registrados para dar seguimiento</h3>
-            <p className="text-xs font-semibold text-slate-500 max-w-sm mx-auto">
+            <h3 className="text-lg font-extrabold text-ink-900">No hay cursos registrados para dar seguimiento</h3>
+            <p className="text-xs font-semibold text-ink-500 max-w-sm mx-auto">
               Cuando publiques cursos y los alumnos se matriculen, se calculará su progreso aquí.
             </p>
           </div>
         ) : (
           <div className="space-y-4">
             {coursesProgress.map(c => (
-              <div key={c.slug} className="glass-card glass-card-hover rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div key={c.slug} className="glass-card glass-card-hover rounded-[var(--radius)] p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="space-y-2 max-w-md">
-                  <span className="inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-cyan-100 text-cyan-800 border border-cyan-200">
+                  <span className="inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-coral-100 text-coral-700 border border-coral-300">
                     {c.software}
                   </span>
-                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                  <h3 className="text-xl font-extrabold text-ink-900 tracking-tight">
                     {c.title}
                   </h3>
-                  <p className="text-xs font-semibold text-slate-500">
+                  <p className="text-xs font-semibold text-ink-500">
                     {c.completedModules} de {c.totalModules} Módulos marcados como listos
                   </p>
                 </div>
@@ -110,12 +110,12 @@ export default async function ProgressPage() {
                 <div className="flex flex-col md:flex-row items-center gap-6 flex-1 max-w-lg justify-end">
                   <div className="w-full space-y-2">
                     <div className="flex justify-between items-center text-xs font-bold">
-                      <span className="text-slate-600">Completado</span>
-                      <span className="text-cyan-600 font-extrabold">{c.percent}%</span>
+                      <span className="text-ink-600">Completado</span>
+                      <span className="text-primary font-extrabold">{c.percent}%</span>
                     </div>
-                    <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
+                    <div className="w-full h-3 bg-sand-100 rounded-full overflow-hidden p-0.5 border border-sand-300/60">
                       <div 
-                        className="h-full bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full transition-all duration-500" 
+                        className="h-full bg-gradient-to-r from-coral-500 to-coral-700 rounded-full transition-all duration-500" 
                         style={{ width: `${c.percent}%` }}
                       />
                     </div>
@@ -123,7 +123,7 @@ export default async function ProgressPage() {
 
                   <Link
                     href={`/courses/${c.slug}`}
-                    className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-slate-900 text-white font-bold text-xs hover:bg-cyan-600 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-200 group whitespace-nowrap"
+                    className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-ink-900 text-white font-bold text-xs hover:bg-primary hover:shadow-[0_14px_32px_-8px_rgba(255,98,19,0.5)] transition-all duration-200 group whitespace-nowrap"
                   >
                     <span>Ir al Curso</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
