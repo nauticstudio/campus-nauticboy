@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { Megaphone, Plus, Shield, Trash2, Package } from 'lucide-react'
+import { formatDate } from '@/lib/date'
 
 export default async function AdminAnnouncementsPage() {
   const supabase = await createClient()
@@ -44,7 +45,7 @@ export default async function AdminAnnouncementsPage() {
             <div key={ann.id} className="glass-card glass-card-hover rounded-3xl p-6 flex items-center justify-between">
               <div className="space-y-1">
                 <h3 className="font-extrabold text-slate-900 text-base">{ann.title}</h3>
-                <span className="text-xs font-medium text-slate-400">Publicado el {new Date(ann.created_at).toLocaleDateString()}</span>
+                <span className="text-xs font-medium text-slate-400">Publicado el {formatDate(ann.created_at)}</span>
               </div>
               <button className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors">
                 <Trash2 className="w-4 h-4" />

@@ -2,18 +2,73 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* ============================================================
+   NAUTIC CAMPUS · Design System "Pearl Studio"
+   Tema claro, editorial y cálido: marfil + coral Nautic + tinta azul-noche.
+   ============================================================ */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-border: var(--border);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-ring: var(--ring);
+
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  --font-display: var(--font-display);
 
-  --color-cyan-50: #fffaf5;
-  --color-cyan-100: #fff7ed;
+  /* Marca Nautic — coral #ff6213 */
+  --color-coral-50:  #fff7ed;
+  --color-coral-100: #ffedd5;
+  --color-coral-200: #fed7aa;
+  --color-coral-300: #fdba74;
+  --color-coral-400: #ff8a4c;
+  --color-coral-500: #ff6213;
+  --color-coral-600: #ea580c;
+  --color-coral-700: #c2410c;
+  --color-coral-800: #9a3412;
+  --color-coral-900: #7c2d12;
+  --color-coral-950: #431407;
+
+  /* Arena — fondos y bordes cálidos */
+  --color-sand-50:  #fdfbf7;
+  --color-sand-100: #faf6ef;
+  --color-sand-200: #f1e9dc;
+  --color-sand-300: #e6dbc8;
+  --color-sand-400: #d3c4a8;
+
+  /* Tinta azul-noche — texto y fondos oscuros puntuales */
+  --color-ink-50:  #f3f6f8;
+  --color-ink-100: #e1e8ee;
+  --color-ink-200: #c2d0dc;
+  --color-ink-300: #94aabb;
+  --color-ink-400: #5d7f97;
+  --color-ink-500: #3f6079;
+  --color-ink-600: #2b4d64;
+  --color-ink-700: #1d3b50;
+  --color-ink-800: #132a3c;
+  --color-ink-900: #0b1c29;
+  --color-ink-950: #050b14;
+
+  /* Compat hacia atrás: el tailwind "cyan-*" histórico ahora apunta a la marca */
+  --color-cyan-50: #fff7ed;
+  --color-cyan-100: #ffedd5;
   --color-cyan-200: #ffedd5;
   --color-cyan-300: #fdba74;
-  --color-cyan-400: #ff7d3b;
+  --color-cyan-400: #ff8a4c;
   --color-cyan-500: #ff6213;
   --color-cyan-600: #ea580c;
   --color-cyan-700: #c2410c;
@@ -23,37 +78,49 @@
 }
 
 :root {
-  --background: #F8FAFC;
-  --foreground: #0F172A;
+  --background: #FDFBF7;
+  --foreground: #171310;
   --card: #FFFFFF;
-  --card-foreground: #0F172A;
+  --card-foreground: #171310;
   --popover: #FFFFFF;
-  --popover-foreground: #0F172A;
+  --popover-foreground: #171310;
   --primary: #ff6213;
   --primary-foreground: #FFFFFF;
-  --secondary: #FFF7ED;
-  --secondary-foreground: #C2410C;
-  --muted: #F8FAFC;
-  --muted-foreground: #64748B;
-  --accent: #FFF7ED;
-  --accent-foreground: #C2410C;
-  --destructive: #EF4444;
-  --border: #E2E8F0;
-  --input: #E2E8F0;
+  --secondary: #faf6ef;
+  --secondary-foreground: #9a3412;
+  --muted: #f1e9dc;
+  --muted-foreground: #5d7f97;
+  --accent: #ffedd5;
+  --accent-foreground: #9a3412;
+  --destructive: #dc2626;
+  --border: #f1e9dc;
+  --input: #e6dbc8;
   --ring: #ff6213;
-  --radius: 0.75rem;
+  --radius: 1rem;
+
+  /* Sombras Pearl: suaves, cálidas, con tinte coral en hover */
+  --shadow-card: 0 1px 2px rgba(11, 28, 41, 0.04), 0 4px 16px -4px rgba(11, 28, 41, 0.05);
+  --shadow-card-hover: 0 2px 4px rgba(11, 28, 41, 0.06), 0 14px 36px -10px rgba(255, 98, 19, 0.16);
+  --shadow-hero: 0 20px 60px -20px rgba(11, 28, 41, 0.18);
+  --shadow-admin: 0 1px 2px rgba(11, 28, 41, 0.05), 0 6px 20px -6px rgba(11, 28, 41, 0.08);
 }
 
 @layer base {
-  * {
-    @apply border-slate-200;
-  }
-  body {
-    @apply bg-[#F8FAFC] text-slate-900 font-sans antialiased selection:bg-orange-500/20 selection:text-orange-900;
-  }
-}
+  * { border-color: var(--color-sand-200); }
 
-/* Custom Animations & Micro-Interactions */
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+
+/* ----------------------------------------------------------
+   Animaciones & micro-interacciones
+   ---------------------------------------------------------- */
 @keyframes float {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
   50% { transform: translateY(-6px) rotate(1deg); }
@@ -80,66 +147,61 @@
   50% { transform: rotate(3deg); }
 }
 
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-}
-
-.animate-pulse-subtle {
-  animation: pulse-subtle 3s ease-in-out infinite;
-}
-
-.animate-wave {
-  animation: wave 2s infinite;
-  transform-origin: 70% 70%;
-}
-
-.animate-wiggle {
-  animation: wiggle 1s ease-in-out infinite;
-}
+.animate-float { animation: float 4s ease-in-out infinite; }
+.animate-pulse-subtle { animation: pulse-subtle 3s ease-in-out infinite; }
+.animate-wave { animation: wave 2s infinite; transform-origin: 70% 70%; }
+.animate-wiggle { animation: wiggle 1s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-float,
-  .animate-pulse-subtle,
-  .animate-wave,
-  .animate-wiggle {
+  .animate-float, .animate-pulse-subtle, .animate-wave, .animate-wiggle {
     animation: none;
     transform: none;
   }
 }
 
-/* Glassmorphism Light */
+/* ----------------------------------------------------------
+   Superficies Pearl
+   ---------------------------------------------------------- */
 .glass-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+  background: var(--color-card);
+  border: 1px solid var(--color-sand-200);
+  box-shadow: var(--shadow-card);
 }
 
 .glass-card-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.3s;
 }
 
 .glass-card-hover:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 12px 30px -4px rgba(14, 165, 233, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
-  border-color: rgba(56, 189, 248, 0.4);
+  transform: translateY(-3px);
+  border-color: color-mix(in oklch, var(--color-coral-300) 65%, var(--color-sand-300));
+  box-shadow: var(--shadow-card-hover);
 }
 
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
+/* Firma visual: curvas de ola suaves entre secciones (SVG inline). */
+.wave-divider { display: block; width: 100%; height: 88px; margin-bottom: -1px; }
+
+/* Grano editorial sutil sobre el marfil. */
+.grain-overlay {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.38'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
+/* Barra de scroll cálida */
+.custom-scrollbar::-webkit-scrollbar { width: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-sand-300); border-radius: 9999px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-sand-400); }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 9999px;
-}
+/* Utilidades tipográficas display */
+.font-display { font-family: var(--font-display); }
+.tracking-editorial { letter-spacing: -0.03em; }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+    background: color-mix(in oklch, var(--primary) 18%, transparent);
+    color: var(--color-coral-900);
+  }
 }

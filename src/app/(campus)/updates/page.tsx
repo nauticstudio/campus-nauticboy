@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Bell, Calendar, ArrowRight, Package } from 'lucide-react'
 import Link from 'next/link'
+import { formatDate } from '@/lib/date'
 
 export default async function UpdatesPage() {
   const supabase = await createClient()
@@ -52,7 +53,7 @@ export default async function UpdatesPage() {
                 </span>
                 <span className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  {new Date(item.created_at).toLocaleDateString()}
+                  {formatDate(item.created_at)}
                 </span>
               </div>
 

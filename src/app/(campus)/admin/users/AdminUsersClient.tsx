@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { inviteUserAction } from "@/lib/actions/auth"
+import { formatDate } from "@/lib/date"
 
 interface UserProfile {
   id: string
@@ -200,7 +201,7 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
                   </td>
 
                   <td className="py-4 px-6 text-slate-500 font-medium">
-                    {new Date(u.created_at).toLocaleDateString()}
+                    {formatDate(u.created_at)}
                   </td>
 
                   <td className="py-4 px-6 text-right">
