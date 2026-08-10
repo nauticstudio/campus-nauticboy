@@ -188,44 +188,56 @@ export default async function SoftwareHubPage(props: { searchParams?: Promise<{ 
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayProducts.map((product) => (
-              <Link 
+              <Link
                 key={product.id}
                 href={`/software/${product.manufacturer?.slug}/${product.slug}`}
-                className="group glass-card rounded-[var(--radius)] p-6 flex flex-col justify-between hover:border-coral-500/50 hover:shadow-soft-lg transition-all duration-300"
+                className="group glass-card glass-card-hover rounded-[var(--radius)] p-5 md:p-6 flex flex-col justify-between hover:border-coral-500/50 transition-all duration-300"
               >
                 <div className="space-y-4">
-                  <div className="relative h-44 rounded-2xl overflow-hidden bg-ink-900">
+                  <div className="relative h-44 rounded-xl overflow-hidden bg-ink-950 border border-ink-700/40">
                     {product.cover_image_url ? (
-                      <img 
-                        src={product.cover_image_url} 
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                      />
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={product.cover_image_url}
+                          alt={product.name}
+                          className="w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/20 to-transparent" />
+                        <div className="absolute inset-0 tech-grid opacity-30" />
+                      </>
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Cpu className="w-12 h-12 text-ink-700" />
+                      <div className="w-full h-full tech-grid flex items-center justify-center">
+                        <Cpu className="w-12 h-12 text-ink-500" />
                       </div>
                     )}
-                    <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-ink-950/80 backdrop-blur-md text-[10px] font-black text-amber-300 uppercase tracking-wider border border-white/10">
+                    {/* Brand icon: icon_url (new) > logo_image_url (legacy) */}
+                    {(product.icon_url || product.logo_image_url) && (
+                      <span className="absolute top-3 left-3 w-9 h-9 rounded-lg bg-ink-950/85 backdrop-blur border border-coral-500/30 p-1.5 grid place-items-center shadow-[0_0_14px_rgba(255,98,19,0.3)]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={(product.icon_url ?? product.logo_image_url)!} alt="" className="w-full h-full object-contain" />
+                      </span>
+                    )}
+                    <div className={`absolute top-3 px-2.5 py-1 rounded-lg bg-ink-950/80 backdrop-blur-md text-[10px] font-extrabold text-amber-300 uppercase tracking-wider border border-ink-700/50 ${(product.icon_url || product.logo_image_url) ? 'left-14' : 'left-3'}`}>
                       {product.manufacturer?.name}
                     </div>
                   </div>
 
                   <div>
-                    <h3 className="text-xl font-extrabold text-ink-900 group-hover:text-primary transition-colors">
+                    <h3 className="font-display text-xl font-semibold text-ink-50 tracking-editorial group-hover:text-coral-300 transition-colors">
                       {product.name}
                     </h3>
-                    <p className="text-xs font-medium text-ink-500 mt-1 line-clamp-2">
+                    <p className="text-xs text-ink-300 mt-1 line-clamp-2">
                       {product.tagline || product.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-6 mt-6 border-t border-sand-200 flex items-center justify-between">
+                <div className="pt-5 mt-5 border-t border-ink-700/40 flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-[11px] font-bold text-ink-400">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> v{product.version}
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> v{product.version}
                   </div>
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-primary group-hover:translate-x-1 transition-transform">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-coral-300 group-hover:translate-x-1 transition-transform">
                     Ver Ecosistema <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>

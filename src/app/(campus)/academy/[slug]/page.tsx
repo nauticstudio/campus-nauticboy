@@ -16,32 +16,39 @@ export default async function CategoryResourcesPage({
   const supabase = await createClient()
   const isAdmin = profile?.role === 'admin'
 
-  // Fetch category by slug to get its ID
+  // Fetch category by slug con todos los campos para pintar banner premium.
   const { data: category } = await supabase
     .from('categories')
-    .select('id')
+    .select('id, name, icon, icon_url, cover_image_url, accent_color, blurb, description')
     .eq('slug', slug)
     .single()
 
   let resources: ResourceItem[] = []
 
   if (category) {
-    // La lectura respeta RLS: los no administradores solo descubren recursos
-    // publicados de categorías visibles. Sin cliente admin.
     const { data } = await supabase
       .from('resources')
       .select('id, title, description, software, file_name, file_size, is_restricted, is_published')
       .eq('category_id', category.id)
       .order('created_at', { ascending: false })
-    
+
     resources = (data ?? []) as ResourceItem[]
   }
 
   return (
-    <CategoryResourcesClient 
-      slug={slug} 
-      initialResources={resources} 
-      isAdmin={isAdmin} 
+    <CategoryResourcesClient
+      slug={slug}
+      initialResources={resources}
+      isAdmin={isAdmin}
+      categoryMeta={category ? {
+        name: category.name,
+        icon: category.icon,
+        icon_url: category.icon_url,
+        cover_image_url: category.cover_image_url,
+        accent_color: category.accent_color ?? 'coral',
+        blurb: category.blurb,
+        description: category.description,
+      } : undefined}
     />
   )
 }

@@ -78,35 +78,39 @@
 }
 
 :root {
-  --background: #FDFBF7;
-  --foreground: #171310;
-  --card: #FFFFFF;
-  --card-foreground: #171310;
-  --popover: #FFFFFF;
-  --popover-foreground: #171310;
+  /* Dark Futuristic Pearl — fondo azul-noche profundo, hairline, acentos coral */
+  --background: #050b14;
+  --foreground: #f3f6f8;
+  --card: rgba(11, 28, 41, 0.72);
+  --card-foreground: #f3f6f8;
+  --popover: #0b1c29;
+  --popover-foreground: #f3f6f8;
   --primary: #ff6213;
-  --primary-foreground: #FFFFFF;
-  --secondary: #faf6ef;
-  --secondary-foreground: #9a3412;
-  --muted: #f1e9dc;
-  --muted-foreground: #5d7f97;
-  --accent: #ffedd5;
-  --accent-foreground: #9a3412;
-  --destructive: #dc2626;
-  --border: #f1e9dc;
-  --input: #e6dbc8;
+  --primary-foreground: #ffffff;
+  --secondary: #0b1c29;
+  --secondary-foreground: #fdba74;
+  --muted: #132a3c;
+  --muted-foreground: #94aabb;
+  --accent: #1d3b50;
+  --accent-foreground: #ffd9b3;
+  --destructive: #f87171;
+  --border: rgba(235, 240, 250, 0.08);
+  --input: rgba(99, 132, 160, 0.25);
   --ring: #ff6213;
-  --radius: 1rem;
+  --radius: 1.125rem;
 
-  /* Sombras Pearl: suaves, cálidas, con tinte coral en hover */
-  --shadow-card: 0 1px 2px rgba(11, 28, 41, 0.04), 0 4px 16px -4px rgba(11, 28, 41, 0.05);
-  --shadow-card-hover: 0 2px 4px rgba(11, 28, 41, 0.06), 0 14px 36px -10px rgba(255, 98, 19, 0.16);
-  --shadow-hero: 0 20px 60px -20px rgba(11, 28, 41, 0.18);
-  --shadow-admin: 0 1px 2px rgba(11, 28, 41, 0.05), 0 6px 20px -6px rgba(11, 28, 41, 0.08);
+  /* Sombras dark: glow coral sutil en hover, línea interna hairline */
+  --shadow-card: inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 24px -12px rgba(0,0,0,0.6);
+  --shadow-card-hover: inset 0 1px 0 rgba(255,255,255,0.06),
+                       0 20px 48px -16px rgba(255, 98, 19, 0.30),
+                       0 0 0 1px rgba(255, 98, 19, 0.14);
+  --shadow-hero: 0 24px 80px -24px rgba(0, 0, 0, 0.8),
+                 0 0 80px rgba(255, 98, 19, 0.08);
+  --shadow-admin: 0 1px 2px rgba(0,0,0,0.4), 0 4px 24px -12px rgba(0,0,0,0.5);
 }
 
 @layer base {
-  * { border-color: var(--color-sand-200); }
+  * { border-color: var(--color-ink-800); }
 
   body {
     background-color: var(--background);
@@ -117,6 +121,10 @@
   }
 
   ::selection {
+    background: rgba(255, 98, 19, 0.28);
+    color: #ffffff;
+  }
+}
 
 /* ----------------------------------------------------------
    Animaciones & micro-interacciones
@@ -160,24 +168,61 @@
 }
 
 /* ----------------------------------------------------------
-   Superficies Pearl
+   Superficies Futuristic Pearl — glass oscuro + glow coral
    ---------------------------------------------------------- */
 .glass-card {
   background: var(--color-card);
-  border: 1px solid var(--color-sand-200);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--color-border);
   box-shadow: var(--shadow-card);
 }
 
 .glass-card-hover {
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-              box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-              border-color 0.3s;
+  transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.34s;
+  will-change: transform;
 }
 
 .glass-card-hover:hover {
-  transform: translateY(-3px);
-  border-color: color-mix(in oklch, var(--color-coral-300) 65%, var(--color-sand-300));
+  transform: translateY(-4px);
+  border-color: rgba(255, 138, 76, 0.35);
   box-shadow: var(--shadow-card-hover);
+}
+
+/* Grid tipo blueprint tenue que pinta el fondo */
+.tech-grid {
+  background-image:
+    linear-gradient(rgba(255, 138, 76, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 138, 76, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Gradiente radial coral→void para headers y overlays */
+.hero-glow {
+  background:
+    radial-gradient(1100px 500px at 20% -10%, rgba(255, 98, 19, 0.18), transparent 55%),
+    radial-gradient(700px 400px at 90% 110%, rgba(124, 58, 237, 0.10), transparent 60%),
+    linear-gradient(180deg, rgba(11, 28, 41, 0) 0%, rgba(5, 11, 20, 0.6) 100%);
+}
+
+/* Hairline con glow — para divisores / chips de estado */
+.hairline-glow {
+  border-color: rgba(255, 98, 19, 0.25);
+  box-shadow: 0 0 16px -4px rgba(255, 98, 19, 0.45), inset 0 0 4px rgba(255, 138, 76, 0.06);
+}
+
+/* Shimmer sutil para separadores / indicadores de carga */
+@keyframes shimmer-line {
+  0%, 100% { opacity: 0.15 }
+  50%      { opacity: 0.38 }
+}
+.animate-shimmer-line { animation: shimmer-line 3.2s ease-in-out infinite; }
+
+/* Text glow sutil para títulos display destacados */
+.text-glow {
+  text-shadow: 0 0 24px rgba(255, 138, 76, 0.55), 0 0 6px rgba(255, 138, 76, 0.35);
 }
 
 /* Firma visual: curvas de ola suaves entre secciones (SVG inline). */
@@ -187,21 +232,16 @@
 .grain-overlay {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.38'/%3E%3C/svg%3E");
   opacity: 0.05;
-  mix-blend-mode: multiply;
+  mix-blend-mode: overlay;
   pointer-events: none;
 }
 
 /* Barra de scroll cálida */
 .custom-scrollbar::-webkit-scrollbar { width: 5px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-sand-300); border-radius: 9999px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-sand-400); }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(148,170,187,0.28); border-radius: 9999px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(148,170,187,0.45); }
 
 /* Utilidades tipográficas display */
 .font-display { font-family: var(--font-display); }
 .tracking-editorial { letter-spacing: -0.03em; }
-
-    background: color-mix(in oklch, var(--primary) 18%, transparent);
-    color: var(--color-coral-900);
-  }
-}

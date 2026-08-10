@@ -24,6 +24,7 @@ export type SoftwareProduct = {
   description: string | null
   cover_image_url: string | null
   logo_image_url: string | null
+  icon_url: string | null
   version: string | null
   compatibility: string | null
   formats: string[]
