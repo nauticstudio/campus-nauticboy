@@ -19,6 +19,7 @@ const upsertSchema = z.object({
     .enum(['coral', 'violet', 'cyan', 'emerald', 'rose'])
     .default('coral'),
   blurb: z.string().max(240).optional().nullable(),
+  is_published: z.boolean().default(true),
 })
 
 export type CategoryUpsertResult =
@@ -40,6 +41,7 @@ export async function upsertCategoryAction(
     cover_image_url: formData.get('cover_image_url'),
     accent_color: formData.get('accent_color') || 'coral',
     blurb: formData.get('blurb'),
+    is_published: formData.get('is_published') === 'true' || formData.get('is_published') === 'on',
   }
 
   const parsed = upsertSchema.safeParse(raw)
@@ -70,6 +72,7 @@ export async function upsertCategoryAction(
     cover_image_url: record.cover_image_url || null,
     accent_color: record.accent_color,
     blurb: record.blurb || null,
+    is_published: record.is_published,
   }
 
   let result

@@ -9,7 +9,7 @@ export default async function AcademyPage() {
 
   const { data: dbCategories } = await supabase
     .from('categories')
-    .select('id, name, slug, description, icon, icon_url, cover_image_url, accent_color, blurb')
+    .select('id, name, slug, description, icon, icon_url, cover_image_url, accent_color, blurb, is_published')
     .order('sort_order', { ascending: true })
 
   const [dbResourcesResult, softwareCountsResult] = await Promise.all([
@@ -32,7 +32,9 @@ export default async function AcademyPage() {
     counts[pluginsCategoryId] = (counts[pluginsCategoryId] || 0) + softwareCount
   }
 
-  const categories: CategoryCardData[] = (dbCategories || []).map((cat: any) => ({
+  const visibleCategories = (dbCategories || []).filter((cat: any) => cat.is_published !== false)
+
+  const categories: CategoryCardData[] = visibleCategories.map((cat: any) => ({
     name: cat.name,
     slug: cat.slug,
     description: cat.blurb?.trim() || cat.description || 'Explora recursos de esta categoría.',

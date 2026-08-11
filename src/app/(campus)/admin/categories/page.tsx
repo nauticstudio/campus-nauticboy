@@ -8,7 +8,7 @@ export default async function AdminCategoriesPage() {
 
   const { data: categories } = await supabase
     .from('categories')
-    .select('id, name, slug, icon, icon_url, cover_image_url, accent_color, blurb')
+    .select('id, name, slug, icon, icon_url, cover_image_url, accent_color, blurb, is_published')
     .order('sort_order', { ascending: true })
 
   return (
@@ -36,22 +36,34 @@ export default async function AdminCategoriesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {categories.map(cat => (
-            <div key={cat.id} className="glass-card glass-card-hover rounded-[var(--radius)] overflow-hidden flex flex-col">
-              <div className="relative h-24 bg-ink-900/60 border-b border-ink-700/40 flex items-center justify-center">
-                {cat.cover_image_url ? (
-                  <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={cat.cover_image_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/40 to-transparent" />
-                  </>
-                ) : (
-                  <ImageOff className="w-5 h-5 text-ink-500" />
-                )}
-                <span className="absolute top-2 right-2 text-[9px] font-extrabold uppercase tracking-widest text-ink-300 bg-ink-950/70 backdrop-blur px-2 py-0.5 rounded-full border border-ink-700/50">
-                  {cat.accent_color}
-                </span>
-              </div>
+          {categories.map(cat => {
+            const isPub = cat.is_published !== false
+            return (
+              <div 
+                key={cat.id} 
+                className={`glass-card glass-card-hover rounded-[var(--radius)] overflow-hidden flex flex-col transition-all ${isPub ? '' : 'opacity-70 border-amber-500/30 bg-amber-950/10'}`}
+              >
+                <div className="relative h-24 bg-ink-900/60 border-b border-ink-700/40 flex items-center justify-center">
+                  {cat.cover_image_url ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={cat.cover_image_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/40 to-transparent" />
+                    </>
+                  ) : (
+                    <ImageOff className="w-5 h-5 text-ink-500" />
+                  )}
+                  
+                  <div className="absolute top-2 left-2 flex items-center gap-1.5">
+                    <span className={`text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full border backdrop-blur ${isPub ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40' : 'bg-amber-950/80 text-amber-300 border-amber-500/40'}`}>
+                      {isPub ? '● Publicada' : '○ Oculta'}
+                    </span>
+                  </div>
+
+                  <span className="absolute top-2 right-2 text-[9px] font-extrabold uppercase tracking-widest text-ink-300 bg-ink-950/70 backdrop-blur px-2 py-0.5 rounded-full border border-ink-700/50">
+                    {cat.accent_color}
+                  </span>
+                </div>
 
               <div className="p-4 flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
@@ -70,7 +82,8 @@ export default async function AdminCategoriesPage() {
                 <CategoryEditButton category={cat as any} />
               </div>
             </div>
-          ))}
+          )
+        })}
         </div>
       )}
 

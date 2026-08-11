@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { Loader2, Plus, Image as ImageIcon, Edit3, Upload, RotateCcw, Trash2, Move, ZoomIn } from 'lucide-react'
+import { Loader2, Plus, Image as ImageIcon, Edit3, Upload, RotateCcw, Trash2, Move, ZoomIn, Eye, EyeOff } from 'lucide-react'
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader,
   DialogTitle, DialogFooter,
@@ -23,6 +23,7 @@ export type CategoryRow = {
   cover_image_url: string | null
   accent_color: 'coral' | 'violet' | 'cyan' | 'emerald' | 'rose'
   blurb: string | null
+  is_published?: boolean
 }
 
 const ACCENTS: CategoryRow['accent_color'][] = ['coral', 'violet', 'cyan', 'emerald', 'rose']
@@ -49,6 +50,7 @@ export function CategoryModal({
   const [uploadingImage, setUploadingImage] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState(category?.cover_image_url ?? '')
+  const [isPublished, setIsPublished] = useState(category?.is_published ?? true)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const parsedCover = useMemo(() => parseCoverUrl(previewUrl), [previewUrl])
@@ -65,6 +67,7 @@ export function CategoryModal({
   useEffect(() => {
     setError(null)
     setPreviewUrl(category?.cover_image_url ?? '')
+    setIsPublished(category?.is_published ?? true)
   }, [category, open])
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,6 +152,34 @@ export function CategoryModal({
 
           <div className="space-y-4 max-h-[62vh] overflow-y-auto pr-1 custom-scrollbar">
             {isEdit && <input type="hidden" name="id" value={category.id} />}
+            <input type="hidden" name="is_published" value={isPublished ? 'true' : 'false'} />
+
+            {/* Toggle de Estado (Publicada / Oculta) */}
+            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-ink-900/80 border border-ink-800 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center border ${isPublished ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' : 'bg-amber-500/15 border-amber-500/30 text-amber-400'}`}>
+                  {isPublished ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-ink-50">
+                    {isPublished ? 'Categoría Publicada' : 'Categoría Oculta'}
+                  </div>
+                  <div className="text-[10px] text-ink-400 font-medium">
+                    {isPublished ? 'Visible para todos los alumnos' : 'Oculta en la Academia (solo visible para admin)'}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsPublished(!isPublished)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isPublished ? 'bg-emerald-500' : 'bg-ink-700'}`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isPublished ? 'translate-x-5' : 'translate-x-0'}`}
+                />
+              </button>
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
