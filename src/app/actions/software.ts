@@ -261,6 +261,7 @@ export async function deleteSoftwareProductAction(productId: string): Promise<Ac
 const SOFTWARE_ITEM_TYPES = new Set<SoftwareItem['item_type']>([
   'installer_win',
   'installer_mac',
+  'installer_amxd',
   'factory_content',
   'expansion',
   'skin',

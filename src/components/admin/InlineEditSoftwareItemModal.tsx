@@ -48,6 +48,7 @@ export function InlineEditSoftwareItemModal({
       <DialogContent className="sm:max-w-[550px] bg-ink-950 text-ink-100 rounded-[var(--radius)] p-6 border border-ink-800 shadow-2xl">
         <form onSubmit={handleUpdateItem}>
           <input type="hidden" name="id" value={item.id} />
+          <input type="hidden" name="product_id" value={item.product_id} />
 
           <DialogHeader className="space-y-2 mb-4">
             <DialogTitle className="text-xl font-bold font-display text-ink-50">Editar Archivo: {item.title}</DialogTitle>
@@ -71,6 +72,7 @@ export function InlineEditSoftwareItemModal({
                   <option value="plugin_device">Plugin / Dispositivo Max (.amxd, VST)</option>
                   <option value="installer_win">Instalador Windows</option>
                   <option value="installer_mac">Instalador macOS</option>
+                  <option value="installer_amxd">Instalador AMXD</option>
                   <option value="factory_content">Factory Library Base</option>
                   <option value="skin">Skin / Apariencia</option>
                   <option value="presets">Presets Sueltos</option>
