@@ -1,7 +1,7 @@
 import { getProductEcosystem } from '@/lib/data/software'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Download, ShieldCheck, Cpu, HardDrive, Layers, CheckCircle2, FolderArchive, Apple, AppWindow } from 'lucide-react'
+import { ArrowLeft, Download, ShieldCheck, Cpu, HardDrive, Layers, CheckCircle2, FolderArchive, Apple, AppWindow, KeyRound } from 'lucide-react'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getAdminViewMode } from '@/app/actions/view-mode'
 import { InlineEditSoftwareModal } from '@/components/admin/InlineEditSoftwareModal'
@@ -124,12 +124,21 @@ export default async function SoftwareProductPage({
               </span>
               <span>•</span>
               <div className="flex items-center gap-1.5">
-                {product.formats?.map((fmt) => (
+                {product.formats?.map((fmt: string) => (
                   <span key={fmt} className="px-2 py-0.5 rounded bg-ink-800 border border-ink-700 text-[10px] font-mono font-bold text-ink-200">
                     {fmt}
                   </span>
                 ))}
               </div>
+              {product.archive_password && (
+                <>
+                  <span>•</span>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-semibold shadow-sm">
+                    <KeyRound className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span>Clave ZIP: <strong className="text-amber-200 select-all font-mono">{product.archive_password}</strong></span>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Quick Installers Actions */}

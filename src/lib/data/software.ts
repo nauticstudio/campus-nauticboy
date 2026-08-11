@@ -28,6 +28,7 @@ export type SoftwareProduct = {
   version: string | null
   compatibility: string | null
   formats: string[]
+  archive_password?: string | null
   is_featured: boolean
   manufacturer?: SoftwareManufacturer
   categories?: SoftwareCategory[]

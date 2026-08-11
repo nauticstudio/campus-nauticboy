@@ -136,6 +136,7 @@ function readProductForm(formData: FormData) {
     version: gStr(formData, 'version') || '1.0',
     compatibility: gStr(formData, 'compatibility') || 'Windows 10/11 & macOS 12+',
     formats: (gStr(formData, 'formats') || 'VST3, AU, AAX').split(',').map(s => s.trim()).filter(Boolean),
+    archivePassword: gStr(formData, 'archive_password') || null,
     isFeatured: gStr(formData, 'is_featured') === 'true',
   }
 }
@@ -167,6 +168,7 @@ export async function createSoftwareProductAction(formData: FormData): Promise<A
         version: parsed.version,
         compatibility: parsed.compatibility,
         formats: parsed.formats,
+        archive_password: parsed.archivePassword,
         is_featured: parsed.isFeatured,
         is_published: true,
       })
@@ -213,6 +215,7 @@ export async function updateSoftwareProductAction(formData: FormData): Promise<A
         version: parsed.version,
         compatibility: parsed.compatibility,
         formats: parsed.formats,
+        archive_password: parsed.archivePassword,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)

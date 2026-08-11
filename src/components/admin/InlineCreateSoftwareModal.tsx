@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Loader2 } from 'lucide-react'
+import { Plus, Loader2, KeyRound, Layers, Cpu, Tag } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -40,65 +40,90 @@ export function InlineCreateSoftwareModal({ manufacturers }: { manufacturers: an
         Añadir Software
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[500px] bg-ink-950 text-ink-100 rounded-[var(--radius)] p-6 border border-ink-800 shadow-2xl">
+      <DialogContent className="sm:max-w-[620px] bg-ink-950 text-ink-100 rounded-[var(--radius)] p-6 border border-ink-800 shadow-2xl backdrop-blur-xl">
         <form onSubmit={handleCreateProduct}>
-          <DialogHeader className="space-y-2 mb-4">
-            <DialogTitle className="text-xl font-bold font-display text-ink-50">Añadir Nuevo Producto</DialogTitle>
+          <DialogHeader className="space-y-1.5 mb-5">
+            <DialogTitle className="text-xl font-bold font-display text-ink-50 flex items-center gap-2">
+              <Cpu className="w-5 h-5 text-coral-400" />
+              Añadir Nuevo Producto
+            </DialogTitle>
             <DialogDescription className="text-xs font-medium text-ink-400">
-              Registra un nuevo sintetizador o efecto en la biblioteca.
+              Registra un nuevo sintetizador, plugin o efecto en la biblioteca.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div>
-              <label className="text-[10px] font-bold text-ink-300 uppercase">Fabricante</label>
-              <select name="manufacturer_id" required className="w-full rounded-xl border border-ink-800 p-2.5 text-xs font-semibold bg-ink-900 text-ink-100 mt-1 focus:outline-none focus:border-coral-500">
-                <option value="">Selecciona un fabricante...</option>
-                {manufacturers.map(m => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-[10px] font-bold text-ink-300 uppercase">Nombre del Producto</label>
-              <Input name="name" required className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100" placeholder="Ej. Sylenth1" />
-            </div>
-
-            <div>
-              <label className="text-[10px] font-bold text-ink-300 uppercase">Lema / Subtítulo</label>
-              <Input name="tagline" className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100" placeholder="Ej. Advanced Virtual Analog Synthesizer" />
-            </div>
-
-            <div>
-              <label className="text-[10px] font-bold text-ink-300 uppercase">Descripción</label>
-              <textarea name="description" className="w-full rounded-xl border border-ink-800 bg-ink-900 text-xs p-3 text-ink-100 min-h-[70px] mt-1 focus:outline-none focus:border-coral-500" placeholder="Descripción detallada del plugin..." />
-            </div>
-
-            <div>
-              <label className="text-[10px] font-bold text-ink-300 uppercase">URL de Portada</label>
-              <Input name="cover_image_url" className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100" placeholder="https://..." />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-3.5 text-left">
+            {/* Fila 1: Fabricante + Nombre */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] font-bold text-ink-300 uppercase">Versión</label>
-                <Input name="version" defaultValue="1.0" className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100" />
+                <label className="text-[10px] font-bold text-ink-300 uppercase tracking-widest flex items-center gap-1.5 mb-1">
+                  <Tag className="w-3 h-3 text-coral-400" /> Fabricante *
+                </label>
+                <select name="manufacturer_id" required className="w-full rounded-xl border border-ink-800 p-2.5 text-xs font-semibold bg-ink-900 text-ink-100 focus:outline-none focus:border-coral-500 transition-colors">
+                  <option value="">Selecciona un fabricante...</option>
+                  {manufacturers.map(m => (
+                    <option key={m.id} value={m.id}>{m.name}</option>
+                  ))}
+                </select>
               </div>
+
               <div>
-                <label className="text-[10px] font-bold text-ink-300 uppercase">Compatibilidad</label>
-                <Input name="compatibility" className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100" placeholder="Win 10+ / macOS 11+" />
+                <label className="text-[10px] font-bold text-ink-300 uppercase tracking-widest flex items-center gap-1.5 mb-1">
+                  Nombre del Producto *
+                </label>
+                <Input name="name" required className="rounded-xl bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500" placeholder="Ej. Sylenth1" />
               </div>
             </div>
 
+            {/* Fila 2: Subtítulo */}
             <div>
-              <label className="text-[10px] font-bold text-ink-300 uppercase">Formatos (separados por coma)</label>
-              <Input name="formats" defaultValue="VST3, AU, AAX" className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100" placeholder="Ej. VST3, AU, AAX, .amxd" />
+              <label className="text-[10px] font-bold text-ink-300 uppercase tracking-widest mb-1 block">Lema / Subtítulo</label>
+              <Input name="tagline" className="rounded-xl bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500" placeholder="Ej. Advanced Virtual Analog Synthesizer" />
+            </div>
+
+            {/* Fila 3: Descripción */}
+            <div>
+              <label className="text-[10px] font-bold text-ink-300 uppercase tracking-widest mb-1 block">Descripción</label>
+              <textarea name="description" className="w-full rounded-xl border border-ink-800 bg-ink-900 text-xs p-3 text-ink-100 min-h-[65px] focus:outline-none focus:border-coral-500 transition-colors" placeholder="Descripción detallada del plugin..." />
+            </div>
+
+            {/* Fila 4: Portada */}
+            <div>
+              <label className="text-[10px] font-bold text-ink-300 uppercase tracking-widest mb-1 block">URL de Portada</label>
+              <Input name="cover_image_url" className="rounded-xl bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500" placeholder="https://..." />
+            </div>
+
+            {/* Fila 5: Versión + Formatos (Grid compacto 2 cols) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-bold text-ink-300 uppercase tracking-widest mb-1 block">Versión</label>
+                <Input name="version" defaultValue="1.0" className="rounded-xl bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 font-mono text-xs" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-ink-300 uppercase tracking-widest flex items-center gap-1 mb-1">
+                  <Layers className="w-3 h-3 text-coral-400" /> Formatos
+                </label>
+                <Input name="formats" defaultValue="VST3, AU, AAX" className="rounded-xl bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 font-mono text-xs" placeholder="Ej. VST3, AU, AAX, .amxd" />
+              </div>
+            </div>
+
+            {/* Fila 6: Compatibilidad + Contraseña ZIP/RAR (Grid 2 cols) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-bold text-ink-300 uppercase tracking-widest mb-1 block">Compatibilidad</label>
+                <Input name="compatibility" className="rounded-xl bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500" placeholder="Win 10+ / macOS 11+" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1 mb-1">
+                  <KeyRound className="w-3 h-3 text-amber-400" /> Contraseña de Descompresión
+                </label>
+                <Input name="archive_password" className="rounded-xl bg-ink-900 border-amber-500/40 text-amber-200 focus:border-amber-400 font-mono text-xs placeholder:text-ink-600" placeholder="Ej. 1234 o www.4download.net" />
+              </div>
             </div>
           </div>
 
           <DialogFooter className="mt-6">
-            <Button type="submit" disabled={loading} className="w-full bg-coral-500 hover:bg-coral-600 text-white font-bold rounded-xl h-11">
+            <Button type="submit" disabled={loading} className="w-full bg-coral-500 hover:bg-coral-600 text-white font-bold rounded-xl h-11 shadow-lg shadow-coral-500/20">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Crear Producto'}
             </Button>
           </DialogFooter>
