@@ -41,7 +41,7 @@ export function InlineEditSoftwareItemModal({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-ink-950/80 hover:bg-coral-500 text-ink-300 hover:text-white transition-all shadow-sm border border-ink-700 absolute top-2 right-2 z-50 group">
+      <DialogTrigger className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-ink-900 hover:bg-coral-500 text-ink-300 hover:text-white transition-all shadow-md border border-ink-700 absolute -top-2 -right-2 z-50 group">
         <Pencil className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
       </DialogTrigger>
       

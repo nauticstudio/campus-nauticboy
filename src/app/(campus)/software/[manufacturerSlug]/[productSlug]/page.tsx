@@ -11,6 +11,22 @@ import { InlineCreateInstallerModal } from '@/components/admin/InlineCreateInsta
 
 export const dynamic = 'force-dynamic'
 
+function AppleLogo({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 170 170" fill="currentColor">
+      <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.34.13-9.14-1.9-14.4-6.1-3.3-2.6-7.25-7.3-11.84-14.1-6.72-9.9-11.8-20.9-15.22-33-3.43-12.1-5.14-23.7-5.14-34.8 0-14.2 3.57-26.1 10.72-35.7 7.15-9.6 16.35-14.4 27.6-14.4 5.3 0 10.8 1.3 16.5 3.9 5.7 2.6 9.7 3.9 12 3.9 2.1 0 6.2-1.3 12.3-3.9 6.1-2.6 11.4-3.8 15.9-3.6 11.8.6 21 4.7 27.6 12.3-10.4 6.3-15.5 15-15.3 26.1.2 8.7 3.4 16.1 9.6 22.2 6.2 6.1 13.7 9.5 22.5 10.2-2.3 6.9-5.4 13.8-9.3 20.7zM119.22 31.85c0-6.8 2.5-13.1 7.5-18.9 5-5.8 11.2-9.3 18.6-10.5.1.9.2 1.8.2 2.7 0 6.7-2.6 13.2-7.8 19.5-5.2 6.3-11.6 9.8-19.2 10.5-.2-1.1-.3-2.2-.3-3.3z" />
+    </svg>
+  )
+}
+
+function WindowsLogo({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 88 88" fill="currentColor">
+      <path d="M0 12.402l35.687-4.86.016 34.423-35.67.203zm35.67 33.529l.028 34.453L0 75.544l.004-29.41zm4.326-39.022L87.978 0v41.527l-47.982.376zm47.986 44.757L39.996 51.27l-.014 34.19 48.012 6.634z" />
+    </svg>
+  )
+}
+
 export default async function SoftwareProductPage({
   params
 }: {
@@ -118,11 +134,11 @@ export default async function SoftwareProductPage({
                     href={`/api/download?id=${win.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-coral-500 text-white font-bold text-xs uppercase tracking-wider hover:bg-coral-600 transition-all shadow-[0_4px_20px_rgba(255,98,19,0.4)] active:scale-95"
+                    className={`inline-flex items-center gap-2 ${showAdminUI ? 'pl-5 pr-7' : 'px-5'} py-3.5 rounded-2xl bg-coral-500 text-white font-bold text-xs uppercase tracking-wider hover:bg-coral-600 transition-all shadow-[0_4px_20px_rgba(255,98,19,0.4)] active:scale-95`}
                     title={`Descargar Windows (${win.file_size || 'ZIP'})`}
                   >
                     <Download className="w-4 h-4 shrink-0" />
-                    <AppWindow className="w-4 h-4 shrink-0 text-coral-200" />
+                    <WindowsLogo className="w-4 h-4 shrink-0 text-coral-200" />
                     <span>({win.file_size || 'ZIP'})</span>
                   </a>
                   {showAdminUI && <InlineEditSoftwareItemModal item={win} />}
@@ -135,11 +151,11 @@ export default async function SoftwareProductPage({
                     href={`/api/download?id=${mac.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-ink-800/80 text-ink-100 font-bold text-xs uppercase tracking-wider hover:bg-ink-800 border border-ink-700 transition-all active:scale-95"
+                    className={`inline-flex items-center gap-2 ${showAdminUI ? 'pl-5 pr-7' : 'px-5'} py-3.5 rounded-2xl bg-ink-800/80 text-ink-100 font-bold text-xs uppercase tracking-wider hover:bg-ink-800 border border-ink-700 transition-all active:scale-95`}
                     title={`Descargar macOS (${mac.file_size || 'PKG'})`}
                   >
                     <Download className="w-4 h-4 shrink-0 text-coral-400" />
-                    <Apple className="w-4 h-4 shrink-0 text-ink-200" />
+                    <AppleLogo className="w-4 h-4 shrink-0 text-ink-100" />
                     <span>({mac.file_size || 'PKG'})</span>
                   </a>
                   {showAdminUI && <InlineEditSoftwareItemModal item={mac} />}
@@ -152,7 +168,7 @@ export default async function SoftwareProductPage({
                     href={`/api/download?id=${amxd.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-emerald-950/40 text-emerald-300 font-bold text-xs uppercase tracking-wider hover:bg-emerald-900/60 border border-emerald-500/40 transition-all active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                    className={`inline-flex items-center gap-2 ${showAdminUI ? 'pl-5 pr-7' : 'px-5'} py-3.5 rounded-2xl bg-emerald-950/40 text-emerald-300 font-bold text-xs uppercase tracking-wider hover:bg-emerald-900/60 border border-emerald-500/40 transition-all active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.15)]`}
                     title={`Descargar Max for Live AMXD (${amxd.file_size || 'AMXD'})`}
                   >
                     <Download className="w-4 h-4 shrink-0 text-emerald-400" />
