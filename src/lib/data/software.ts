@@ -53,7 +53,7 @@ export type SoftwareItem = {
   id: string
   product_id: string
   title: string
-  item_type: 'installer_win' | 'installer_mac' | 'factory_content' | 'expansion' | 'skin' | 'presets' | 'update' | 'plugin_device'
+  item_type: 'installer_win' | 'installer_mac' | 'installer_amxd' | 'factory_content' | 'expansion' | 'skin' | 'presets' | 'update' | 'plugin_device'
   description: string | null
   cover_image_url: string | null
   file_size: string | null
@@ -138,6 +138,7 @@ export async function getProductEcosystem(manufacturerSlug: string, productSlug:
   // Group items for easy rendering
   const installersWin = typedItems.filter(i => i.item_type === 'installer_win')
   const installersMac = typedItems.filter(i => i.item_type === 'installer_mac')
+  const installersAmxd = typedItems.filter(i => i.item_type === 'installer_amxd')
   const factoryContent = typedItems.filter(i => i.item_type === 'factory_content')
   const expansions = typedItems.filter(i => i.item_type === 'expansion')
   const skins = typedItems.filter(i => i.item_type === 'skin')
@@ -151,6 +152,7 @@ export async function getProductEcosystem(manufacturerSlug: string, productSlug:
     grouped: {
       installersWin,
       installersMac,
+      installersAmxd,
       factoryContent,
       expansions,
       skins,

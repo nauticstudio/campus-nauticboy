@@ -47,10 +47,10 @@ export function InlineCreateInstallerModal({
         <form onSubmit={handleCreateItem}>
           <input type="hidden" name="product_id" value={productId} />
 
-          <DialogHeader className="space-y-2 mb-4">
+            <DialogHeader className="space-y-2 mb-4">
             <DialogTitle className="text-xl font-bold font-display text-ink-50">Añadir Instalador Principal</DialogTitle>
             <DialogDescription className="text-xs font-medium text-ink-400">
-              Sube el enlace de descarga para el instalador de Windows o macOS.
+              Sube el enlace de descarga para el instalador de Windows, macOS o Archivo AMXD.
             </DialogDescription>
           </DialogHeader>
 
@@ -61,6 +61,7 @@ export function InlineCreateInstallerModal({
                 <select name="item_type" required className="w-full rounded-xl border border-ink-800 p-2.5 text-xs font-semibold bg-ink-900 text-ink-100 mt-1 focus:outline-none focus:border-coral-500" defaultValue="installer_win">
                   <option value="installer_win">Instalador Windows</option>
                   <option value="installer_mac">Instalador macOS</option>
+                  <option value="installer_amxd">Archivo AMXD</option>
                 </select>
               </div>
               <div>

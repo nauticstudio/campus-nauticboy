@@ -56,24 +56,24 @@ export function UserAvatarMenu({ userName, userEmail, isAdmin }: UserAvatarMenuP
 
         <DropdownMenuSeparator className="bg-ink-800/80" />
 
-        <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white">
-          <Link href="/settings/profile" className="flex items-center gap-2.5 w-full px-1 py-1">
+        <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white p-0">
+          <Link href="/settings/profile" className="flex items-center gap-2.5 w-full px-3 py-2">
             <User className="w-4 h-4 text-coral-400" />
             <span className="text-sm font-semibold text-ink-200 hover:text-white">Mi perfil</span>
           </Link>
         </DropdownMenuItem>
 
         {isAdmin && (
-          <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white">
-            <Link href="/admin/users" className="flex items-center gap-2.5 w-full px-1 py-1">
+          <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white p-0">
+            <Link href="/admin/users" className="flex items-center gap-2.5 w-full px-3 py-2">
               <UserCog className="w-4 h-4 text-coral-400" />
               <span className="text-sm font-semibold text-ink-200 hover:text-white">Gestionar usuarios</span>
             </Link>
           </DropdownMenuItem>
         )}
 
-        <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white">
-          <Link href="/settings" className="flex items-center gap-2.5 w-full px-1 py-1">
+        <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white p-0">
+          <Link href="/settings/profile" className="flex items-center gap-2.5 w-full px-3 py-2">
             <Settings className="w-4 h-4 text-coral-400" />
             <span className="text-sm font-semibold text-ink-200 hover:text-white">Configuración</span>
           </Link>

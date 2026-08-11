@@ -140,6 +140,20 @@ export default async function SoftwareProductPage({
                 </div>
               ))}
 
+              {grouped.installersAmxd.map((amxd) => (
+                <div key={amxd.id} className="relative group/installer flex items-center gap-2">
+                  <a 
+                    href={`/api/download?id=${amxd.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-emerald-500/20 text-emerald-300 font-bold text-xs uppercase tracking-wider hover:bg-emerald-500/30 border border-emerald-500/30 transition-all active:scale-95"
+                  >
+                    <Download className="w-4 h-4 text-emerald-400" /> Descargar AMXD ({amxd.file_size || 'AMXD'})
+                  </a>
+                  {showAdminUI && <InlineEditSoftwareItemModal item={amxd} />}
+                </div>
+              ))}
+
               {showAdminUI && <InlineCreateInstallerModal productId={product.id} />}
             </div>
           </div>
@@ -247,30 +261,26 @@ export default async function SoftwareProductPage({
       )}
 
       {/* Expansions Ecosystem Grid */}
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-ink-800/80 pb-4">
-          <div>
-            <div className="flex items-center gap-4">
-              <h2 className="text-2xl font-bold text-ink-50 tracking-tight flex items-center gap-2 font-display">
-                <Layers className="w-6 h-6 text-coral-400" /> Expansiones & Bancos de Presets
-              </h2>
-              {showAdminUI && <InlineCreateSoftwareItemModal productId={product.id} />}
+      {grouped.expansions.length > 0 && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-ink-800/80 pb-4">
+            <div>
+              <div className="flex items-center gap-4">
+                <h2 className="text-2xl font-bold text-ink-50 tracking-tight flex items-center gap-2 font-display">
+                  <Layers className="w-6 h-6 text-coral-400" /> Expansiones & Bancos de Presets
+                </h2>
+                {showAdminUI && <InlineCreateSoftwareItemModal productId={product.id} />}
+              </div>
+              <p className="text-xs font-medium text-ink-400 mt-1">
+                Colección completa de expansiones oficiales para {product.name}.
+              </p>
             </div>
-            <p className="text-xs font-medium text-ink-400 mt-1">
-              Colección completa de expansiones oficiales para {product.name}.
-            </p>
+
+            <span className="text-xs font-mono font-bold text-coral-300 bg-coral-500/15 px-3 py-1.5 rounded-full border border-coral-500/30 self-start sm:self-auto">
+              {grouped.expansions.length} Expansiones
+            </span>
           </div>
 
-          <span className="text-xs font-mono font-bold text-coral-300 bg-coral-500/15 px-3 py-1.5 rounded-full border border-coral-500/30 self-start sm:self-auto">
-            {grouped.expansions.length} Expansiones
-          </span>
-        </div>
-
-        {grouped.expansions.length === 0 ? (
-          <div className="p-8 text-center rounded-2xl bg-ink-900/40 border border-ink-800 text-xs font-semibold text-ink-400">
-            No se han registrado expansiones aún para este producto.
-          </div>
-        ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {grouped.expansions.map((exp) => (
               <div 
@@ -331,8 +341,8 @@ export default async function SoftwareProductPage({
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
     </div>
   )
