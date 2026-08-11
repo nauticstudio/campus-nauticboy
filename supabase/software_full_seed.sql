@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS software_products (
   version TEXT DEFAULT '1.0',
   compatibility TEXT DEFAULT 'Windows 10/11 & macOS 12+',
   formats TEXT[] DEFAULT ARRAY['VST3', 'AU', 'AAX'],
+  archive_password TEXT,
   is_featured BOOLEAN DEFAULT false,
   is_published BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

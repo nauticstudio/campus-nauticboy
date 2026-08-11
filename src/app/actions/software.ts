@@ -33,6 +33,23 @@ type ActionResult = {
   redirectUrl?: string
 }
 
+// Mapea errores conocidos de Postgres/PostgREST a mensajes accionables; en el
+// resto de casos devuelve el mensaje real (solo visible para admins) en vez
+// del texto genérico que ocultaba bugs como el PGRST204 de `archive_password`.
+function dbErrorMessage(error: unknown, fallback: string): string {
+  const e = error as { code?: string; message?: string } | null
+  if (e?.code === '23505') {
+    return 'Ya existe un registro con ese nombre o slug. Prueba con un nombre distinto.'
+  }
+  if (e?.code === '23503') {
+    return 'Referencia inválida: el fabricante o producto seleccionado ya no existe.'
+  }
+  if (typeof e?.message === 'string' && e.message.length > 0) {
+    return `${fallback} (${e.message})`
+  }
+  return fallback
+}
+
 // ---- Manufacturer -------------------------------------------------------
 export async function createManufacturerAction(formData: FormData): Promise<ActionResult> {
   try {
@@ -58,7 +75,7 @@ export async function createManufacturerAction(formData: FormData): Promise<Acti
     return { success: true }
   } catch (error) {
     console.error('[software] createManufacturer:', error)
-    return { success: false, error: 'Error al crear el fabricante.' }
+    return { success: false, error: dbErrorMessage(error, 'Error al crear el fabricante.') }
   }
 }
 
@@ -92,7 +109,7 @@ export async function updateManufacturerAction(formData: FormData): Promise<Acti
     return { success: true }
   } catch (error) {
     console.error('[software] updateManufacturer:', error)
-    return { success: false, error: 'Error al actualizar el fabricante.' }
+    return { success: false, error: dbErrorMessage(error, 'Error al actualizar el fabricante.') }
   }
 }
 
@@ -179,7 +196,7 @@ export async function createSoftwareProductAction(formData: FormData): Promise<A
     return { success: true }
   } catch (error) {
     console.error('[software] createProduct:', error)
-    return { success: false, error: 'Error al crear el producto.' }
+    return { success: false, error: dbErrorMessage(error, 'Error al crear el producto.') }
   }
 }
 
@@ -233,7 +250,7 @@ export async function updateSoftwareProductAction(formData: FormData): Promise<A
     return { success: true, redirectUrl: `/software/${m?.slug}/${parsed.slug}` }
   } catch (error) {
     console.error('[software] updateProduct:', error)
-    return { success: false, error: 'Error al actualizar el producto.' }
+    return { success: false, error: dbErrorMessage(error, 'Error al actualizar el producto.') }
   }
 }
 
@@ -341,7 +358,7 @@ export async function createSoftwareItemAction(formData: FormData): Promise<Acti
     return { success: true }
   } catch (error) {
     console.error('[software] createItem:', error)
-    return { success: false, error: 'Error al crear el ítem.' }
+    return { success: false, error: dbErrorMessage(error, 'Error al crear el ítem.') }
   }
 }
 
@@ -381,7 +398,7 @@ export async function updateSoftwareItemAction(formData: FormData): Promise<Acti
     return { success: true }
   } catch (error) {
     console.error('[software] updateItem:', error)
-    return { success: false, error: 'Error al actualizar el ítem.' }
+    return { success: false, error: dbErrorMessage(error, 'Error al actualizar el ítem.') }
   }
 }
 
