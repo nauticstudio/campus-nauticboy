@@ -16,6 +16,8 @@ import { AdminQuickToolbar } from '@/components/admin/AdminQuickToolbar'
 import { CategoryEditButton } from '@/components/admin/CategoryModal'
 import { setResourcePublishedAction } from '@/app/actions/resources'
 
+import { getCoverStyle } from '@/lib/utils/cover-style'
+
 export interface ResourceItem {
   id: string
   title: string
@@ -101,6 +103,7 @@ export function CategoryResourcesClient({
               <img
                 src={categoryMeta.cover_image_url}
                 alt={categoryMeta.name}
+                style={getCoverStyle(categoryMeta.cover_image_url)}
                 className="absolute inset-0 w-full h-full object-cover opacity-45"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/55 to-ink-950/25" />

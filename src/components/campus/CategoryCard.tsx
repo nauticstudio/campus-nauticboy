@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight } from 'lucide-react'
 import { SmartIcon } from '@/components/ui/smart-icon'
+import { getCoverStyle } from '@/lib/utils/cover-style'
 
 export type CategoryCardData = {
   name: string
@@ -39,6 +40,7 @@ export function CategoryCard({ data }: { data: CategoryCardData }) {
               fill
               sizes="(max-width: 768px) 100vw, 33vw"
               unoptimized
+              style={getCoverStyle(data.cover_image_url)}
               className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface)] via-[var(--surface)]/40 to-transparent" />

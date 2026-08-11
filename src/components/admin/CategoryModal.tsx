@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { Loader2, Plus, Image as ImageIcon, Edit3, Upload } from 'lucide-react'
+import { Loader2, Plus, Image as ImageIcon, Edit3, Upload, RotateCcw, Trash2, Move, ZoomIn } from 'lucide-react'
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader,
   DialogTitle, DialogFooter,
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { upsertCategoryAction, deleteCategoryAction } from '@/app/actions/categories'
 import { createClient } from '@/lib/supabase/client'
+import { parseCoverUrl, buildCoverUrl, DEFAULT_COVER_POS, type CoverPos } from '@/lib/utils/cover-style'
 
 export type CategoryRow = {
   id: string
@@ -29,7 +30,7 @@ const ACCENTS: CategoryRow['accent_color'][] = ['coral', 'violet', 'cyan', 'emer
 function isValidHttpUrl(url: string): boolean {
   if (!url) return false
   if (url.startsWith('data:image/')) return true
-  try { const u = new URL(url); return u.protocol === 'https:' || u.protocol === 'http:' }
+  try { const u = new URL(url.split('#pos=')[0]); return u.protocol === 'https:' || u.protocol === 'http:' }
   catch { return false }
 }
 
@@ -49,6 +50,17 @@ export function CategoryModal({
   const [error, setError] = useState<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState(category?.cover_image_url ?? '')
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const parsedCover = useMemo(() => parseCoverUrl(previewUrl), [previewUrl])
+  const [isDragging, setIsDragging] = useState(false)
+  const dragStartRef = useRef<{ startX: number; startY: number; initialX: number; initialY: number } | null>(null)
+
+  const updatePos = (newPos: Partial<CoverPos>) => {
+    const currentPos = parsedCover.pos
+    const updated = { ...currentPos, ...newPos }
+    const newUrl = buildCoverUrl(parsedCover.baseUrl, updated)
+    setPreviewUrl(newUrl)
+  }
 
   useEffect(() => {
     setError(null)
@@ -225,19 +237,123 @@ export function CategoryModal({
             </div>
 
             {showPreview && (
-              <div className="relative h-40 rounded-xl overflow-hidden border border-ink-700/50">
-                <Image
-                  src={previewUrl}
-                  alt="preview"
-                  fill
-                  sizes="480px"
-                  unoptimized
-                  className="object-cover"
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = '0.15' }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/25 to-transparent" />
-                <div className="absolute bottom-2 left-3 text-[10px] font-bold text-ink-300 uppercase tracking-widest">
-                  Vista previa de Portada
+              <div className="space-y-3 pt-1">
+                <div 
+                  className="relative h-44 rounded-xl overflow-hidden border border-ink-700/80 cursor-grab active:cursor-grabbing select-none group bg-ink-950/80"
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    setIsDragging(true)
+                    dragStartRef.current = {
+                      startX: e.clientX,
+                      startY: e.clientY,
+                      initialX: parsedCover.pos.x,
+                      initialY: parsedCover.pos.y,
+                    }
+                  }}
+                  onMouseMove={(e) => {
+                    if (!isDragging || !dragStartRef.current) return
+                    const deltaX = e.clientX - dragStartRef.current.startX
+                    const deltaY = e.clientY - dragStartRef.current.startY
+                    const newX = Math.max(0, Math.min(100, dragStartRef.current.initialX - deltaX * 0.4))
+                    const newY = Math.max(0, Math.min(100, dragStartRef.current.initialY - deltaY * 0.4))
+                    updatePos({ x: newX, y: newY })
+                  }}
+                  onMouseUp={() => { setIsDragging(false); dragStartRef.current = null }}
+                  onMouseLeave={() => { setIsDragging(false); dragStartRef.current = null }}
+                >
+                  <img
+                    src={parsedCover.baseUrl}
+                    alt="preview"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-75 pointer-events-none"
+                    style={{
+                      objectPosition: `${parsedCover.pos.x}% ${parsedCover.pos.y}%`,
+                      transform: parsedCover.pos.zoom !== 1 ? `scale(${parsedCover.pos.zoom})` : undefined,
+                      transformOrigin: `${parsedCover.pos.x}% ${parsedCover.pos.y}%`,
+                    }}
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = '0.15' }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink-950/90 via-ink-950/20 to-transparent pointer-events-none" />
+                  
+                  <div className="absolute top-2.5 right-2.5 bg-ink-950/80 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] font-bold text-coral-300 border border-coral-500/30 flex items-center gap-1.5 shadow-md">
+                    <Move className="w-3 h-3 text-coral-400" /> Arrastra para encuadrar
+                  </div>
+
+                  <div className="absolute bottom-2.5 left-3 text-[10px] font-bold text-ink-200 uppercase tracking-widest flex items-center gap-2 pointer-events-none">
+                    <span>X: {Math.round(parsedCover.pos.x)}%</span>
+                    <span>•</span>
+                    <span>Y: {Math.round(parsedCover.pos.y)}%</span>
+                    <span>•</span>
+                    <span>Zoom: {parsedCover.pos.zoom.toFixed(1)}x</span>
+                  </div>
+                </div>
+
+                {/* Sliders Control Panel */}
+                <div className="p-3.5 rounded-xl bg-ink-900/60 border border-ink-800 space-y-3">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-ink-400 uppercase tracking-widest flex justify-between">
+                        <span>Eje Y (Arriba/Abajo)</span>
+                        <span className="text-coral-400">{Math.round(parsedCover.pos.y)}%</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={parsedCover.pos.y}
+                        onChange={(e) => updatePos({ y: Number.parseFloat(e.target.value) })}
+                        className="w-full accent-coral-500 bg-ink-800 h-1.5 rounded-lg cursor-pointer"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-ink-400 uppercase tracking-widest flex justify-between">
+                        <span>Eje X (Izq/Der)</span>
+                        <span className="text-coral-400">{Math.round(parsedCover.pos.x)}%</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={parsedCover.pos.x}
+                        onChange={(e) => updatePos({ x: Number.parseFloat(e.target.value) })}
+                        className="w-full accent-coral-500 bg-ink-800 h-1.5 rounded-lg cursor-pointer"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-ink-400 uppercase tracking-widest flex justify-between">
+                        <span className="flex items-center gap-1"><ZoomIn className="w-2.5 h-2.5 text-coral-400" /> Zoom</span>
+                        <span className="text-coral-400">{parsedCover.pos.zoom.toFixed(1)}x</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="1"
+                        max="2.5"
+                        step="0.05"
+                        value={parsedCover.pos.zoom}
+                        onChange={(e) => updatePos({ zoom: Number.parseFloat(e.target.value) })}
+                        className="w-full accent-coral-500 bg-ink-800 h-1.5 rounded-lg cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1 border-t border-ink-800/60">
+                    <button
+                      type="button"
+                      onClick={() => updatePos({ x: 50, y: 50, zoom: 1 })}
+                      className="text-[10px] font-bold text-ink-400 hover:text-ink-100 transition-colors flex items-center gap-1"
+                    >
+                      <RotateCcw className="w-3 h-3" /> Restablecer Encuadre
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPreviewUrl('')}
+                      className="text-[10px] font-bold text-red-400 hover:text-red-300 transition-colors flex items-center gap-1"
+                    >
+                      <Trash2 className="w-3 h-3" /> Quitar Portada
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
