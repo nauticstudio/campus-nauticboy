@@ -140,11 +140,13 @@ export default async function SoftwareProductPage({
                     href={`/api/download?id=${win.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`inline-flex items-center gap-2 ${showAdminUI ? 'pl-5 pr-7' : 'px-5'} py-3.5 rounded-2xl bg-coral-500 text-white font-bold text-xs uppercase tracking-wider hover:bg-coral-600 transition-all shadow-[0_4px_20px_rgba(255,98,19,0.4)] active:scale-95`}
+                    className={`inline-flex items-center gap-2.5 ${showAdminUI ? 'pl-5 pr-7' : 'px-5'} py-3.5 rounded-2xl bg-[#0078D4]/10 text-sky-200 font-bold text-xs uppercase tracking-wider hover:bg-[#0078D4]/25 border border-[#0078D4]/40 transition-all active:scale-95 shadow-[0_0_15px_rgba(0,120,212,0.2)]`}
                     title={`Descargar Windows (${win.file_size || 'ZIP'})`}
                   >
-                    <Download className="w-4 h-4 shrink-0" />
-                    <WindowsLogo className="w-4 h-4 shrink-0 text-coral-200" />
+                    <Download className="w-4 h-4 shrink-0 text-sky-400" />
+                    <span className="inline-flex items-center justify-center bg-[#0078D4]/25 text-sky-200 px-1.5 py-0.5 rounded border border-[#0078D4]/40 shadow-[0_0_8px_rgba(0,120,212,0.3)]">
+                      <WindowsLogo className="w-3.5 h-3.5 text-sky-300" />
+                    </span>
                     <span>({win.file_size || 'ZIP'})</span>
                   </a>
                   {showAdminUI && <InlineEditSoftwareItemModal item={win} />}
@@ -157,11 +159,13 @@ export default async function SoftwareProductPage({
                     href={`/api/download?id=${mac.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`inline-flex items-center gap-2 ${showAdminUI ? 'pl-5 pr-7' : 'px-5'} py-3.5 rounded-2xl bg-ink-800/80 text-ink-100 font-bold text-xs uppercase tracking-wider hover:bg-ink-800 border border-ink-700 transition-all active:scale-95`}
+                    className={`inline-flex items-center gap-2.5 ${showAdminUI ? 'pl-5 pr-7' : 'px-5'} py-3.5 rounded-2xl bg-white/5 text-zinc-100 font-bold text-xs uppercase tracking-wider hover:bg-white/10 border border-white/20 transition-all active:scale-95 shadow-[0_0_15px_rgba(255,255,255,0.08)]`}
                     title={`Descargar macOS (${mac.file_size || 'PKG'})`}
                   >
-                    <Download className="w-4 h-4 shrink-0 text-coral-400" />
-                    <AppleLogo className="w-4 h-4 shrink-0 text-ink-100" />
+                    <Download className="w-4 h-4 shrink-0 text-zinc-100" />
+                    <span className="inline-flex items-center gap-1 bg-white/10 text-white px-1.5 py-0.5 rounded border border-white/20 shadow-[0_0_8px_rgba(255,255,255,0.2)]">
+                      <AppleLogo className="w-3.5 h-3.5 text-white" />
+                    </span>
                     <span>({mac.file_size || 'PKG'})</span>
                   </a>
                   {showAdminUI && <InlineEditSoftwareItemModal item={mac} />}
@@ -174,7 +178,7 @@ export default async function SoftwareProductPage({
                     href={`/api/download?id=${amxd.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`inline-flex items-center gap-2 ${showAdminUI ? 'pl-5 pr-7' : 'px-5'} py-3.5 rounded-2xl bg-emerald-950/40 text-emerald-300 font-bold text-xs uppercase tracking-wider hover:bg-emerald-900/60 border border-emerald-500/40 transition-all active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.15)]`}
+                    className={`inline-flex items-center gap-2.5 ${showAdminUI ? 'pl-5 pr-7' : 'px-5'} py-3.5 rounded-2xl bg-emerald-950/40 text-emerald-300 font-bold text-xs uppercase tracking-wider hover:bg-emerald-900/60 border border-emerald-500/40 transition-all active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.15)]`}
                     title={`Descargar Max for Live AMXD (${amxd.file_size || 'AMXD'})`}
                   >
                     <Download className="w-4 h-4 shrink-0 text-emerald-400" />
