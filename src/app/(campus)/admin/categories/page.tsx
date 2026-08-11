@@ -8,7 +8,7 @@ export default async function AdminCategoriesPage() {
 
   const { data: categories } = await supabase
     .from('categories')
-    .select('id, name, slug, icon, icon_url, cover_image_url, accent_color, blurb, is_published')
+    .select('*')
     .order('sort_order', { ascending: true })
 
   return (

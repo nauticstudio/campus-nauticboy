@@ -9,7 +9,7 @@ export default async function AcademyPage() {
 
   const { data: dbCategories } = await supabase
     .from('categories')
-    .select('id, name, slug, description, icon, icon_url, cover_image_url, accent_color, blurb, is_published')
+    .select('*')
     .order('sort_order', { ascending: true })
 
   const [dbResourcesResult, softwareCountsResult] = await Promise.all([
