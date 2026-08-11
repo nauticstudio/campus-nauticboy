@@ -16,11 +16,11 @@ export default async function AcademyPage() {
     supabase.from('resources').select('category_id').eq('is_published', true),
     supabase
       .from('software_products')
-      .select('software_categories!inner(category_id)')
+      .select('id', { count: 'exact', head: true })
       .eq('is_published', true),
   ])
   const dbResources = dbResourcesResult.data
-  const softwareCounts = softwareCountsResult.data
+  const softwareCount = softwareCountsResult.count || 0
 
   const counts: Record<string, number> = {}
   dbResources?.forEach((r: { category_id: string | null }) => {
@@ -28,15 +28,9 @@ export default async function AcademyPage() {
   })
 
   const pluginsCategoryId = dbCategories?.find((c: any) => c.slug === 'plugins')?.id
-  softwareCounts?.forEach((row: any) => {
-    const rel = row.software_categories
-    const sc = Array.isArray(rel) ? rel[0]?.category_id : undefined
-    if (sc) {
-      counts[sc] = (counts[sc] || 0) + 1
-    } else if (pluginsCategoryId) {
-      counts[pluginsCategoryId] = (counts[pluginsCategoryId] || 0) + 1
-    }
-  })
+  if (pluginsCategoryId) {
+    counts[pluginsCategoryId] = (counts[pluginsCategoryId] || 0) + softwareCount
+  }
 
   const categories: CategoryCardData[] = (dbCategories || []).map((cat: any) => ({
     name: cat.name,

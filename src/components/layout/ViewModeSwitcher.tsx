@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
-import { Eye, Shield, User, Users } from 'lucide-react'
+import { Eye, Shield, User } from 'lucide-react'
 import { setAdminViewMode } from '@/app/actions/view-mode'
 
 export function ViewModeSwitcher({ initialMode }: { initialMode: 'admin' | 'student' }) {
@@ -14,24 +13,24 @@ export function ViewModeSwitcher({ initialMode }: { initialMode: 'admin' | 'stud
     setIsPending(true)
     await setAdminViewMode(newMode)
     setMode(newMode)
-    // Hard refresh para re-evaluar server components (sidebar, listados)
     window.location.reload()
   }
 
   return (
-    <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-1 p-1 rounded-full bg-ink-900/95 border border-ink-700 shadow-[0_12px_40px_-8px_rgba(11,28,41,0.5)] backdrop-blur-xl">
-      <div className="hidden sm:flex items-center gap-1.5 pl-3 pr-1 text-[10px] font-bold text-ink-400 uppercase tracking-widest">
-        <Eye className="w-3.5 h-3.5" /> Vista
+    <div className="flex items-center gap-1 p-1 rounded-full bg-ink-900/90 border border-ink-800/80 shadow-[0_4px_16px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+      <div className="hidden sm:flex items-center gap-1.5 pl-2.5 pr-1 text-[10px] font-mono font-bold text-ink-400 uppercase tracking-wider">
+        <Eye className="w-3 h-3 text-coral-400" />
+        <span>Modo</span>
       </div>
 
       <button
         onClick={() => handleToggle('admin')}
         disabled={isPending}
         aria-pressed={mode === 'admin'}
-        className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all ${
           mode === 'admin'
-            ? 'bg-primary text-white shadow-[0_4px_14px_-2px_rgba(255,98,19,0.55)]'
-            : 'text-ink-300 hover:text-white'
+            ? 'bg-coral-500 text-white shadow-[0_2px_10px_rgba(255,98,19,0.4)]'
+            : 'text-ink-300 hover:text-white hover:bg-ink-800/50'
         }`}
       >
         <Shield className="w-3.5 h-3.5" />
@@ -42,24 +41,15 @@ export function ViewModeSwitcher({ initialMode }: { initialMode: 'admin' | 'stud
         onClick={() => handleToggle('student')}
         disabled={isPending}
         aria-pressed={mode === 'student'}
-        className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all ${
           mode === 'student'
-            ? 'bg-ink-100 text-ink-900'
-            : 'text-ink-300 hover:text-white'
+            ? 'bg-ink-700 text-white shadow-[0_2px_8px_rgba(0,0,0,0.4)]'
+            : 'text-ink-300 hover:text-white hover:bg-ink-800/50'
         }`}
       >
         <User className="w-3.5 h-3.5" />
         Alumno
       </button>
-
-      <Link
-        href="/admin/users"
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-ink-300 hover:bg-ink-800 hover:text-white transition-colors"
-        aria-label="Gestionar usuarios"
-      >
-        <Users className="w-3.5 h-3.5" />
-        <span className="hidden md:inline-block">Usuarios</span>
-      </Link>
     </div>
   )
 }

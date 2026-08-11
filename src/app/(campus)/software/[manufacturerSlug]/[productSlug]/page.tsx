@@ -1,7 +1,7 @@
 import { getProductEcosystem } from '@/lib/data/software'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Download, ShieldCheck, Cpu, HardDrive, Sparkles, Layers, CheckCircle2, Music2, Info, FolderArchive, Heart } from 'lucide-react'
+import { ArrowLeft, Download, ShieldCheck, Cpu, HardDrive, Layers, CheckCircle2, FolderArchive } from 'lucide-react'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getAdminViewMode } from '@/app/actions/view-mode'
 import { InlineEditSoftwareModal } from '@/components/admin/InlineEditSoftwareModal'
@@ -49,13 +49,13 @@ export default async function SoftwareProductPage({
       {/* Navigation Breadcrumb */}
       <Link
         href="/academy/plugins"
-        className="inline-flex items-center gap-2 text-xs font-bold text-ink-500 hover:text-primary transition-colors"
+        className="inline-flex items-center gap-2 text-xs font-bold text-ink-400 hover:text-coral-400 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" /> Volver a Plugins
       </Link>
 
       {/* Product Hero Banner */}
-      <div className="relative rounded-[var(--radius)] overflow-hidden bg-ink-950 text-white shadow-[var(--shadow-hero)]">
+      <div className="relative rounded-[var(--radius)] overflow-hidden bg-ink-950 text-white shadow-[var(--shadow-hero)] border border-ink-800/80">
         {showAdminUI && <InlineEditSoftwareModal product={product} manufacturers={allManufacturers} />}
         {/* Background Ambient Glow */}
         {product.cover_image_url && (
@@ -69,39 +69,41 @@ export default async function SoftwareProductPage({
         <div className="relative z-20 p-8 md:p-12 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
           <div className="space-y-4 max-w-2xl">
             <div className="flex items-center gap-3">
-              <span className="px-3 py-1 rounded-full bg-primary/20 text-amber-200 text-xs font-black tracking-wider uppercase border border-white/20">
+              <span className="px-3 py-1 rounded-full bg-coral-500/20 text-coral-300 text-xs font-bold tracking-wider uppercase border border-coral-500/30">
                 {manufacturer.name}
               </span>
-              <span className="text-xs font-bold text-emerald-300 flex items-center gap-1">
+              <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5" /> Verificado por Nautic Campus
               </span>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white">
+            <h1 className="font-display text-4xl md:text-6xl font-bold tracking-quant text-ink-50">
               {product.name}
             </h1>
 
-            <p className="text-sm font-semibold text-amber-300">
-              {product.tagline}
-            </p>
+            {product.tagline && (
+              <p className="text-sm font-semibold text-coral-300">
+                {product.tagline}
+              </p>
+            )}
 
             <p className="text-xs md:text-sm font-medium text-ink-200 leading-relaxed">
               {product.description}
             </p>
 
             {/* Specifications Specs */}
-            <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-ink-400 pt-2 border-t border-white/10">
+            <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-ink-400 pt-2 border-t border-ink-800/80">
               <span className="flex items-center gap-1.5 text-ink-100">
-                <CheckCircle2 className="w-4 h-4 text-amber-300" /> Versión: <strong>{product.version}</strong>
+                <CheckCircle2 className="w-4 h-4 text-coral-400" /> Versión: <strong>{product.version}</strong>
               </span>
               <span>•</span>
               <span className="flex items-center gap-1.5 text-ink-100">
-                <HardDrive className="w-4 h-4 text-amber-300" /> {product.compatibility}
+                <HardDrive className="w-4 h-4 text-coral-400" /> {product.compatibility}
               </span>
               <span>•</span>
               <div className="flex items-center gap-1.5">
                 {product.formats?.map((fmt) => (
-                  <span key={fmt} className="px-2 py-0.5 rounded bg-white/10 text-[10px] font-bold text-white">
+                  <span key={fmt} className="px-2 py-0.5 rounded bg-ink-800 border border-ink-700 text-[10px] font-mono font-bold text-ink-200">
                     {fmt}
                   </span>
                 ))}
@@ -116,7 +118,7 @@ export default async function SoftwareProductPage({
                     href={`/api/download?id=${win.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-primary text-white font-black text-xs uppercase tracking-wider hover:bg-primary/95 transition-all shadow-lg shadow-[0_14px_32px_-8px_rgba(255,98,19,0.6)] active:scale-95"
+                    className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-coral-500 text-white font-bold text-xs uppercase tracking-wider hover:bg-coral-600 transition-all shadow-[0_4px_20px_rgba(255,98,19,0.4)] active:scale-95"
                   >
                     <Download className="w-4 h-4" /> Descargar Windows ({win.file_size || 'ZIP'})
                   </a>
@@ -130,9 +132,9 @@ export default async function SoftwareProductPage({
                     href={`/api/download?id=${mac.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-white/15 text-white font-extrabold text-xs uppercase tracking-wider hover:bg-white/20 border border-white/20 transition-all active:scale-95"
+                    className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-ink-800/80 text-ink-100 font-bold text-xs uppercase tracking-wider hover:bg-ink-800 border border-ink-700 transition-all active:scale-95"
                   >
-                    <Download className="w-4 h-4 text-amber-300" /> Descargar macOS ({mac.file_size || 'PKG'})
+                    <Download className="w-4 h-4 text-coral-400" /> Descargar macOS ({mac.file_size || 'PKG'})
                   </a>
                   {showAdminUI && <InlineEditSoftwareItemModal item={mac} />}
                 </div>
@@ -143,7 +145,7 @@ export default async function SoftwareProductPage({
           </div>
 
           {product.cover_image_url && (
-            <div className="w-full lg:w-96 h-64 rounded-[var(--radius)] overflow-hidden border border-white/10 shadow-2xl flex-shrink-0">
+            <div className="w-full lg:w-96 h-64 rounded-[var(--radius)] overflow-hidden border border-ink-800 shadow-2xl flex-shrink-0">
               <img 
                 src={product.cover_image_url} 
                 alt={product.name} 
@@ -159,8 +161,8 @@ export default async function SoftwareProductPage({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h2 className="text-xl font-black text-ink-900 tracking-tight flex items-center gap-2">
-                <HardDrive className="w-5 h-5 text-indigo-600" /> Biblioteca Base / Factory Content
+              <h2 className="text-xl font-bold text-ink-50 tracking-tight flex items-center gap-2">
+                <HardDrive className="w-5 h-5 text-coral-400" /> Biblioteca Base / Factory Content
               </h2>
               {showAdminUI && <InlineCreateSoftwareItemModal productId={product.id} />}
             </div>
@@ -170,16 +172,16 @@ export default async function SoftwareProductPage({
             {grouped.factoryContent.map((fc) => (
               <div 
                 key={fc.id}
-                className="relative glass-card rounded-2xl p-6 flex items-center justify-between gap-4 border border-indigo-500/20 bg-indigo-500/5"
+                className="relative rounded-2xl p-6 flex items-center justify-between gap-4 border border-ink-800 bg-ink-900/60"
               >
                 {showAdminUI && <InlineEditSoftwareItemModal item={fc} />}
                 <div className="space-y-1">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[10px] font-extrabold uppercase">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-coral-500/15 text-coral-400 text-[10px] font-bold uppercase">
                     Core Content
                   </div>
-                  <h3 className="font-extrabold text-ink-900 text-base">{fc.title}</h3>
-                  <p className="text-xs font-medium text-ink-500">{fc.description}</p>
-                  <span className="text-[11px] font-bold text-ink-400 block pt-1">
+                  <h3 className="font-bold text-ink-50 text-base">{fc.title}</h3>
+                  <p className="text-xs font-medium text-ink-300">{fc.description}</p>
+                  <span className="text-[11px] font-mono text-ink-400 block pt-1">
                     Tamaño: {fc.file_size}
                   </span>
                 </div>
@@ -188,7 +190,7 @@ export default async function SoftwareProductPage({
                   href={`/api/download?id=${fc.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-ink-900 text-white font-bold text-xs hover:bg-indigo-600 transition-all flex-shrink-0"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-coral-500 text-white font-bold text-xs hover:bg-coral-600 transition-all flex-shrink-0"
                 >
                   <Download className="w-4 h-4" /> Descargar
                 </a>
@@ -203,8 +205,8 @@ export default async function SoftwareProductPage({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h2 className="text-xl font-black text-ink-900 tracking-tight flex items-center gap-2">
-                <Cpu className="w-5 h-5 text-rose-500" /> Plugins & Dispositivos
+              <h2 className="text-xl font-bold text-ink-50 tracking-tight flex items-center gap-2">
+                <Cpu className="w-5 h-5 text-coral-400" /> Plugins & Dispositivos
               </h2>
               {showAdminUI && <InlineCreateSoftwareItemModal productId={product.id} />}
             </div>
@@ -214,18 +216,18 @@ export default async function SoftwareProductPage({
             {grouped.pluginDevices.map((plugin) => (
               <div 
                 key={plugin.id}
-                className="relative glass-card rounded-2xl p-6 flex items-center justify-between gap-4 border border-rose-500/20 bg-rose-500/5"
+                className="relative rounded-2xl p-6 flex items-center justify-between gap-4 border border-ink-800 bg-ink-900/60"
               >
                 {showAdminUI && <InlineEditSoftwareItemModal item={plugin} />}
                 <div className="space-y-1">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-700 text-[10px] font-extrabold uppercase">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-coral-500/15 text-coral-400 text-[10px] font-bold uppercase">
                     Plugin / Device
                   </div>
-                  <h3 className="font-extrabold text-ink-900 text-base">{plugin.title}</h3>
+                  <h3 className="font-bold text-ink-50 text-base">{plugin.title}</h3>
                   {plugin.description && (
-                    <p className="text-xs font-medium text-ink-500">{plugin.description}</p>
+                    <p className="text-xs font-medium text-ink-300">{plugin.description}</p>
                   )}
-                  <span className="text-[11px] font-bold text-ink-400 block pt-1">
+                  <span className="text-[11px] font-mono text-ink-400 block pt-1">
                     Tamaño: {plugin.file_size || 'N/A'}
                   </span>
                 </div>
@@ -234,7 +236,7 @@ export default async function SoftwareProductPage({
                   href={`/api/download?id=${plugin.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-ink-900 text-white font-bold text-xs hover:bg-rose-600 transition-all flex-shrink-0"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-coral-500 text-white font-bold text-xs hover:bg-coral-600 transition-all flex-shrink-0"
                 >
                   <Download className="w-4 h-4" /> Descargar
                 </a>
@@ -246,26 +248,26 @@ export default async function SoftwareProductPage({
 
       {/* Expansions Ecosystem Grid */}
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-sand-300/60 pb-4">
-            <div>
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-black text-ink-900 tracking-tight flex items-center gap-2">
-                  <Layers className="w-6 h-6 text-primary" /> Expansiones & Bancos de Presets
-                </h2>
-                {showAdminUI && <InlineCreateSoftwareItemModal productId={product.id} />}
-              </div>
-              <p className="text-xs font-semibold text-ink-500 mt-1">
-                Colección completa de expansiones oficiales para {product.name}.
-              </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-ink-800/80 pb-4">
+          <div>
+            <div className="flex items-center gap-4">
+              <h2 className="text-2xl font-bold text-ink-50 tracking-tight flex items-center gap-2 font-display">
+                <Layers className="w-6 h-6 text-coral-400" /> Expansiones & Bancos de Presets
+              </h2>
+              {showAdminUI && <InlineCreateSoftwareItemModal productId={product.id} />}
             </div>
+            <p className="text-xs font-medium text-ink-400 mt-1">
+              Colección completa de expansiones oficiales para {product.name}.
+            </p>
+          </div>
 
-          <span className="text-xs font-extrabold text-coral-700 bg-coral-500/10 px-3 py-1.5 rounded-full border border-coral-500/25 self-start sm:self-auto">
+          <span className="text-xs font-mono font-bold text-coral-300 bg-coral-500/15 px-3 py-1.5 rounded-full border border-coral-500/30 self-start sm:self-auto">
             {grouped.expansions.length} Expansiones
           </span>
         </div>
 
         {grouped.expansions.length === 0 ? (
-          <div className="p-8 text-center rounded-2xl bg-sand-100 border border-sand-300 text-xs font-semibold text-ink-500">
+          <div className="p-8 text-center rounded-2xl bg-ink-900/40 border border-ink-800 text-xs font-semibold text-ink-400">
             No se han registrado expansiones aún para este producto.
           </div>
         ) : (
@@ -273,12 +275,12 @@ export default async function SoftwareProductPage({
             {grouped.expansions.map((exp) => (
               <div 
                 key={exp.id}
-                className="relative glass-card rounded-[var(--radius)] p-5 flex flex-col justify-between hover:border-[var(--border-hover)] hover:shadow-[var(--shadow-pop)] transition-all duration-200 group"
+                className="relative rounded-[var(--radius)] p-5 flex flex-col justify-between border border-ink-800/80 bg-ink-900/60 hover:bg-ink-900 hover:border-coral-500/50 transition-all duration-200 group"
               >
                 {showAdminUI && <InlineEditSoftwareItemModal item={exp} />}
                 <div className="space-y-4">
                   {/* Expansion Cover */}
-                  <div className="relative h-48 rounded-2xl overflow-hidden bg-ink-900">
+                  <div className="relative h-48 rounded-2xl overflow-hidden bg-ink-950 border border-ink-800">
                     {exp.cover_image_url ? (
                       <img 
                         src={exp.cover_image_url} 
@@ -292,26 +294,26 @@ export default async function SoftwareProductPage({
                     )}
 
                     {exp.genre_tag && (
-                      <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-ink-950/80 backdrop-blur-md text-[10px] font-black text-amber-300 uppercase tracking-wider border border-white/10">
+                      <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-ink-950/90 backdrop-blur-md text-[10px] font-bold text-coral-300 uppercase tracking-wider border border-ink-800">
                         {exp.genre_tag}
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-black text-ink-900 group-hover:text-primary transition-colors">
+                    <h3 className="text-lg font-bold text-ink-50 group-hover:text-coral-400 transition-colors font-display">
                       {exp.title}
                     </h3>
                     {exp.description && (
-                      <p className="text-xs font-medium text-ink-500 mt-1 line-clamp-2 leading-relaxed">
+                      <p className="text-xs font-medium text-ink-300 mt-1 line-clamp-2 leading-relaxed">
                         {exp.description}
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div className="pt-4 mt-4 border-t border-sand-200 flex items-center justify-between gap-2">
-                  <div className="text-[11px] font-bold text-ink-400">
+                <div className="pt-4 mt-4 border-t border-ink-800/80 flex items-center justify-between gap-2">
+                  <div className="text-[11px] font-mono font-bold text-ink-400">
                     {exp.preset_count > 0 && <span>{exp.preset_count} Presets</span>}
                     {exp.preset_count > 0 && exp.file_size && <span> • </span>}
                     {exp.file_size && <span>{exp.file_size}</span>}
@@ -321,7 +323,7 @@ export default async function SoftwareProductPage({
                     href={`/api/download?id=${exp.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white font-black text-xs hover:bg-primary/95 transition-all shadow-md shadow-[0_14px_32px_-8px_rgba(255,98,19,0.5)] active:scale-95"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-coral-500 text-white font-bold text-xs hover:bg-coral-600 transition-all shadow-[0_4px_16px_rgba(255,98,19,0.3)] active:scale-95"
                   >
                     <Download className="w-3.5 h-3.5" /> Descargar
                   </a>

@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChevronRight, Music2, Search } from 'lucide-react'
 import { UserAvatarMenu } from './UserAvatarMenu'
+import { ViewModeSwitcher } from './ViewModeSwitcher'
 
-// Nombre legible del segmento de ruta para el breadcrumb.
 const CRUMB_LABELS: Record<string, string> = {
   dashboard: 'Inicio',
   academy: 'Academia',
@@ -36,34 +36,37 @@ interface TopBarProps {
   userName: string
   userEmail: string
   isAdmin: boolean
+  currentViewMode?: 'admin' | 'student'
 }
 
-export function TopBar({ userName, userEmail, isAdmin }: TopBarProps) {
+export function TopBar({ userName, userEmail, isAdmin, currentViewMode = 'student' }: TopBarProps) {
   const pathname = usePathname()
   const crumbs = getBreadcrumbs(pathname)
 
+  const homeHref = isAdmin && currentViewMode === 'admin' ? '/dashboard' : '/academy'
+
   return (
-    <header className="sticky top-0 z-40 hidden lg:flex h-16 items-center gap-4 border-b border-sand-200 bg-sand-50/80 backdrop-blur-xl px-6 xl:px-10">
-      {/* Marca */}
-      <Link href="/dashboard" className="flex items-center gap-2 shrink-0 group" aria-label="Nautic Campus - Inicio">
-        <span className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center shadow-[0_6px_14px_-4px_rgba(255,98,19,0.5)] group-hover:scale-105 transition-transform">
+    <header className="sticky top-0 z-40 hidden lg:flex h-16 items-center gap-4 border-b border-ink-800/80 bg-ink-950/80 backdrop-blur-xl px-6 xl:px-10">
+      {/* Marca / Logo */}
+      <Link href={homeHref} className="flex items-center gap-2.5 shrink-0 group" aria-label="Nautic Campus - Inicio">
+        <span className="w-8 h-8 rounded-xl bg-coral-500 text-white flex items-center justify-center shadow-[0_4px_16px_rgba(255,98,19,0.4)] group-hover:scale-105 transition-transform">
           <Music2 className="w-4 h-4" />
         </span>
-        <span className="font-display font-semibold text-ink-900 tracking-tight text-lg">
-          Nautic <span className="text-primary italic">Campus</span>
+        <span className="font-display font-bold text-ink-50 tracking-tight text-lg">
+          Nautic <span className="text-coral-500 italic">Campus</span>
         </span>
       </Link>
 
-      {/* Campus nav (desktop) */}
+      {/* Breadcrumbs de navegación */}
       {crumbs.length > 0 && (
-        <nav aria-label="Navegación del campus" className="hidden xl:flex items-center gap-0.5 text-xs font-semibold ml-2">
-          <Link href="/dashboard" className="hover:text-ink-700 transition-colors">Inicio</Link>
+        <nav aria-label="Navegación del campus" className="hidden xl:flex items-center gap-1 text-xs font-semibold ml-4">
+          <Link href={homeHref} className="text-ink-400 hover:text-ink-200 transition-colors">Inicio</Link>
           {crumbs.filter(c => c.href !== '/dashboard').map((c, i, arr) => (
-            <span key={c.href + i} className="flex items-center gap-0.5">
-              <ChevronRight className="w-3 h-3 text-sand-400" />
+            <span key={c.href + i} className="flex items-center gap-1">
+              <ChevronRight className="w-3.5 h-3.5 text-ink-600" />
               <Link
                 href={c.href}
-                className={i === arr.length - 1 ? 'text-ink-700' : 'hover:text-ink-700 transition-colors'}
+                className={i === arr.length - 1 ? 'text-coral-400 font-bold' : 'text-ink-400 hover:text-ink-200 transition-colors'}
               >
                 {c.label}
               </Link>
@@ -72,29 +75,29 @@ export function TopBar({ userName, userEmail, isAdmin }: TopBarProps) {
         </nav>
       )}
 
-      {/* Main nav (desktop only) */}
-      <nav aria-label="Principal" className="hidden lg:flex items-center gap-1">
-        <Link href="/dashboard" className="rounded-full px-3.5 py-1.5 text-xs font-semibold text-ink-500 transition-colors hover:bg-white hover:text-ink-800">Inicio</Link>
-        <Link href="/academy" className="rounded-full px-3.5 py-1.5 text-xs font-semibold text-ink-500 transition-colors hover:bg-white hover:text-ink-800">Academia</Link>
-        <Link href="/favorites" className="rounded-full px-3.5 py-1.5 text-xs font-semibold text-ink-500 transition-colors hover:bg-white hover:text-ink-800">Favoritos</Link>
-      </nav>
-
       <div className="flex-1" />
 
-      {/* Lupa / Cmd+K */}
+      {/* Lupa / Cmd+K Search trigger */}
       <button
         onClick={() => document.dispatchEvent(new CustomEvent('open-command-menu'))}
-        className="flex items-center gap-2.5 h-9 px-3.5 rounded-full border border-sand-300 bg-white text-ink-500 text-xs font-semibold hover:border-coral-300 hover:text-ink-800 hover:shadow-[var(--shadow-card)] transition-all min-w-[180px]"
+        className="flex items-center gap-2.5 h-9 px-4 rounded-full border border-ink-800 bg-ink-900/60 text-ink-300 text-xs font-semibold hover:border-coral-500/50 hover:text-ink-100 hover:bg-ink-900 transition-all min-w-[200px]"
         aria-label="Buscar en el campus"
       >
-        <Search className="w-4 h-4 text-ink-300" />
-        <span className="flex-1 text-left">Buscar…</span>
-        <kbd className="hidden md:inline-flex items-center gap-0.5 rounded-md border border-sand-200 bg-sand-100 px-1.5 py-0.5 text-[10px] font-mono text-ink-400">
+        <Search className="w-3.5 h-3.5 text-coral-400" />
+        <span className="flex-1 text-left">Buscar material…</span>
+        <kbd className="hidden md:inline-flex items-center gap-0.5 rounded-md border border-ink-700 bg-ink-800 px-1.5 py-0.5 text-[10px] font-mono text-ink-300">
           ⌘K
         </kbd>
       </button>
 
-      {/* Avatar + menú */}
+      {/* Switcher Admin integrado en TopBar (desktop) */}
+      {isAdmin && (
+        <div className="shrink-0">
+          <ViewModeSwitcher initialMode={currentViewMode} />
+        </div>
+      )}
+
+      {/* Avatar + menú de usuario */}
       <UserAvatarMenu userName={userName} userEmail={userEmail} isAdmin={isAdmin} />
     </header>
   )

@@ -35,39 +35,39 @@ export function InlineCreateManufacturerModal() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-cyan-50 text-cyan-700 font-bold text-xs hover:bg-cyan-100 transition-colors border border-cyan-200">
-        <Plus className="w-4 h-4 text-cyan-600" />
+      <DialogTrigger className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-coral-500/15 text-coral-300 font-bold text-xs hover:bg-coral-500/25 transition-all border border-coral-500/30">
+        <Plus className="w-3.5 h-3.5 text-coral-400" />
         Añadir Fabricante
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[400px] bg-white text-slate-900 rounded-3xl p-6 border-slate-200">
+      <DialogContent className="sm:max-w-[400px] bg-ink-950 text-ink-100 rounded-[var(--radius)] p-6 border border-ink-800 shadow-2xl">
         <form onSubmit={handleCreate}>
           <DialogHeader className="space-y-2 mb-4">
-            <DialogTitle className="text-xl font-black">Nuevo Fabricante</DialogTitle>
-            <DialogDescription className="text-xs font-medium text-slate-500">
+            <DialogTitle className="text-xl font-bold font-display text-ink-50">Nuevo Fabricante</DialogTitle>
+            <DialogDescription className="text-xs font-medium text-ink-400">
               Añade una nueva marca o desarrollador (ej. Ableton, Xfer).
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div>
-              <label className="text-[10px] font-bold text-slate-600 uppercase">Nombre</label>
-              <Input name="name" required className="rounded-xl mt-1" placeholder="Ej. Xfer Records" />
+              <label className="text-[10px] font-bold text-ink-300 uppercase">Nombre</label>
+              <Input name="name" required className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100" placeholder="Ej. Xfer Records" />
             </div>
 
             <div>
-              <label className="text-[10px] font-bold text-slate-600 uppercase">Logo URL (Opcional)</label>
-              <Input name="logo_url" className="rounded-xl mt-1" placeholder="https://..." />
+              <label className="text-[10px] font-bold text-ink-300 uppercase">Logo URL (Opcional)</label>
+              <Input name="logo_url" className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100" placeholder="https://..." />
             </div>
 
             <div>
-              <label className="text-[10px] font-bold text-slate-600 uppercase">Descripción (Opcional)</label>
-              <textarea name="description" className="w-full rounded-xl border border-slate-200 text-xs p-3 min-h-[70px] mt-1" />
+              <label className="text-[10px] font-bold text-ink-300 uppercase">Descripción (Opcional)</label>
+              <textarea name="description" className="w-full rounded-xl border border-ink-800 bg-ink-900 text-xs p-3 text-ink-100 min-h-[70px] mt-1 focus:outline-none focus:border-coral-500" />
             </div>
           </div>
 
           <DialogFooter className="mt-6">
-            <Button type="submit" disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl h-11">
+            <Button type="submit" disabled={loading} className="w-full bg-coral-500 hover:bg-coral-600 text-white font-bold rounded-xl h-11">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Crear Fabricante'}
             </Button>
           </DialogFooter>

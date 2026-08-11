@@ -1,16 +1,15 @@
-import { Fraunces, Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
+import { Space_Grotesk, Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
 
 /**
- * Sistema tipográfico "Pearl Studio".
- * - Fraunces: display editorial para titulares, números de stats y momentos hero.
- * - Plus Jakarta Sans: cuerpo/UI (ya era la fuente de la casa).
- * - JetBrains Mono: datos técnicos, códigos y pills de metadata.
+ * Sistema tipográfico "Nautic Audio Tech v3"
+ * - Space Grotesk: fuente display futurista, moderna y de alta legibilidad para titulares, sintes, vst y marcas.
+ * - Plus Jakarta Sans: cuerpo de texto e interfaz limpia, legible y optimizada.
+ * - JetBrains Mono: metadata técnica, versiones, parámetros DSP y código.
  */
-export const fontDisplay = Fraunces({
+export const fontDisplay = Space_Grotesk({
   subsets: ['latin'],
   variable: '--font-display',
   weight: ['400', '500', '600', '700'],
-  style: ['normal', 'italic'],
 })
 
 export const fontSans = Plus_Jakarta_Sans({

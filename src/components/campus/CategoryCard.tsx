@@ -47,8 +47,8 @@ export function CategoryCard({ data }: { data: CategoryCardData }) {
             </span>
           </div>
         ) : (
-          /* Sin cover: franja superior mínima en coral tenue, SIN blobs ni grid */
-          <div className="h-1 w-full bg-gradient-to-r from-coral-500/50 via-coral-500/15 to-transparent" />
+          /* Sin cover: franja superior mínima en gris tenue, SIN blobs ni grid */
+          <div className="h-1 w-full bg-gradient-to-r from-ink-500/30 via-ink-500/10 to-transparent" />
         )}
 
         {/* Body */}

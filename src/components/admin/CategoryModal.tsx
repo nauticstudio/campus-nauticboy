@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { Loader2, Plus, Image as ImageIcon, Edit3 } from 'lucide-react'
+import { Loader2, Plus, Image as ImageIcon, Edit3, Upload } from 'lucide-react'
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader,
   DialogTitle, DialogFooter,
@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { upsertCategoryAction, deleteCategoryAction } from '@/app/actions/categories'
+import { createClient } from '@/lib/supabase/client'
 
 export type CategoryRow = {
   id: string
@@ -27,6 +28,7 @@ const ACCENTS: CategoryRow['accent_color'][] = ['coral', 'violet', 'cyan', 'emer
 
 function isValidHttpUrl(url: string): boolean {
   if (!url) return false
+  if (url.startsWith('data:image/')) return true
   try { const u = new URL(url); return u.protocol === 'https:' || u.protocol === 'http:' }
   catch { return false }
 }
@@ -43,13 +45,59 @@ export function CategoryModal({
   const isEdit = !!category
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState(category?.cover_image_url ?? '')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setError(null)
     setPreviewUrl(category?.cover_image_url ?? '')
   }, [category, open])
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingImage(true)
+    setError(null)
+
+    try {
+      const supabase = createClient()
+      const fileExt = file.name.split('.').pop()
+      const fileName = `category-cover-${Date.now()}.${fileExt}`
+      const filePath = `categories/${fileName}`
+
+      // Intentar subir a Supabase Storage bucket 'campus-assets'
+      const { data, error: uploadError } = await supabase.storage
+        .from('campus-assets')
+        .upload(filePath, file, { upsert: true })
+
+      if (uploadError) {
+        // Fallback a base64 Data URL si el bucket no está configurado aún en Supabase
+        const reader = new FileReader()
+        reader.onload = () => {
+          if (typeof reader.result === 'string') {
+            setPreviewUrl(reader.result)
+          }
+          setUploadingImage(false)
+        }
+        reader.readAsDataURL(file)
+        return
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('campus-assets')
+        .getPublicUrl(filePath)
+
+      setPreviewUrl(publicUrl)
+    } catch (err: any) {
+      console.error('Error al subir imagen:', err)
+      setError('No se pudo subir la imagen. Puedes pegar una URL manualmente.')
+    } finally {
+      setUploadingImage(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -83,8 +131,7 @@ export function CategoryModal({
               {isEdit ? 'Editar categoría' : 'Nueva categoría'}
             </DialogTitle>
             <DialogDescription className="text-xs font-medium text-ink-400">
-              Personaliza icono, portada y color. Acepta URLs de Supabase Storage,
-              Drive público (<code className="bg-ink-800 px-1 rounded text-coral-300">?export=view&id=…</code>) o CDN.
+              Personaliza icono, portada y color. Sube una imagen desde tu equipo o ingresa una URL.
             </DialogDescription>
           </DialogHeader>
 
@@ -99,7 +146,7 @@ export function CategoryModal({
                   placeholder="Ej. Sintetizadores" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-ink-500 uppercase tracking-widest">Slug *</label>
+                <label className="text-[10px] font-bold text-ink-500 uppercase tracking-widest">Identificador (URL) *</label>
                 <Input name="slug" required defaultValue={category?.slug ?? ''}
                   className="rounded-xl mt-1 bg-ink-800/70 border-ink-700 text-ink-50 font-mono text-xs"
                   placeholder="sintetizadores" />
@@ -107,37 +154,74 @@ export function CategoryModal({
             </div>
 
             <div>
-              <label className="text-[10px] font-bold text-ink-500 uppercase tracking-widest">Blurb</label>
+              <label className="text-[10px] font-bold text-ink-500 uppercase tracking-widest flex justify-between">
+                <span>Descripción Breve</span>
+                <span className="text-[9px] text-ink-400">Opcional</span>
+              </label>
               <Input name="blurb" defaultValue={category?.blurb ?? ''}
                 className="rounded-xl mt-1 bg-ink-800/70 border-ink-700 text-ink-50"
-                placeholder="Subtexto descriptivo en la portada" />
+                placeholder="Texto corto que se mostrará en la tarjeta principal" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] font-bold text-ink-500 uppercase tracking-widest">Icono Lucide</label>
+                <label className="text-[10px] font-bold text-ink-500 uppercase tracking-widest flex justify-between">
+                  <span>Icono Predeterminado</span>
+                </label>
                 <Input name="icon" defaultValue={category?.icon ?? 'cpu'}
                   className="rounded-xl mt-1 bg-ink-800/70 border-ink-700 text-ink-50 font-mono text-xs"
                   placeholder="cpu | waves | music4 …" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-ink-500 uppercase tracking-widest">Icono URL (override)</label>
+                <label className="text-[10px] font-bold text-ink-500 uppercase tracking-widest">Icono Personalizado (URL)</label>
                 <Input name="icon_url" type="url" defaultValue={category?.icon_url ?? ''}
                   className="rounded-xl mt-1 bg-ink-800/70 border-ink-700 text-ink-50 font-mono text-[11px]"
                   placeholder="https://cdn.example.com/icon.svg" />
               </div>
             </div>
-            <div>
-              <label className="text-[10px] font-bold text-ink-500 uppercase tracking-widest flex items-center gap-1">
-                <ImageIcon className="w-3 h-3" /> Portada URL
+
+            {/* Portada con Subida de Archivo + URL */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-ink-500 uppercase tracking-widest flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <ImageIcon className="w-3.5 h-3.5 text-coral-400" /> Imagen de Portada (Cover)
+                </span>
+                <span className="text-[9px] text-ink-400 font-medium">URL o archivo local</span>
               </label>
-              <Input
-                name="cover_image_url"
-                type="url"
-                value={previewUrl}
-                onChange={(e) => setPreviewUrl(e.target.value)}
-                className="rounded-xl mt-1 bg-ink-800/70 border-ink-700 text-ink-50 font-mono text-[11px]"
-                placeholder="https://cdn.example.com/portada.jpg" />
+
+              <div className="flex gap-2 items-center">
+                <Input
+                  name="cover_image_url"
+                  type="text"
+                  value={previewUrl}
+                  onChange={(e) => setPreviewUrl(e.target.value)}
+                  className="rounded-xl bg-ink-800/70 border-ink-700 text-ink-50 font-mono text-[11px] flex-1"
+                  placeholder="https://... o sube una imagen" />
+
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+
+                <Button
+                  type="button"
+                  disabled={uploadingImage}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="bg-ink-800 hover:bg-ink-700 border border-ink-700 text-ink-100 text-xs font-semibold px-3 py-2 rounded-xl shrink-0 gap-1.5"
+                >
+                  {uploadingImage ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-coral-400" />
+                  ) : (
+                    <>
+                      <Upload className="w-3.5 h-3.5 text-coral-400" />
+                      <span>Subir</span>
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
 
             {showPreview && (
@@ -153,32 +237,10 @@ export function CategoryModal({
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/25 to-transparent" />
                 <div className="absolute bottom-2 left-3 text-[10px] font-bold text-ink-300 uppercase tracking-widest">
-                  Vista previa
+                  Vista previa de Portada
                 </div>
               </div>
             )}
-
-            <div>
-              <label className="text-[10px] font-bold text-ink-500 uppercase tracking-widest">Color de acento</label>
-              <div className="grid grid-cols-5 gap-2 mt-2">
-                {ACCENTS.map(acc => (
-                  <label key={acc} className="cursor-pointer">
-                    <input type="radio" name="accent_color" value={acc}
-                      defaultChecked={(category?.accent_color ?? 'coral') === acc}
-                      className="peer sr-only" />
-                    <span className={`block h-10 rounded-lg border-2 border-transparent peer-checked:border-cyan-50 peer-checked:shadow-[0_0_14px_rgba(255,138,76,0.55)] transition-all uppercase text-[9px] font-bold tracking-wider grid place-items-center text-ink-950
-                      ${acc === 'coral' ? 'bg-coral-500' : ''}
-                      ${acc === 'violet' ? 'bg-violet-500' : ''}
-                      ${acc === 'cyan' ? 'bg-cyan-400' : ''}
-                      ${acc === 'emerald' ? 'bg-emerald-400' : ''}
-                      ${acc === 'rose' ? 'bg-rose-400' : ''}
-                    `}>
-                      {acc.slice(0,3)}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
 
             {error && (
               <div className="text-xs font-semibold bg-destructive/15 border border-destructive/40 text-red-200 rounded-lg px-3 py-2">
@@ -213,9 +275,6 @@ export function CategoryModal({
     </Dialog>
   )
 }
-
-
-
 
 /** Botón "Nueva categoría" para el header del admin page */
 export function CategoryNewButton() {

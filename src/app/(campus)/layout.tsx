@@ -57,9 +57,6 @@ export default async function CampusLayout({
     ?.map(e => e.courses)
     .filter(Boolean) as unknown as { title: string, slug: string }[] | undefined
 
-  // Import ViewModeSwitcher dynamically if we are an admin
-  const { ViewModeSwitcher } = await import('@/components/layout/ViewModeSwitcher')
-
   // Fetch Category IDs for Plantillas and Presets
   const { data: categories } = await supabase
     .from('categories')
@@ -83,7 +80,8 @@ export default async function CampusLayout({
   ])
 
   const sidebarProps = {
-    isAdmin: showAdminUI,
+    isAdmin: isAdmin,
+    currentViewMode: currentViewMode,
     userName: userName,
     enrolledCourses: enrolledCourses || [],
     hasPlantillas: (plantillasRes.count || 0) > 0,
@@ -96,23 +94,17 @@ export default async function CampusLayout({
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground relative overflow-x-hidden">
 
-      {/* Pearl ambient: glows coral/índigo suaves + grano editorial */}
-      <div className="fixed -top-40 -left-40 w-96 h-96 bg-coral-400/14 rounded-full blur-3xl pointer-events-none z-0 animate-pulse-subtle" />
-      <div className="fixed top-1/3 -right-40 w-[30rem] h-[30rem] bg-ink-300/10 rounded-full blur-3xl pointer-events-none z-0" />
-      <div className="fixed -bottom-40 left-1/3 w-[28rem] h-[28rem] bg-coral-300/10 rounded-full blur-3xl pointer-events-none z-0" />
+      {/* Luz ambiental NAUTIC v3 */}
+      <div className="fixed -top-40 -left-40 w-96 h-96 bg-coral-500/8 rounded-full blur-3xl pointer-events-none z-0 animate-pulse-subtle" />
+      <div className="fixed top-1/3 -right-40 w-[30rem] h-[30rem] bg-ink-800/20 rounded-full blur-3xl pointer-events-none z-0" />
       <div className="grain-overlay fixed inset-0 z-0" />
 
-      {/* Admin View Mode Switcher (Global Floating Toggle) */}
-      {isAdmin && currentViewMode && (
-        <ViewModeSwitcher initialMode={currentViewMode} />
-      )}
-
-      {/* Floating Bottom Nav */}
+      {/* Navegación flotante unificada en la parte inferior */}
       <BottomNav {...sidebarProps} />
 
       <div className="flex flex-col flex-1 min-w-0 z-10 w-full">
         {/* TopBar editorial (desktop) */}
-        <TopBar userName={userName} userEmail={userEmail} isAdmin={showAdminUI} />
+        <TopBar userName={userName} userEmail={userEmail} isAdmin={isAdmin} currentViewMode={currentViewMode} />
 
         {/* Main Content Area */}
         <main className="flex-1 w-full relative pb-28 md:pb-32">

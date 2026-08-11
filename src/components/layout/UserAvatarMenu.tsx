@@ -26,13 +26,16 @@ export function UserAvatarMenu({ userName, userEmail, isAdmin }: UserAvatarMenuP
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Menú de cuenta"
-        className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform hover:scale-105 active:scale-95"
+        className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-coral-500 transition-transform hover:scale-105 active:scale-95"
       >
-        <Avatar className="border-2 border-white shadow-[var(--shadow-card)]">
-          <AvatarFallback className={isAdmin
-            ? 'bg-gradient-to-br from-amber-400 via-orange-400 to-primary text-white font-bold text-sm'
-            : 'bg-gradient-to-tr from-ink-600 to-ink-800 text-white font-bold text-sm'
-          }>
+        <Avatar className="border-2 border-ink-700 shadow-md">
+          <AvatarFallback
+            className={
+              isAdmin
+                ? 'bg-gradient-to-br from-coral-500 via-coral-600 to-amber-600 text-white font-bold text-sm shadow-[0_0_12px_rgba(255,98,19,0.4)]'
+                : 'bg-gradient-to-tr from-ink-700 to-ink-800 text-ink-100 font-bold text-sm'
+            }
+          >
             {initial}
           </AvatarFallback>
         </Avatar>
@@ -41,48 +44,48 @@ export function UserAvatarMenu({ userName, userEmail, isAdmin }: UserAvatarMenuP
       <DropdownMenuContent
         align="end"
         sideOffset={8}
-        className="min-w-56 rounded-2xl border-sand-200 bg-white shadow-[var(--shadow-hero)] p-1.5"
+        className="min-w-60 rounded-2xl border-ink-800/80 bg-ink-950/95 backdrop-blur-2xl text-ink-100 shadow-[0_16px_50px_rgba(0,0,0,0.8)] p-1.5"
       >
         <DropdownMenuLabel className="px-3 py-2.5">
-          <div className="flex items-center gap-2.5">
-            <span className="text-sm font-bold text-ink-900 truncate">{userName}</span>
-            {isAdmin && <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="currentColor" />}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-ink-50 truncate">{userName}</span>
+            {isAdmin && <Crown className="w-3.5 h-3.5 text-coral-400 shrink-0" fill="currentColor" />}
           </div>
           <span className="block text-[11px] font-medium text-ink-400 truncate mt-0.5">{userEmail}</span>
         </DropdownMenuLabel>
 
-        <DropdownMenuSeparator className="bg-sand-200" />
+        <DropdownMenuSeparator className="bg-ink-800/80" />
 
-        <DropdownMenuItem className="rounded-xl cursor-pointer">
+        <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white">
           <Link href="/settings/profile" className="flex items-center gap-2.5 w-full px-1 py-1">
-            <User className="w-4 h-4 text-ink-400" />
-            <span className="text-sm font-semibold text-ink-800">Mi perfil</span>
+            <User className="w-4 h-4 text-coral-400" />
+            <span className="text-sm font-semibold text-ink-200 hover:text-white">Mi perfil</span>
           </Link>
         </DropdownMenuItem>
 
         {isAdmin && (
-          <DropdownMenuItem className="rounded-xl cursor-pointer">
+          <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white">
             <Link href="/admin/users" className="flex items-center gap-2.5 w-full px-1 py-1">
-              <UserCog className="w-4 h-4 text-ink-400" />
-              <span className="text-sm font-semibold text-ink-800">Gestionar usuarios</span>
+              <UserCog className="w-4 h-4 text-coral-400" />
+              <span className="text-sm font-semibold text-ink-200 hover:text-white">Gestionar usuarios</span>
             </Link>
           </DropdownMenuItem>
         )}
 
-        <DropdownMenuItem className="rounded-xl cursor-pointer">
+        <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white">
           <Link href="/settings" className="flex items-center gap-2.5 w-full px-1 py-1">
-            <Settings className="w-4 h-4 text-ink-400" />
-            <span className="text-sm font-semibold text-ink-800">Configuración</span>
+            <Settings className="w-4 h-4 text-coral-400" />
+            <span className="text-sm font-semibold text-ink-200 hover:text-white">Configuración</span>
           </Link>
         </DropdownMenuItem>
 
-        <DropdownMenuSeparator className="bg-sand-200" />
+        <DropdownMenuSeparator className="bg-ink-800/80" />
 
-        <DropdownMenuItem className="rounded-xl cursor-pointer p-0 focus:bg-rose-50">
+        <DropdownMenuItem className="rounded-xl cursor-pointer p-0 hover:bg-rose-950/40 focus:bg-rose-950/40">
           <form action={logout} className="w-full">
-            <button type="submit" className="flex w-full items-center gap-2.5 px-1 py-1 rounded-xl text-left">
-              <LogOut className="w-4 h-4 text-rose-500" />
-              <span className="text-sm font-semibold text-rose-600">Cerrar sesión</span>
+            <button type="submit" className="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-left">
+              <LogOut className="w-4 h-4 text-rose-400" />
+              <span className="text-sm font-semibold text-rose-400">Cerrar sesión</span>
             </button>
           </form>
         </DropdownMenuItem>

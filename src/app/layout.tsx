@@ -18,7 +18,7 @@ export default function RootLayout({
       lang="es"
       className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans bg-sand-50 text-foreground selection:bg-coral-500/20 selection:text-coral-900">
+      <body className="min-h-full flex flex-col font-sans bg-background text-foreground selection:bg-coral-500/20 selection:text-coral-100">
         {children}
         <Toaster richColors position="top-right" />
       </body>

@@ -13,6 +13,7 @@ import {
   Package
 } from 'lucide-react'
 import { AdminQuickToolbar } from '@/components/admin/AdminQuickToolbar'
+import { CategoryEditButton } from '@/components/admin/CategoryModal'
 import { setResourcePublishedAction } from '@/app/actions/resources'
 
 export interface ResourceItem {
@@ -39,6 +40,8 @@ export function CategoryResourcesClient({
   /** Catálogo de software embebido (solo categoría Plugins). */
   softwareSlot?: React.ReactNode
   categoryMeta?: {
+    id: string
+    slug: string
     name: string
     icon: string | null
     icon_url: string | null
@@ -103,7 +106,7 @@ export function CategoryResourcesClient({
               <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/55 to-ink-950/25" />
             </>
           ) : (
-            <div className="absolute top-0 right-0 -mr-24 -mt-24 w-72 h-72 bg-coral-500/10 blur-[80px] rounded-full pointer-events-none" />
+            <div className="absolute top-0 right-0 -mr-24 -mt-24 w-72 h-72 bg-ink-500/10 blur-[80px] rounded-full pointer-events-none" />
           )}
 
           <div className="relative z-10 p-7 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -111,9 +114,16 @@ export function CategoryResourcesClient({
               <span className="text-[11px] font-bold text-coral-300 uppercase tracking-widest flex items-center gap-1.5">
                 <Layers className="w-3.5 h-3.5" /> {softwareSlot ? 'Colección Principal' : 'Colección de Recursos'}
               </span>
-              <h1 className="font-display text-3xl md:text-4xl font-semibold text-ink-50 tracking-quant capitalize">
-                {categoryMeta.name}
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="font-display text-3xl md:text-4xl font-semibold text-ink-50 tracking-quant capitalize">
+                  {categoryMeta.name}
+                </h1>
+                {isAdmin && (
+                  <div className="bg-ink-950/50 backdrop-blur rounded-xl border border-ink-800/50">
+                    <CategoryEditButton category={categoryMeta} />
+                  </div>
+                )}
+              </div>
               {softwareSlot && (
                 <p className="text-sm text-ink-300 max-w-2xl mb-2">
                   Explora el catálogo completo de sintetizadores, efectos y plugins organizados por fabricante y producto.

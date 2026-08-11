@@ -67,6 +67,8 @@ export default async function CategoryResourcesPage({
       isAdmin={isAdmin}
       softwareSlot={softwareSlot}
       categoryMeta={category ? {
+        id: category.id,
+        slug: slug,
         name: category.name,
         icon: category.icon,
         icon_url: category.icon_url,
