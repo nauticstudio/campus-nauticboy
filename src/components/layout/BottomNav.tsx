@@ -53,7 +53,7 @@ export function BottomNav({
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:bottom-8 md:left-1/2 md:-translate-x-1/2 md:w-auto md:right-auto z-50 flex items-center justify-center">
+    <div className="lg:hidden fixed bottom-4 left-4 right-4 z-50 flex items-center justify-center">
       <div className="bg-white/85 backdrop-blur-2xl border border-sand-200 shadow-[0_20px_60px_-15px_rgba(11,28,41,0.18)] rounded-3xl p-1.5 flex items-center gap-1 md:gap-2">
         <NavItem href="/dashboard" icon={Home} label="Inicio" />
         <NavItem 
@@ -61,7 +61,7 @@ export function BottomNav({
           label="Buscar" 
           onClick={() => document.dispatchEvent(new CustomEvent('open-command-menu'))} 
         />
-        <NavItem href="/software" icon={Package} label="Software" />
+        <NavItem href="/academy/plugins" icon={Package} label="Plugins" />
         <NavItem href="/favorites" icon={Heart} label="Favoritos" />
         
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
@@ -114,7 +114,7 @@ export function BottomNav({
                         <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
                           <Library className="w-5 h-5 text-slate-400 group-hover:text-emerald-500" />
                         </div>
-                        <span className="font-bold text-slate-700 text-sm">Plantillas</span>
+                        <span className="font-bold text-slate-700 text-sm">Templates</span>
                       </Link>
                     )}
                     {hasPresets && (

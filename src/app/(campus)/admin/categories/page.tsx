@@ -38,7 +38,7 @@ export default async function AdminCategoriesPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {categories.map(cat => (
             <div key={cat.id} className="glass-card glass-card-hover rounded-[var(--radius)] overflow-hidden flex flex-col">
-              <div className="relative h-24 bg-ink-900/60 border-b border-ink-700/40 tech-grid flex items-center justify-center">
+              <div className="relative h-24 bg-ink-900/60 border-b border-ink-700/40 flex items-center justify-center">
                 {cat.cover_image_url ? (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -3,8 +3,8 @@
 @import "shadcn/tailwind.css";
 
 /* ============================================================
-   NAUTIC CAMPUS · Design System "Pearl Studio"
-   Tema claro, editorial y cálido: marfil + coral Nautic + tinta azul-noche.
+   NAUTIC CAMPUS · Design System "NAUTIC v3"
+   Tema oscuro, futurista controlado: ink azul-noche + coral firma única.
    ============================================================ */
 
 @theme inline {
@@ -26,11 +26,16 @@
   --color-destructive: var(--destructive);
   --color-ring: var(--ring);
 
+  /* Superficies NAUTIC v3 — capas sólidas, NO glassmorphism masivo */
+  --color-bg-surface: var(--surface);
+  --color-bg-elevated: var(--surface-elevated);
+  --color-bg-input: var(--surface-input);
+
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-display: var(--font-display);
 
-  /* Marca Nautic — coral #ff6213 */
+  /* Marca Nautic — coral #ff6213 (firma única) */
   --color-coral-50:  #fff7ed;
   --color-coral-100: #ffedd5;
   --color-coral-200: #fed7aa;
@@ -43,14 +48,14 @@
   --color-coral-900: #7c2d12;
   --color-coral-950: #431407;
 
-  /* Arena — fondos y bordes cálidos */
+  /* Arena — LEGACY: solo pantallas auth no migradas. NO usar en v3. */
   --color-sand-50:  #fdfbf7;
   --color-sand-100: #faf6ef;
   --color-sand-200: #f1e9dc;
   --color-sand-300: #e6dbc8;
   --color-sand-400: #d3c4a8;
 
-  /* Tinta azul-noche — texto y fondos oscuros puntuales */
+  /* Tinta azul-noche — texto y fondos oscuros */
   --color-ink-50:  #f3f6f8;
   --color-ink-100: #e1e8ee;
   --color-ink-200: #c2d0dc;
@@ -63,7 +68,7 @@
   --color-ink-900: #0b1c29;
   --color-ink-950: #050b14;
 
-  /* Compat hacia atrás: el tailwind "cyan-*" histórico ahora apunta a la marca */
+  /* Compat hacia atrás: el tailwind "cyan-*" histórico apunta a la marca */
   --color-cyan-50: #fff7ed;
   --color-cyan-100: #ffedd5;
   --color-cyan-200: #ffedd5;
@@ -78,32 +83,47 @@
 }
 
 :root {
-  /* Dark Futuristic Pearl — fondo azul-noche profundo, hairline, acentos coral */
-  --background: #050b14;
-  --foreground: #f3f6f8;
-  --card: rgba(11, 28, 41, 0.72);
-  --card-foreground: #f3f6f8;
+  /* ============================================================
+     NAUTIC v3 — Premium Futuristic Audio Technology
+     Apple/Linear en usabilidad + Ableton/NI en lenguaje + futurismo controlado.
+     Una sola firma de acento: coral #ff6213.
+     ============================================================ */
+  --background: #050b14;           /* ink-950 — base oscuro */
+  --foreground: #e8edf5;           /* text-primary */
+  --surface: #0a1320;              /* capa 1 — cards */
+  --surface-elevated: #101b2e;     /* capa 2 — elevadas */
+  --surface-input: #162237;        /* capa 3 — inputs */
+
+  --card: #0a1320;
+  --card-foreground: #e8edf5;
   --popover: #0b1c29;
-  --popover-foreground: #f3f6f8;
+  --popover-foreground: #e8edf5;
   --primary: #ff6213;
   --primary-foreground: #ffffff;
   --secondary: #0b1c29;
   --secondary-foreground: #fdba74;
   --muted: #132a3c;
-  --muted-foreground: #94aabb;
+  --muted-foreground: #8a93a8;      /* text-secondary */
   --accent: #1d3b50;
   --accent-foreground: #ffd9b3;
   --destructive: #f87171;
-  --border: rgba(235, 240, 250, 0.08);
-  --input: rgba(99, 132, 160, 0.25);
-  --ring: #ff6213;
-  --radius: 1.125rem;
 
-  /* Sombras dark: glow coral sutil en hover, línea interna hairline */
-  --shadow-card: inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 24px -12px rgba(0,0,0,0.6);
-  --shadow-card-hover: inset 0 1px 0 rgba(255,255,255,0.06),
-                       0 20px 48px -16px rgba(255, 98, 19, 0.30),
-                       0 0 0 1px rgba(255, 98, 19, 0.14);
+  /* Hairlines — bordes finos, la profundidad viene de LUZ no de sombras pesadas */
+  --border: rgba(235, 240, 250, 0.07);
+  --border-hover: rgba(235, 240, 250, 0.14);
+  --border-focus: #ff6213;
+  --input: rgba(99, 132, 160, 0.22);
+  --ring: #ff6213;
+
+  --radius: 0.875rem;              /* radios moderados (era 1.125rem) */
+
+  /* Sistema de elevación por LUZ, NO por glow ni blur masivo.
+     --shadow-card(-hover) son alias internos de lift/pop para componentes
+     que aún referencian el naming antiguo. */
+  --shadow-lift: 0 2px 12px rgba(3, 7, 18, 0.65);
+  --shadow-pop:  0 8px 28px rgba(3, 7, 18, 0.75), 0 2px 8px rgba(3, 7, 18, 0.5);
+  --shadow-card: var(--shadow-lift);
+  --shadow-card-hover: var(--shadow-pop);
   --shadow-hero: 0 24px 80px -24px rgba(0, 0, 0, 0.8),
                  0 0 80px rgba(255, 98, 19, 0.08);
   --shadow-admin: 0 1px 2px rgba(0,0,0,0.4), 0 4px 24px -12px rgba(0,0,0,0.5);
@@ -128,107 +148,69 @@
 
 /* ----------------------------------------------------------
    Animaciones & micro-interacciones
+   v3: movimiento opcional y SOBIO. Las animaciones "lúdicas"
+   (float / wave / wiggle) quedan eliminadas: no son NAUTIC.
    ---------------------------------------------------------- */
-@keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-6px) rotate(1deg); }
-}
-
 @keyframes pulse-subtle {
   0%, 100% { opacity: 0.8; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.03); }
 }
 
-@keyframes wave {
-  0% { transform: rotate(0.0deg) }
-  10% { transform: rotate(14.0deg) }
-  20% { transform: rotate(-8.0deg) }
-  30% { transform: rotate(14.0deg) }
-  40% { transform: rotate(-4.0deg) }
-  50% { transform: rotate(10.0deg) }
-  60% { transform: rotate(0.0deg) }
-  100% { transform: rotate(0.0deg) }
-}
-
-@keyframes wiggle {
-  0%, 100% { transform: rotate(-3deg); }
-  50% { transform: rotate(3deg); }
-}
-
-.animate-float { animation: float 4s ease-in-out infinite; }
 .animate-pulse-subtle { animation: pulse-subtle 3s ease-in-out infinite; }
-.animate-wave { animation: wave 2s infinite; transform-origin: 70% 70%; }
-.animate-wiggle { animation: wiggle 1s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-float, .animate-pulse-subtle, .animate-wave, .animate-wiggle {
+  .animate-pulse-subtle {
     animation: none;
     transform: none;
   }
 }
 
 /* ----------------------------------------------------------
-   Superficies Futuristic Pearl — glass oscuro + glow coral
+   Superficies NAUTIC v3 — sólidas, hairline, luz (NO glass masivo)
+   El glassmorphism queda reservado a: overlays, command palette,
+   modales, navegación flotante y hero. NUNCA en cada card.
    ---------------------------------------------------------- */
+
+/* `.glass-card` queda como ALIAS funcional (sin blur agresivo) para las
+   pantallas que aún lo usan; se migrarán a `nautic-card`. */
 .glass-card {
-  background: var(--color-card);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-card);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lift);
 }
 
 .glass-card-hover {
-  transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
-              box-shadow 0.34s cubic-bezier(0.22, 1, 0.36, 1),
-              border-color 0.34s;
-  will-change: transform;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .glass-card-hover:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255, 138, 76, 0.35);
-  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-pop);
 }
 
-/* Grid tipo blueprint tenue que pinta el fondo */
-.tech-grid {
-  background-image:
-    linear-gradient(rgba(255, 138, 76, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 138, 76, 0.035) 1px, transparent 1px);
-  background-size: 48px 48px;
-}
-
-/* Gradiente radial coral→void para headers y overlays */
-.hero-glow {
+/* Ambient glow — iluminación suave y controlada para el HERO del Home.
+   Movimiento ambiental sin neones. Opacidad deliberadamente baja (≤0.08). */
+.ambient-glow {
   background:
-    radial-gradient(1100px 500px at 20% -10%, rgba(255, 98, 19, 0.18), transparent 55%),
-    radial-gradient(700px 400px at 90% 110%, rgba(124, 58, 237, 0.10), transparent 60%),
-    linear-gradient(180deg, rgba(11, 28, 41, 0) 0%, rgba(5, 11, 20, 0.6) 100%);
+    radial-gradient(900px 480px at 18% -8%, rgba(255, 98, 19, 0.08), transparent 55%),
+    radial-gradient(760px 460px at 88% 108%, rgba(255, 98, 19, 0.05), transparent 58%),
+    radial-gradient(620px 420px at 55% 120%, rgba(64, 132, 200, 0.045), transparent 60%);
+}
+/* Alias legacy para pantallas que aún usan `hero-glow` (se migran a ambient-glow). */
+.hero-glow { background:
+    radial-gradient(900px 480px at 18% -8%, rgba(255, 98, 19, 0.08), transparent 55%),
+    radial-gradient(760px 460px at 88% 108%, rgba(255, 98, 19, 0.05), transparent 58%);
 }
 
-/* Hairline con glow — para divisores / chips de estado */
-.hairline-glow {
-  border-color: rgba(255, 98, 19, 0.25);
-  box-shadow: 0 0 16px -4px rgba(255, 98, 19, 0.45), inset 0 0 4px rgba(255, 138, 76, 0.06);
-}
-
-/* Shimmer sutil para separadores / indicadores de carga */
+/* Shimmer sutil — único adorno animado permitido, solo en el HERO del Home. */
 @keyframes shimmer-line {
-  0%, 100% { opacity: 0.15 }
-  50%      { opacity: 0.38 }
+  0%, 100% { opacity: 0.10 }
+  50%      { opacity: 0.30 }
 }
-.animate-shimmer-line { animation: shimmer-line 3.2s ease-in-out infinite; }
+.animate-shimmer-line { animation: shimmer-line 6s ease-in-out infinite; }
 
-/* Text glow sutil para títulos display destacados */
-.text-glow {
-  text-shadow: 0 0 24px rgba(255, 138, 76, 0.55), 0 0 6px rgba(255, 138, 76, 0.35);
-}
-
-/* Firma visual: curvas de ola suaves entre secciones (SVG inline). */
-.wave-divider { display: block; width: 100%; height: 88px; margin-bottom: -1px; }
-
-/* Grano editorial sutil sobre el marfil. */
+/* Grano cinematográfico sutil — textura sobre el fondo base oscuro. */
 .grain-overlay {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.38'/%3E%3C/svg%3E");
   opacity: 0.05;
@@ -242,6 +224,28 @@
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(148,170,187,0.28); border-radius: 9999px; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(148,170,187,0.45); }
 
-/* Utilidades tipográficas display */
+/* Utilidades tipográficas display.
+   Tracking único del sistema: -0.03em (sin variantes adicionales). */
 .font-display { font-family: var(--font-display); }
-.tracking-editorial { letter-spacing: -0.03em; }
+.tracking-editorial { letter-spacing: -0.03em; } /* legacy: migrar a tracking-quant */
+.tracking-quant { letter-spacing: -0.03em; }
+
+/* ----------------------------------------------------------
+   NAUTIC v3 — las transiciones son RÁPIDAS, el movimiento es opcional
+   ---------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer-line, .ambient-glow {
+    animation: none !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

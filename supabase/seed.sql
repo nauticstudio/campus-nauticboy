@@ -342,12 +342,13 @@ CREATE POLICY "Admin full access announcements" ON announcements FOR ALL USING (
 -- SEED DATA
 -- =============================================
 INSERT INTO categories (name, slug, description, icon, sort_order) VALUES
-('Plantillas', 'plantillas', 'Templates y proyectos completos', 'layout-template', 1),
+('Templates', 'plantillas', 'Templates y proyectos completos', 'layout-template', 1),
 ('Presets', 'presets', 'Presets para sintes y efectos', 'sliders', 2),
 ('Samples', 'samples', 'Librerías de percusión y fx', 'drum', 3),
 ('Plugins', 'plugins', 'Instrumentos virtuales y efectos', 'plug', 4),
 ('PDFs', 'pdfs', 'Guías teóricas y manuales', 'file-text', 5),
 ('Videos', 'videos', 'Tutoriales cortos y tips', 'video', 6),
 ('Cheatsheets', 'cheatsheets', 'Hojas de referencia rápida', 'brain-circuit', 7),
-('Desafíos', 'desafios', 'Retos de producción', 'target', 8)
+('Desafíos', 'desafios', 'Retos de producción', 'target', 8),
+('DAWs', 'daws', 'Estaciones de trabajo de audio digital', 'audio-lines', 9)
 ON CONFLICT (slug) DO NOTHING;

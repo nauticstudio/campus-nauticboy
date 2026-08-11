@@ -54,12 +54,12 @@ export function TopBar({ userName, userEmail, isAdmin }: TopBarProps) {
         </span>
       </Link>
 
-      {/* Breadcrumb */}
+      {/* Campus nav (desktop) */}
       {crumbs.length > 0 && (
-        <nav aria-label="Migas de pan" className="hidden xl:flex items-center gap-1 text-xs font-semibold text-ink-400 ml-2">
+        <nav aria-label="Navegación del campus" className="hidden xl:flex items-center gap-0.5 text-xs font-semibold ml-2">
           <Link href="/dashboard" className="hover:text-ink-700 transition-colors">Inicio</Link>
           {crumbs.filter(c => c.href !== '/dashboard').map((c, i, arr) => (
-            <span key={c.href + i} className="flex items-center gap-1">
+            <span key={c.href + i} className="flex items-center gap-0.5">
               <ChevronRight className="w-3 h-3 text-sand-400" />
               <Link
                 href={c.href}
@@ -71,6 +71,13 @@ export function TopBar({ userName, userEmail, isAdmin }: TopBarProps) {
           ))}
         </nav>
       )}
+
+      {/* Main nav (desktop only) */}
+      <nav aria-label="Principal" className="hidden lg:flex items-center gap-1">
+        <Link href="/dashboard" className="rounded-full px-3.5 py-1.5 text-xs font-semibold text-ink-500 transition-colors hover:bg-white hover:text-ink-800">Inicio</Link>
+        <Link href="/academy" className="rounded-full px-3.5 py-1.5 text-xs font-semibold text-ink-500 transition-colors hover:bg-white hover:text-ink-800">Academia</Link>
+        <Link href="/favorites" className="rounded-full px-3.5 py-1.5 text-xs font-semibold text-ink-500 transition-colors hover:bg-white hover:text-ink-800">Favoritos</Link>
+      </nav>
 
       <div className="flex-1" />
 

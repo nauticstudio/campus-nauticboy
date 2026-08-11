@@ -1,11 +1,31 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { login } from '@/lib/actions/auth'
 import { Music2, Mail, Loader2, ArrowRight, Waves, Sparkles } from 'lucide-react'
 
+/** El callback de auth redirige aquí con ?error=codigo cuando el enlace falla. */
+function authErrorMessage(code: string | null): string | null {
+  if (!code) return null
+  if (code === 'link-invalid') {
+    return 'El enlace de acceso no es válido o ya fue usado. Solicita uno nuevo.'
+  }
+  return 'No se pudo completar el acceso. Intenta nuevamente.'
+}
+
 export default function LoginPage() {
-  const [error, setError] = useState<string | null>(null)
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
+  const searchParams = useSearchParams()
+  const callbackError = authErrorMessage(searchParams.get('error'))
+  const [error, setError] = useState<string | null>(callbackError)
   const [success, setSuccess] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 

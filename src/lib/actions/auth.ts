@@ -30,6 +30,16 @@ export async function login(formData: FormData) {
   })
 
   if (error) {
+    console.error('[login] Error de Supabase:', error)
+
+    const code = (error as { code?: string }).code
+    if (code === 'over_email_send_rate_limit' || error.status === 429) {
+      return { error: 'Has solicitado demasiados enlaces. Espera unos minutos e inténtalo de nuevo.' }
+    }
+    // Con shouldCreateUser:false, Supabase rechaza correos que no existen en Auth.
+    if (code === 'user_not_found' || /signups not allowed|user not found/i.test(error.message)) {
+      return { error: 'Este correo no está registrado en el campus. Contacta con Nautic Boy Academy para recibir tu invitación.' }
+    }
     return { error: 'Ocurrió un error al enviar el enlace mágico. Intenta nuevamente.' }
   }
 

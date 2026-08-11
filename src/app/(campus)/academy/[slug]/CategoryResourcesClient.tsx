@@ -30,11 +30,14 @@ export function CategoryResourcesClient({
   slug,
   initialResources,
   isAdmin,
+  softwareSlot,
   categoryMeta,
 }: {
   slug: string
   initialResources: ResourceItem[]
   isAdmin: boolean
+  /** Catálogo de software embebido (solo categoría Plugins). */
+  softwareSlot?: React.ReactNode
   categoryMeta?: {
     name: string
     icon: string | null
@@ -77,7 +80,7 @@ export function CategoryResourcesClient({
       
       {/* Back Button */}
       <div>
-        <Link 
+        <Link
           href="/academy"
           className="inline-flex items-center gap-2 text-xs font-bold text-ink-500 hover:text-primary transition-colors group"
         >
@@ -100,20 +103,22 @@ export function CategoryResourcesClient({
               <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/55 to-ink-950/25" />
             </>
           ) : (
-            <>
-              <div className="absolute top-0 right-0 -mr-24 -mt-24 w-72 h-72 bg-coral-500/25 blur-[80px] rounded-full pointer-events-none" />
-              <div className="absolute inset-0 tech-grid opacity-40" />
-            </>
+            <div className="absolute top-0 right-0 -mr-24 -mt-24 w-72 h-72 bg-coral-500/10 blur-[80px] rounded-full pointer-events-none" />
           )}
 
           <div className="relative z-10 p-7 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div className="space-y-2">
               <span className="text-[11px] font-bold text-coral-300 uppercase tracking-widest flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5" /> Colección de Recursos
+                <Layers className="w-3.5 h-3.5" /> {softwareSlot ? 'Colección Principal' : 'Colección de Recursos'}
               </span>
-              <h1 className="font-display text-3xl md:text-4xl font-semibold text-ink-50 tracking-editorial capitalize text-glow">
+              <h1 className="font-display text-3xl md:text-4xl font-semibold text-ink-50 tracking-quant capitalize">
                 {categoryMeta.name}
               </h1>
+              {softwareSlot && (
+                <p className="text-sm text-ink-300 max-w-2xl mb-2">
+                  Explora el catálogo completo de sintetizadores, efectos y plugins organizados por fabricante y producto.
+                </p>
+              )}
               {categoryMeta.blurb && (
                 <p className="text-sm text-ink-300 max-w-xl">{categoryMeta.blurb}</p>
               )}
@@ -137,7 +142,7 @@ export function CategoryResourcesClient({
             <span className="text-xs font-bold text-primary uppercase tracking-widest flex items-center gap-1.5 mb-1">
               <Layers className="w-3.5 h-3.5" /> Colección de Recursos
             </span>
-            <h1 className="font-display text-3xl md:text-4xl font-semibold text-ink-50 tracking-editorial capitalize">
+            <h1 className="font-display text-3xl md:text-4xl font-semibold text-ink-50 tracking-quant capitalize">
               Recursos En {slug}
             </h1>
           </div>
@@ -154,15 +159,20 @@ export function CategoryResourcesClient({
         </div>
       )}
 
+      {softwareSlot && (
+        <section aria-label="Catálogo de plugins">{softwareSlot}</section>
+      )}
+
       {isAdmin && (
-        <AdminQuickToolbar 
-          isEditMode={isEditMode} 
-          onToggleEditMode={() => setIsEditMode(!isEditMode)} 
+        <AdminQuickToolbar
+          isEditMode={isEditMode}
+          onToggleEditMode={() => setIsEditMode(!isEditMode)}
         />
       )}
 
       {/* Resource Cards */}
       {filteredResources.length === 0 ? (
+        !softwareSlot && (
         <div className="glass-card rounded-[var(--radius)] p-12 text-center space-y-4">
           <div className="w-12 h-12 rounded-2xl bg-coral-500/15 text-primary flex items-center justify-center mx-auto">
             <Package className="w-6 h-6" />
@@ -172,6 +182,7 @@ export function CategoryResourcesClient({
             Aún no has agregado recursos en la categoría <span className="font-bold text-primary capitalize">{slug}</span> de la base de datos.
           </p>
         </div>
+        )
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredResources.map(res => (
@@ -190,8 +201,8 @@ export function CategoryResourcesClient({
                         onClick={() => toggleResourceVisibility(res.id, res.is_published)}
                         className={`p-2 rounded-xl border transition-all duration-200 ${
                           res.is_published 
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-600 shadow-2xs hover:bg-emerald-100' 
-                            : 'bg-rose-50 border-rose-200 text-rose-500 shadow-2xs hover:bg-rose-100'
+                            ? 'bg-coral-500/10 border-coral-500/30 text-coral-300 hover:bg-coral-500/20' 
+                            : 'bg-[var(--surface-elevated)] border-[var(--border)] text-ink-400 hover:text-ink-200'
                         }`}
                         title={res.is_published ? "Ocultar recurso" : "Publicar recurso"}
                       >

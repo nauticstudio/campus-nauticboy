@@ -3,12 +3,17 @@ import { requireUser } from '@/server/auth/guards'
 import { CategoryResourcesClient } from './CategoryResourcesClient'
 import type { ResourceItem } from './CategoryResourcesClient'
 
-export default async function CategoryResourcesPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
+export const dynamic = 'force-dynamic'
+
+export default async function CategoryResourcesPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>
+  searchParams?: Promise<{ manufacturer?: string }>
 }) {
   const { slug } = await params
+  const selectedManufacturer = (await searchParams)?.manufacturer
 
   // Punto único de control: toda página del campus exige sesión.
   // El rol se obtiene del guard (misma llamada que el layout gracias a React.cache).
@@ -35,11 +40,32 @@ export default async function CategoryResourcesPage({
     resources = (data ?? []) as ResourceItem[]
   }
 
+  const isPlugins = slug === 'plugins'
+
+  // La categoría Plugins embebe el catálogo completo del hub de software
+  // (fabricantes + productos con sus modales inline de creación en modo admin).
+  let softwareSlot: React.ReactNode
+  if (isPlugins) {
+    const { getSoftwareHubData } = await import('@/lib/data/software')
+    const { SoftwareCatalog } = await import('@/components/software/SoftwareCatalog')
+    const hub = await getSoftwareHubData()
+    softwareSlot = (
+      <SoftwareCatalog
+        featuredProducts={hub.featuredProducts}
+        allProducts={hub.allProducts}
+        manufacturers={hub.manufacturers}
+        selectedManufacturer={selectedManufacturer}
+        showAdminUI={isAdmin}
+      />
+    )
+  }
+
   return (
     <CategoryResourcesClient
       slug={slug}
       initialResources={resources}
       isAdmin={isAdmin}
+      softwareSlot={softwareSlot}
       categoryMeta={category ? {
         name: category.name,
         icon: category.icon,

@@ -47,11 +47,11 @@ export default async function SoftwareProductPage({
     <div className="p-6 md:p-10 lg:p-12 max-w-7xl mx-auto space-y-10">
       
       {/* Navigation Breadcrumb */}
-      <Link 
-        href="/software" 
+      <Link
+        href="/academy/plugins"
         className="inline-flex items-center gap-2 text-xs font-bold text-ink-500 hover:text-primary transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" /> Volver a Software
+        <ArrowLeft className="w-4 h-4" /> Volver a Plugins
       </Link>
 
       {/* Product Hero Banner */}
@@ -273,7 +273,7 @@ export default async function SoftwareProductPage({
             {grouped.expansions.map((exp) => (
               <div 
                 key={exp.id}
-                className="relative glass-card rounded-[var(--radius)] p-5 flex flex-col justify-between hover:border-coral-400/60 hover:shadow-soft-lg transition-all duration-300 group"
+                className="relative glass-card rounded-[var(--radius)] p-5 flex flex-col justify-between hover:border-[var(--border-hover)] hover:shadow-[var(--shadow-pop)] transition-all duration-200 group"
               >
                 {showAdminUI && <InlineEditSoftwareItemModal item={exp} />}
                 <div className="space-y-4">

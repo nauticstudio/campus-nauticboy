@@ -12,14 +12,30 @@ export default async function AcademyPage() {
     .select('id, name, slug, description, icon, icon_url, cover_image_url, accent_color, blurb')
     .order('sort_order', { ascending: true })
 
-  const { data: dbResources } = await supabase
-    .from('resources')
-    .select('category_id')
-    .eq('is_published', true)
+  const [dbResourcesResult, softwareCountsResult] = await Promise.all([
+    supabase.from('resources').select('category_id').eq('is_published', true),
+    supabase
+      .from('software_products')
+      .select('software_categories!inner(category_id)')
+      .eq('is_published', true),
+  ])
+  const dbResources = dbResourcesResult.data
+  const softwareCounts = softwareCountsResult.data
 
   const counts: Record<string, number> = {}
   dbResources?.forEach((r: { category_id: string | null }) => {
     if (r.category_id) counts[r.category_id] = (counts[r.category_id] || 0) + 1
+  })
+
+  const pluginsCategoryId = dbCategories?.find((c: any) => c.slug === 'plugins')?.id
+  softwareCounts?.forEach((row: any) => {
+    const rel = row.software_categories
+    const sc = Array.isArray(rel) ? rel[0]?.category_id : undefined
+    if (sc) {
+      counts[sc] = (counts[sc] || 0) + 1
+    } else if (pluginsCategoryId) {
+      counts[pluginsCategoryId] = (counts[pluginsCategoryId] || 0) + 1
+    }
   })
 
   const categories: CategoryCardData[] = (dbCategories || []).map((cat: any) => ({
@@ -37,12 +53,11 @@ export default async function AcademyPage() {
     <div className="p-6 md:p-10 lg:p-12 space-y-10 max-w-6xl mx-auto">
 
       <Reveal>
-        <div className="relative overflow-hidden rounded-[var(--radius)] bg-ink-950 border border-ink-700/40 shadow-[var(--shadow-hero)] p-8 md:p-14 hero-glow tech-grid">
-          <div className="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 bg-coral-500/20 rounded-full blur-[100px] pointer-events-none" />
-          <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-violet-500/15 rounded-full blur-[100px] pointer-events-none" />
+        <div className="relative overflow-hidden rounded-[var(--radius)] bg-ink-950 border border-[var(--border)] shadow-[var(--shadow-hero)] p-8 md:p-14 ambient-glow">
+          <div className="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 bg-coral-500/10 rounded-full blur-[100px] pointer-events-none" />
 
           <div className="relative z-10 space-y-5 max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-coral-500/10 border border-coral-500/30 px-3.5 py-1.5 text-xs font-bold text-coral-300 hairline-glow">
+            <div className="inline-flex items-center gap-2 rounded-full bg-coral-500/10 border border-coral-500/30 px-3.5 py-1.5 text-xs font-bold text-coral-300">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Biblioteca de Recursos</span>
             </div>
