@@ -1,7 +1,7 @@
 import { getProductEcosystem } from '@/lib/data/software'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Download, ShieldCheck, Cpu, HardDrive, Layers, CheckCircle2, FolderArchive } from 'lucide-react'
+import { ArrowLeft, Download, ShieldCheck, Cpu, HardDrive, Layers, CheckCircle2, FolderArchive, Apple, AppWindow } from 'lucide-react'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getAdminViewMode } from '@/app/actions/view-mode'
 import { InlineEditSoftwareModal } from '@/components/admin/InlineEditSoftwareModal'
@@ -118,9 +118,12 @@ export default async function SoftwareProductPage({
                     href={`/api/download?id=${win.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-coral-500 text-white font-bold text-xs uppercase tracking-wider hover:bg-coral-600 transition-all shadow-[0_4px_20px_rgba(255,98,19,0.4)] active:scale-95"
+                    className="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-coral-500 text-white font-bold text-xs uppercase tracking-wider hover:bg-coral-600 transition-all shadow-[0_4px_20px_rgba(255,98,19,0.4)] active:scale-95"
+                    title={`Descargar Windows (${win.file_size || 'ZIP'})`}
                   >
-                    <Download className="w-4 h-4" /> Descargar Windows ({win.file_size || 'ZIP'})
+                    <Download className="w-4 h-4 shrink-0" />
+                    <AppWindow className="w-4 h-4 shrink-0 text-coral-200" />
+                    <span>({win.file_size || 'ZIP'})</span>
                   </a>
                   {showAdminUI && <InlineEditSoftwareItemModal item={win} />}
                 </div>
@@ -132,9 +135,12 @@ export default async function SoftwareProductPage({
                     href={`/api/download?id=${mac.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-ink-800/80 text-ink-100 font-bold text-xs uppercase tracking-wider hover:bg-ink-800 border border-ink-700 transition-all active:scale-95"
+                    className="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-ink-800/80 text-ink-100 font-bold text-xs uppercase tracking-wider hover:bg-ink-800 border border-ink-700 transition-all active:scale-95"
+                    title={`Descargar macOS (${mac.file_size || 'PKG'})`}
                   >
-                    <Download className="w-4 h-4 text-coral-400" /> Descargar macOS ({mac.file_size || 'PKG'})
+                    <Download className="w-4 h-4 shrink-0 text-coral-400" />
+                    <Apple className="w-4 h-4 shrink-0 text-ink-200" />
+                    <span>({mac.file_size || 'PKG'})</span>
                   </a>
                   {showAdminUI && <InlineEditSoftwareItemModal item={mac} />}
                 </div>
@@ -146,9 +152,14 @@ export default async function SoftwareProductPage({
                     href={`/api/download?id=${amxd.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-emerald-500/20 text-emerald-300 font-bold text-xs uppercase tracking-wider hover:bg-emerald-500/30 border border-emerald-500/30 transition-all active:scale-95"
+                    className="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-emerald-950/40 text-emerald-300 font-bold text-xs uppercase tracking-wider hover:bg-emerald-900/60 border border-emerald-500/40 transition-all active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                    title={`Descargar Max for Live AMXD (${amxd.file_size || 'AMXD'})`}
                   >
-                    <Download className="w-4 h-4 text-emerald-400" /> Descargar AMXD ({amxd.file_size || 'AMXD'})
+                    <Download className="w-4 h-4 shrink-0 text-emerald-400" />
+                    <span className="font-mono text-[11px] font-extrabold tracking-widest bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-400/30 font-mono shadow-[0_0_8px_rgba(16,185,129,0.3)]">
+                      M4L
+                    </span>
+                    <span>({amxd.file_size || 'AMXD'})</span>
                   </a>
                   {showAdminUI && <InlineEditSoftwareItemModal item={amxd} />}
                 </div>
