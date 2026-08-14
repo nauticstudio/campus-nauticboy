@@ -20,6 +20,8 @@ const CRUMB_LABELS: Record<string, string> = {
   categories: 'Categorías',
   settings: 'Configuración',
   profile: 'Perfil',
+  'my-materials': 'Material de Clase',
+  materials: 'Materiales',
 }
 
 function getBreadcrumbs(pathname: string) {

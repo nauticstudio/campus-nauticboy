@@ -13,7 +13,7 @@ import {
 import { useRouter } from 'next/navigation'
 import {
   BookOpen, Library, Loader2, Cpu, Clock,
-  GraduationCap, Settings, Home
+  GraduationCap, Settings, Home, FolderDown
 } from 'lucide-react'
 
 // Custom debounce hook
@@ -47,9 +47,10 @@ function pushRecent(item: Recent) {
 }
 
 const QUICK_LINKS = [
-  { title: 'Inicio',          href: '/dashboard', icon: Home,           kind: 'nav' },
-  { title: 'Academia',        href: '/academy',   icon: GraduationCap,  kind: 'nav' },
-  { title: 'Ajustes',         href: '/settings',  icon: Settings,       kind: 'nav' },
+  { title: 'Inicio',            href: '/dashboard',     icon: Home,           kind: 'nav' },
+  { title: 'Academia',          href: '/academy',       icon: GraduationCap,  kind: 'nav' },
+  { title: 'Material de Clase', href: '/my-materials',  icon: FolderDown,     kind: 'nav' },
+  { title: 'Ajustes',           href: '/settings',      icon: Settings,       kind: 'nav' },
 ] as const
 
 export function CommandMenu() {

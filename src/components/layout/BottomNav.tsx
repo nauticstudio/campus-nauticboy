@@ -19,6 +19,7 @@ import {
   LogOut,
   Users,
   Sliders,
+  FolderDown,
 } from 'lucide-react'
 import {
   Sheet,
@@ -41,6 +42,7 @@ interface BottomNavProps {
   hasAnnouncements?: boolean
   hasSoftware?: boolean
   hasProgress?: boolean
+  hasClassMaterials?: boolean
 }
 
 export function BottomNav({
@@ -53,6 +55,7 @@ export function BottomNav({
   hasAnnouncements = false,
   hasSoftware = false,
   hasProgress = false,
+  hasClassMaterials = false,
 }: BottomNavProps) {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -167,22 +170,30 @@ export function BottomNav({
                     <ViewModeSwitcher initialMode={currentViewMode} />
                   </div>
                   
-                  <div className="pt-2 grid grid-cols-2 gap-2">
+                  <div className="pt-2 grid grid-cols-3 gap-2">
                     <Link
                       href="/admin/users"
                       onClick={() => setMenuOpen(false)}
-                      className="flex items-center gap-2 p-2.5 rounded-xl bg-ink-800/50 hover:bg-ink-800 text-ink-200 text-xs font-semibold border border-ink-700/50"
+                      className="flex items-center gap-1.5 p-2 rounded-xl bg-ink-800/50 hover:bg-ink-800 text-ink-200 text-xs font-semibold border border-ink-700/50 justify-center"
                     >
-                      <Users className="w-4 h-4 text-coral-400" />
+                      <Users className="w-3.5 h-3.5 text-coral-400" />
                       <span>Usuarios</span>
                     </Link>
                     <Link
                       href="/admin/categories"
                       onClick={() => setMenuOpen(false)}
-                      className="flex items-center gap-2 p-2.5 rounded-xl bg-ink-800/50 hover:bg-ink-800 text-ink-200 text-xs font-semibold border border-ink-700/50"
+                      className="flex items-center gap-1.5 p-2 rounded-xl bg-ink-800/50 hover:bg-ink-800 text-ink-200 text-xs font-semibold border border-ink-700/50 justify-center"
                     >
-                      <Sliders className="w-4 h-4 text-coral-400" />
+                      <Sliders className="w-3.5 h-3.5 text-coral-400" />
                       <span>Categorías</span>
+                    </Link>
+                    <Link
+                      href="/my-materials"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-1.5 p-2 rounded-xl bg-ink-800/50 hover:bg-ink-800 text-coral-300 text-xs font-semibold border border-coral-500/30 justify-center"
+                    >
+                      <FolderDown className="w-3.5 h-3.5 text-coral-400" />
+                      <span>Materiales</span>
                     </Link>
                   </div>
                 </div>
@@ -250,12 +261,31 @@ export function BottomNav({
               )}
 
               {/* Personal */}
-              {(hasProgress || hasAnnouncements) && (
+              {(hasProgress || hasAnnouncements || hasClassMaterials) && (
                 <div className="space-y-3">
                   <h4 className="text-[11px] font-bold text-ink-400 uppercase tracking-wider">
                     Mi Espacio
                   </h4>
                   <div className="grid grid-cols-1 gap-2">
+                    {hasClassMaterials && (
+                      <Link
+                        href="/my-materials"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center gap-3.5 p-3 rounded-2xl bg-ink-900/50 hover:bg-ink-900 border border-coral-500/20 hover:border-coral-500/40 transition-colors group"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-ink-800 text-coral-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                          <FolderDown className="w-5 h-5" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-ink-100 group-hover:text-white transition-colors text-sm">
+                            Material de Clase
+                          </span>
+                          <span className="text-[10px] font-semibold text-coral-400">
+                            Proyectos y entregas
+                          </span>
+                        </div>
+                      </Link>
+                    )}
                     {hasProgress && (
                       <Link
                         href="/progress"

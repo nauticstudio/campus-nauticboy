@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Crown, LogOut, Settings, User, UserCog } from 'lucide-react'
+import { Crown, LogOut, Settings, User, UserCog, FolderDown } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -60,6 +60,13 @@ export function UserAvatarMenu({ userName, userEmail, isAdmin }: UserAvatarMenuP
           <Link href="/settings/profile" className="flex items-center gap-2.5 w-full px-3 py-2">
             <User className="w-4 h-4 text-coral-400" />
             <span className="text-sm font-semibold text-ink-200 hover:text-white">Mi perfil</span>
+          </Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white p-0">
+          <Link href="/my-materials" className="flex items-center gap-2.5 w-full px-3 py-2">
+            <FolderDown className="w-4 h-4 text-coral-400" />
+            <span className="text-sm font-semibold text-ink-200 hover:text-white">Material de clase</span>
           </Link>
         </DropdownMenuItem>
 

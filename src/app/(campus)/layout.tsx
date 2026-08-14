@@ -71,12 +71,16 @@ export default async function CampusLayout({
     plantillasRes,
     presetsRes,
     announcementsRes,
-    softwareRes
+    softwareRes,
+    classMaterialsRes
   ] = await Promise.all([
     plantillasId ? supabase.from('resources').select('id', { count: 'exact', head: true }).eq('category_id', plantillasId).eq('is_published', true) : Promise.resolve({ count: 0 }),
     presetsId ? supabase.from('resources').select('id', { count: 'exact', head: true }).eq('category_id', presetsId).eq('is_published', true) : Promise.resolve({ count: 0 }),
     supabase.from('announcements').select('id', { count: 'exact', head: true }),
-    supabase.from('software_products').select('id', { count: 'exact', head: true }).eq('is_published', true)
+    supabase.from('software_products').select('id', { count: 'exact', head: true }).eq('is_published', true),
+    isAdmin
+      ? supabase.from('class_materials').select('id', { count: 'exact', head: true })
+      : supabase.from('class_materials').select('id', { count: 'exact', head: true }).eq('student_id', user.id).eq('is_published', true)
   ])
 
   const sidebarProps = {
@@ -88,7 +92,8 @@ export default async function CampusLayout({
     hasPresets: (presetsRes.count || 0) > 0,
     hasAnnouncements: (announcementsRes.count || 0) > 0,
     hasSoftware: (softwareRes.count || 0) > 0,
-    hasProgress: (enrolledCourses?.length || 0) > 0
+    hasProgress: (enrolledCourses?.length || 0) > 0,
+    hasClassMaterials: isAdmin || (classMaterialsRes.count || 0) > 0,
   }
 
   return (

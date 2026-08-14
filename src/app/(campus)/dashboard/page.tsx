@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
 import { requireUser } from '@/server/auth/guards'
-import { BookOpen, Users, Cpu, Download, Shield } from 'lucide-react'
+import { BookOpen, Users, Cpu, Download, Shield, FolderDown } from 'lucide-react'
 import { getAdminViewMode } from '@/app/actions/view-mode'
 import { Reveal } from '@/components/motion/Reveal'
 import { StaggerGroup, StaggerItem } from '@/components/motion/Stagger'
@@ -25,17 +25,19 @@ export default async function DashboardPage() {
 
   // --- ADMIN DASHBOARD ---
   const adminSupabase = await createAdminClient()
-  const [uRes, pRes, cRes, iRes] = await Promise.all([
+  const [uRes, pRes, cRes, iRes, mRes] = await Promise.all([
     adminSupabase.from('profiles').select('id', { count: 'exact', head: true }),
     adminSupabase.from('software_products').select('id', { count: 'exact', head: true }),
     adminSupabase.from('courses').select('id', { count: 'exact', head: true }),
     adminSupabase.from('software_items').select('id', { count: 'exact', head: true }),
+    adminSupabase.from('class_materials').select('id', { count: 'exact', head: true }),
   ])
   const adminStats = {
     users: uRes.count || 0,
     products: pRes.count || 0,
     courses: cRes.count || 0,
     items: iRes.count || 0,
+    materials: mRes.count || 0,
   }
 
   return (
@@ -57,56 +59,80 @@ export default async function DashboardPage() {
         </NauticCard>
       </Reveal>
 
-      <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {[
-          { label: 'Alumnos Registrados', value: adminStats.users, icon: Users },
-          { label: 'Cursos Creados', value: adminStats.courses, icon: BookOpen },
+          { label: 'Alumnos', value: adminStats.users, icon: Users },
+          { label: 'Cursos', value: adminStats.courses, icon: BookOpen },
           { label: 'Sintetizadores', value: adminStats.products, icon: Cpu },
-          { label: 'Expansiones y Archivos', value: adminStats.items, icon: Download },
+          { label: 'Expansiones', value: adminStats.items, icon: Download },
+          { label: 'Material de Clase', value: adminStats.materials, icon: FolderDown },
         ].map(({ label, value, icon: Icon }) => (
           <StaggerItem key={label}>
-            <NauticCardHover className="p-6 flex flex-col gap-2">
-              <div className="w-12 h-12 rounded-[var(--radius-sm)] flex items-center justify-center bg-[var(--surface-elevated)] border border-[var(--border)] text-coral-300"><Icon className="w-6 h-6" /></div>
-              <div className="mt-2">
-                <span className="font-display text-4xl font-semibold tracking-quant text-ink-50">{value}</span>
-                <p className="text-xs font-semibold text-ink-400 uppercase tracking-wider mt-1">{label}</p>
+            <NauticCardHover className="p-5 flex flex-col gap-2">
+              <div className="w-10 h-10 rounded-[var(--radius-sm)] flex items-center justify-center bg-[var(--surface-elevated)] border border-[var(--border)] text-coral-300"><Icon className="w-5 h-5" /></div>
+              <div className="mt-1">
+                <span className="font-display text-3xl font-semibold tracking-quant text-ink-50">{value}</span>
+                <p className="text-[10px] font-semibold text-ink-400 uppercase tracking-wider mt-1">{label}</p>
               </div>
             </NauticCardHover>
           </StaggerItem>
         ))}
       </StaggerGroup>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <Link href="/my-materials" className="block">
+          <NauticCardHover className="p-6 h-full flex flex-col justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-ink-50 flex items-center gap-2">
+                <FolderDown className="w-5 h-5 text-coral-300" /> Materiales de Clase
+              </h3>
+              <p className="text-sm font-medium text-ink-400 mt-2">Aloja proyectos de Google Drive, stems y notas para cada alumno por sesión.</p>
+            </div>
+            <span className="text-xs font-bold text-coral-400 mt-4 block">Abrir panel de entregas →</span>
+          </NauticCardHover>
+        </Link>
         <Link href="/admin/users" className="block">
-          <NauticCardHover className="p-6">
-            <h3 className="text-lg font-bold text-ink-50 flex items-center gap-2">
-              <Users className="w-5 h-5 text-coral-300" /> Gestionar Usuarios
-            </h3>
-            <p className="text-sm font-medium text-ink-400 mt-2">Administra alumnos, roles y estados de cuenta del campus.</p>
+          <NauticCardHover className="p-6 h-full flex flex-col justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-ink-50 flex items-center gap-2">
+                <Users className="w-5 h-5 text-coral-300" /> Gestionar Usuarios
+              </h3>
+              <p className="text-sm font-medium text-ink-400 mt-2">Administra alumnos, roles y estados de cuenta del campus.</p>
+            </div>
+            <span className="text-xs font-bold text-coral-400 mt-4 block">Ver alumnos →</span>
           </NauticCardHover>
         </Link>
         <Link href="/admin/categories" className="block">
-          <NauticCardHover className="p-6">
-            <h3 className="text-lg font-bold text-ink-50 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-coral-300" /> Gestionar Categorías
-            </h3>
-            <p className="text-sm font-medium text-ink-400 mt-2">Organiza las categorías de la Academia (plantillas, presets, samples…).</p>
+          <NauticCardHover className="p-6 h-full flex flex-col justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-ink-50 flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-coral-300" /> Gestionar Categorías
+              </h3>
+              <p className="text-sm font-medium text-ink-400 mt-2">Organiza las categorías de la Academia (plantillas, presets, samples…).</p>
+            </div>
+            <span className="text-xs font-bold text-coral-400 mt-4 block">Ver categorías →</span>
           </NauticCardHover>
         </Link>
         <Link href="/academy/plugins" className="block">
-          <NauticCardHover className="p-6">
-            <h3 className="text-lg font-bold text-ink-50 flex items-center gap-2">
-              <Cpu className="w-5 h-5 text-coral-300" /> Gestionar Software
-            </h3>
-            <p className="text-sm font-medium text-ink-400 mt-2">Entra a la categoría Plugins y activa la edición para añadir o modificar productos.</p>
+          <NauticCardHover className="p-6 h-full flex flex-col justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-ink-50 flex items-center gap-2">
+                <Cpu className="w-5 h-5 text-coral-300" /> Gestionar Software
+              </h3>
+              <p className="text-sm font-medium text-ink-400 mt-2">Entra a la categoría Plugins y activa la edición para añadir o modificar productos.</p>
+            </div>
+            <span className="text-xs font-bold text-coral-400 mt-4 block">Ver software →</span>
           </NauticCardHover>
         </Link>
         <Link href="/academy" className="block">
-          <NauticCardHover className="p-6">
-            <h3 className="text-lg font-bold text-ink-50 flex items-center gap-2">
-              <Download className="w-5 h-5 text-coral-300" /> Gestionar Material
-            </h3>
-            <p className="text-sm font-medium text-ink-400 mt-2">Sube y publica recursos de la Academia directamente en cada categoría.</p>
+          <NauticCardHover className="p-6 h-full flex flex-col justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-ink-50 flex items-center gap-2">
+                <Download className="w-5 h-5 text-coral-300" /> Gestionar Material
+              </h3>
+              <p className="text-sm font-medium text-ink-400 mt-2">Sube y publica recursos de la Academia directamente en cada categoría.</p>
+            </div>
+            <span className="text-xs font-bold text-coral-400 mt-4 block">Ver academia →</span>
           </NauticCardHover>
         </Link>
       </div>
