@@ -294,18 +294,18 @@ export function InlineEditResourceModal({
             <div className={`p-4 rounded-2xl border transition-all ${
               winDelete 
                 ? 'bg-rose-950/20 border-rose-900/40 opacity-60' 
-                : 'bg-cyan-950/20 border-cyan-500/30'
+                : 'bg-[#0078D4]/10 border-[#0078D4]/40'
             } space-y-3`}>
-              <div className="flex items-center justify-between pb-1 border-b border-cyan-500/20">
+              <div className="flex items-center justify-between pb-1 border-b border-[#0078D4]/30">
                 <div className="flex items-center gap-2">
-                  <span className="p-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
-                    <WindowsLogo className="w-3.5 h-3.5" />
+                  <span className="p-1 rounded-lg bg-[#0078D4]/25 text-sky-200 border border-[#0078D4]/40">
+                    <WindowsLogo className="w-3.5 h-3.5 text-sky-300" />
                   </span>
-                  <span className="text-xs font-bold text-cyan-200 tracking-wide">
+                  <span className="text-xs font-bold text-sky-100 tracking-wide">
                     Versión Microsoft Windows
                   </span>
                   {group.winResource && (
-                    <span className="text-[10px] font-mono font-bold text-cyan-300 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">
+                    <span className="text-[10px] font-mono font-bold text-sky-300 bg-[#0078D4]/20 px-1.5 py-0.5 rounded border border-[#0078D4]/40">
                       v{group.winResource.version || '1.0'}
                     </span>
                   )}
@@ -326,14 +326,14 @@ export function InlineEditResourceModal({
                 <>
                   <div>
                     <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
-                      <Link2 className="w-3 h-3 text-cyan-400" /> Enlace de Descarga Windows (Drive / Directo)
+                      <Link2 className="w-3 h-3 text-sky-400" /> Enlace de Descarga Windows (Drive / Directo)
                     </label>
                     <Input
                       name="win_download_url"
                       value={winDownloadUrl}
                       onChange={(e) => setWinDownloadUrl(e.target.value)}
                       type="url"
-                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-cyan-500 font-mono text-xs"
+                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] font-mono text-xs"
                       placeholder="https://drive.google.com/file/d/..."
                     />
                   </div>
@@ -344,7 +344,7 @@ export function InlineEditResourceModal({
                       <Input
                         name="win_version"
                         defaultValue={group.winResource?.version || '26.1.4.5589'}
-                        className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-cyan-500 text-xs font-mono"
+                        className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
                       />
                     </div>
                     <div>
@@ -353,7 +353,7 @@ export function InlineEditResourceModal({
                         name="win_file_size"
                         defaultValue={group.winResource?.file_size ? formatFileSize(group.winResource.file_size) : ''}
                         placeholder="1.04 GB"
-                        className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-cyan-500 text-xs font-mono"
+                        className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
                       />
                     </div>
                     <div>
@@ -362,7 +362,7 @@ export function InlineEditResourceModal({
                         name="win_file_name"
                         defaultValue={group.winResource?.file_name || ''}
                         placeholder="FL_Studio_WIN.zip"
-                        className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-cyan-500 text-xs font-mono"
+                        className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
                       />
                     </div>
                   </div>

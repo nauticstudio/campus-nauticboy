@@ -230,29 +230,29 @@ export function InlineCreateResourceModal({
 
             {/* Windows Installer Section */}
             {(activeTab === 'both' || activeTab === 'windows') && (
-              <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 space-y-3 relative overflow-hidden">
-                <div className="flex items-center justify-between pb-1 border-b border-cyan-500/20">
+              <div className="p-4 rounded-2xl bg-[#0078D4]/10 border border-[#0078D4]/40 space-y-3 relative overflow-hidden">
+                <div className="flex items-center justify-between pb-1 border-b border-[#0078D4]/30">
                   <div className="flex items-center gap-2">
-                    <span className="p-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
-                      <WindowsLogo className="w-3.5 h-3.5" />
+                    <span className="p-1 rounded-lg bg-[#0078D4]/25 text-sky-200 border border-[#0078D4]/40">
+                      <WindowsLogo className="w-3.5 h-3.5 text-sky-300" />
                     </span>
-                    <span className="text-xs font-bold text-cyan-200 tracking-wide">
+                    <span className="text-xs font-bold text-sky-100 tracking-wide">
                       Versión Microsoft Windows
                     </span>
                   </div>
-                  <span className="text-[10px] font-semibold text-cyan-400/70 uppercase tracking-wider">
+                  <span className="text-[10px] font-semibold text-sky-300/70 uppercase tracking-wider">
                     {activeTab === 'both' ? 'Opcional si solo hay Mac' : 'Plataforma Windows'}
                   </span>
                 </div>
 
                 <div>
                   <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
-                    <Link2 className="w-3 h-3 text-cyan-400" /> Enlace de Google Drive / Descarga Windows
+                    <Link2 className="w-3 h-3 text-sky-400" /> Enlace de Google Drive / Descarga Windows
                   </label>
                   <Input
                     name="win_download_url"
                     type="url"
-                    className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-cyan-500 font-mono text-xs"
+                    className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] font-mono text-xs"
                     placeholder="https://drive.google.com/file/d/..."
                   />
                 </div>
@@ -263,7 +263,7 @@ export function InlineCreateResourceModal({
                     <Input
                       name="win_version"
                       defaultValue="26.1.4.5589"
-                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-cyan-500 text-xs font-mono"
+                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
                     />
                   </div>
                   <div>
@@ -271,7 +271,7 @@ export function InlineCreateResourceModal({
                     <Input
                       name="win_file_size"
                       placeholder="1.04 GB"
-                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-cyan-500 text-xs font-mono"
+                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
                     />
                   </div>
                   <div>
@@ -279,7 +279,7 @@ export function InlineCreateResourceModal({
                     <Input
                       name="win_file_name"
                       placeholder="FL_Studio_WIN.zip"
-                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-cyan-500 text-xs font-mono"
+                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
                     />
                   </div>
                 </div>
