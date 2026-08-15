@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Loader2, Link2, FileText, HardDrive, Cpu, Tag } from 'lucide-react'
+import { Plus, Loader2, Link2, FileText, HardDrive, Cpu, Tag, ImageIcon } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,8 @@ export function InlineCreateResourceModal({
 }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [thumbnailUrl, setThumbnailUrl] = useState('')
+  const [imgError, setImgError] = useState(false)
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -68,8 +70,41 @@ export function InlineCreateResourceModal({
                 name="title"
                 required
                 className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500"
-                placeholder="Ej. Ableton Live 12 Suite / Plantilla Melodic Techno"
+                placeholder="Ej. Ableton Live 12 Suite / FL Studio 24 / Plantilla Melodic Techno"
               />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                <ImageIcon className="w-3.5 h-3.5 text-coral-400" /> Icono / Portada / Logo (URL)
+              </label>
+              <div className="flex items-center gap-3 mt-1">
+                <div className="w-12 h-12 rounded-xl bg-ink-900 border border-ink-800 flex items-center justify-center overflow-hidden shrink-0 relative">
+                  {thumbnailUrl && !imgError ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={thumbnailUrl}
+                      alt="Preview"
+                      className="w-full h-full object-contain p-1"
+                      onError={() => setImgError(true)}
+                    />
+                  ) : (
+                    <ImageIcon className="w-5 h-5 text-ink-600" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <Input
+                    name="thumbnail_url"
+                    value={thumbnailUrl}
+                    onChange={(e) => {
+                      setThumbnailUrl(e.target.value)
+                      setImgError(false)
+                    }}
+                    className="rounded-xl bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 font-mono text-xs"
+                    placeholder="https://... (PNG, SVG, WebP o imagen del DAW)"
+                  />
+                </div>
+              </div>
             </div>
 
             <div>

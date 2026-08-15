@@ -24,6 +24,7 @@ export interface ResourceItem {
   is_restricted: boolean
   is_published: boolean
   version?: string | null
+  thumbnail_url?: string | null
 }
 
 export function CategoryResourcesClient({
@@ -189,23 +190,60 @@ export function CategoryResourcesClient({
           {filteredResources.map(res => (
             <div
               key={res.id}
-              className={`glass-card glass-card-hover rounded-[var(--radius)] p-6 flex flex-col justify-between h-full relative overflow-hidden group border border-ink-800/80 bg-ink-900/60 hover:bg-ink-900 hover:border-coral-500/40 transition-all ${
+              className={`glass-card glass-card-hover rounded-[var(--radius)] overflow-hidden flex flex-col justify-between h-full relative group border border-ink-800/80 bg-ink-950/70 hover:bg-ink-900/90 hover:border-coral-500/40 transition-all ${
                 !res.is_published ? 'opacity-70 grayscale-[30%]' : ''
               }`}
             >
-              <div className="space-y-4">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-coral-500/15 text-coral-300 border border-coral-500/30">
-                    {res.software || 'General'}
-                  </span>
+              {/* Optional Cover/Thumbnail Image or Top Header */}
+              {res.thumbnail_url ? (
+                <div className="relative h-44 bg-ink-950/90 border-b border-ink-800/60 overflow-hidden flex items-center justify-center p-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={res.thumbnail_url}
+                    alt={res.title}
+                    className="w-full h-full object-contain filter drop-shadow-md group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 via-transparent to-transparent pointer-events-none" />
                   
+                  <div className="absolute top-3 left-3 flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-ink-950/80 backdrop-blur text-coral-300 border border-coral-500/30">
+                      {res.software || 'General'}
+                    </span>
+                    {res.version && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-ink-950/70 text-ink-300 border border-ink-700/50">
+                        v{res.version}
+                      </span>
+                    )}
+                  </div>
+
+                  {isAdmin && (
+                    <div className="absolute top-3 right-3 bg-ink-950/80 backdrop-blur rounded-xl border border-ink-700/50">
+                      <InlineEditResourceModal resource={res} />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-6 pb-0 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-coral-500/15 text-coral-300 border border-coral-500/30">
+                      {res.software || 'General'}
+                    </span>
+                    {res.version && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-ink-900 text-ink-400 border border-ink-800">
+                        v{res.version}
+                      </span>
+                    )}
+                  </div>
                   {isAdmin && (
                     <div className="flex items-center gap-1">
                       <InlineEditResourceModal resource={res} />
                     </div>
                   )}
                 </div>
+              )}
 
+              {/* Body */}
+              <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
                 <div className="space-y-2">
                   <h3 className="font-bold text-xl text-ink-50 group-hover:text-coral-400 transition-colors tracking-tight font-display">
                     {res.title}
@@ -214,27 +252,26 @@ export function CategoryResourcesClient({
                     {res.description || 'Sin descripción.'}
                   </p>
                 </div>
-              </div>
 
-              {/* Footer */}
-              <div className="pt-6 mt-6 border-t border-ink-800/80 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-bold text-ink-400 uppercase tracking-wider block">Archivo</span>
-                  <span className="text-xs font-semibold text-ink-200 truncate max-w-[140px] block font-mono">
-                    {res.file_name}
-                  </span>
+                {/* Footer */}
+                <div className="pt-4 mt-4 border-t border-ink-800/80 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] font-bold text-ink-400 uppercase tracking-wider block">Archivo</span>
+                    <span className="text-xs font-semibold text-ink-200 truncate max-w-[130px] block font-mono">
+                      {res.file_name}
+                    </span>
+                  </div>
+
+                  <a
+                    href={`/api/download/${res.id}`}
+                    download={res.file_name}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-coral-500 text-white font-bold text-xs shadow-md shadow-coral-500/20 hover:bg-coral-600 hover:scale-105 active:scale-95 transition-all group/btn"
+                  >
+                    <Download className="w-3.5 h-3.5 group-hover/btn:translate-y-0.5 transition-transform" />
+                    <span>Descargar</span>
+                  </a>
                 </div>
-
-                <a
-                  href={`/api/download/${res.id}`}
-                  download={res.file_name}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-coral-500 text-white font-bold text-xs shadow-md shadow-coral-500/20 hover:bg-coral-600 hover:scale-105 active:scale-95 transition-all group/btn"
-                >
-                  <Download className="w-3.5 h-3.5 group-hover/btn:translate-y-0.5 transition-transform" />
-                  <span>Descargar</span>
-                </a>
               </div>
-
             </div>
           ))}
         </div>

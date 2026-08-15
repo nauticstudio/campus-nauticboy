@@ -35,6 +35,7 @@ export async function createResourceAction(formData: FormData): Promise<Resource
     const title = (formData.get('title') as string)?.trim()
     const categoryId = (formData.get('category_id') as string)?.trim()
     const downloadUrl = (formData.get('download_url') as string)?.trim()
+    const thumbnailUrl = (formData.get('thumbnail_url') as string)?.trim() || null
     const fileName = (formData.get('file_name') as string)?.trim() || `${title || 'archivo'}.zip`
     const description = (formData.get('description') as string)?.trim() || null
     const software = (formData.get('software') as string)?.trim() || null
@@ -78,6 +79,7 @@ export async function createResourceAction(formData: FormData): Promise<Resource
         title,
         slug: uniqueSlug,
         description,
+        thumbnail_url: thumbnailUrl,
         category_id: categoryId,
         storage_provider: 'google_drive',
         storage_path: storagePath,
@@ -117,6 +119,7 @@ export async function updateResourceAction(formData: FormData): Promise<Resource
     const id = (formData.get('id') as string)?.trim()
     const title = (formData.get('title') as string)?.trim()
     const downloadUrl = (formData.get('download_url') as string)?.trim()
+    const thumbnailUrl = (formData.get('thumbnail_url') as string)?.trim() || null
     const fileName = (formData.get('file_name') as string)?.trim()
     const description = (formData.get('description') as string)?.trim() || null
     const software = (formData.get('software') as string)?.trim() || null
@@ -130,6 +133,7 @@ export async function updateResourceAction(formData: FormData): Promise<Resource
     const updatePayload: Record<string, any> = {
       title,
       description,
+      thumbnail_url: thumbnailUrl,
       software,
       version,
       is_restricted: isRestricted,
