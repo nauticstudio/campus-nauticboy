@@ -39,41 +39,44 @@ export async function GET(
     }
   }
 
-  try {
-    // 4. Obtain short-lived Google Drive Access Token
-    const accessToken = await getAccessToken()
-
-    // 5. Download stream from Google Drive API v3
-    // alt=media downloads the file content
-    const driveUrl = `https://www.googleapis.com/drive/v3/files/${resource.storage_path}?alt=media`
-    
-    const driveResponse = await fetch(driveUrl, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`
-      }
-    })
-
-    if (!driveResponse.ok) {
-      console.error('Google Drive fetch failed:', await driveResponse.text())
-      return NextResponse.json({ error: 'Failed to fetch file from storage' }, { status: 502 })
-    }
-
-    // 6. Return streamed response with proper attachment headers
-    const headers = new Headers()
-    headers.set('Content-Disposition', `attachment; filename="${encodeURIComponent(resource.file_name)}"`)
-    headers.set('Content-Type', driveResponse.headers.get('Content-Type') || 'application/octet-stream')
-    
-    if (resource.file_size) {
-      headers.set('Content-Length', resource.file_size.toString())
-    }
-
-    return new NextResponse(driveResponse.body, {
-      status: 200,
-      headers
-    })
-
-  } catch (error) {
-    console.error('Download error:', error)
-    return NextResponse.json({ error: 'Internal Server Error during download' }, { status: 500 })
+  // 4. Si el storage_path ya es una URL completa (Google Drive, Mega, Mediafire, etc.), redirigir directamente
+  if (resource.storage_path && (resource.storage_path.startsWith('http://') || resource.storage_path.startsWith('https://'))) {
+    return NextResponse.redirect(resource.storage_path, 302)
   }
+
+  // 5. Si es un ID de Google Drive, intentar descargar stream o redirigir
+  if (resource.storage_path) {
+    try {
+      const accessToken = await getAccessToken()
+      const driveUrl = `https://www.googleapis.com/drive/v3/files/${resource.storage_path}?alt=media`
+      
+      const driveResponse = await fetch(driveUrl, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      })
+
+      if (driveResponse.ok) {
+        const headers = new Headers()
+        headers.set('Content-Disposition', `attachment; filename="${encodeURIComponent(resource.file_name)}"`)
+        headers.set('Content-Type', driveResponse.headers.get('Content-Type') || 'application/octet-stream')
+        
+        if (resource.file_size) {
+          headers.set('Content-Length', resource.file_size.toString())
+        }
+
+        return new NextResponse(driveResponse.body, {
+          status: 200,
+          headers
+        })
+      }
+    } catch (error) {
+      console.warn('[Download] Fallback to direct Drive link:', error)
+    }
+
+    // Fallback: Redirección directa al archivo de Google Drive
+    return NextResponse.redirect(`https://drive.google.com/file/d/${resource.storage_path}/view`, 302)
+  }
+
+  return NextResponse.json({ error: 'Recurso sin enlace de descarga válido.' }, { status: 400 })
 }

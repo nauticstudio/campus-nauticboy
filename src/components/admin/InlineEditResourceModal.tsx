@@ -27,7 +27,8 @@ export function InlineEditResourceModal({
     file_name: string
     file_size: number | null
     version?: string | null
-    storage_path?: string
+    storage_path?: string | null
+    storage_provider?: string | null
     thumbnail_url?: string | null
     tags?: string[] | null
   }
@@ -37,6 +38,13 @@ export function InlineEditResourceModal({
   const [deleting, setDeleting] = useState(false)
   const [thumbnailUrl, setThumbnailUrl] = useState(resource.thumbnail_url || '')
   const [imgError, setImgError] = useState(false)
+
+  const currentLink = resource.storage_path
+    ? resource.storage_path.startsWith('http')
+      ? resource.storage_path
+      : `https://drive.google.com/file/d/${resource.storage_path}/view`
+    : ''
+  const [downloadUrl, setDownloadUrl] = useState(currentLink)
 
   const initialPlatform = resource.tags?.includes('macos') && !resource.tags?.includes('windows')
     ? 'macos'
@@ -51,6 +59,7 @@ export function InlineEditResourceModal({
     const formData = new FormData(e.currentTarget)
     formData.append('id', resource.id)
     formData.append('platform', platform)
+    formData.set('download_url', downloadUrl)
     const res = await updateResourceAction(formData)
     setLoading(false)
     if (res.success) {
@@ -190,11 +199,14 @@ export function InlineEditResourceModal({
 
             <div>
               <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
-                <Link2 className="w-3.5 h-3.5 text-coral-400" /> Enlace de Google Drive / Descarga (Opcional si no cambia)
+                <Link2 className="w-3.5 h-3.5 text-coral-400" /> Enlace de Google Drive / Descarga Directa
               </label>
               <Input
                 name="download_url"
+                value={downloadUrl}
+                onChange={(e) => setDownloadUrl(e.target.value)}
                 type="url"
+                required
                 className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 font-mono text-xs"
                 placeholder="https://drive.google.com/..."
               />

@@ -27,6 +27,8 @@ export interface ResourceItem {
   version?: string | null
   thumbnail_url?: string | null
   tags?: string[] | null
+  storage_path?: string | null
+  storage_provider?: string | null
 }
 
 export function CategoryResourcesClient({

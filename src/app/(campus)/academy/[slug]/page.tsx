@@ -39,7 +39,7 @@ export default async function CategoryResourcesPage({
   if (category) {
     const { data } = await supabase
       .from('resources')
-      .select('id, title, description, software, file_name, file_size, is_restricted, is_published, thumbnail_url, version, tags')
+      .select('id, title, description, software, file_name, file_size, is_restricted, is_published, thumbnail_url, version, tags, storage_path, storage_provider')
       .eq('category_id', category.id)
       .order('created_at', { ascending: false })
 
