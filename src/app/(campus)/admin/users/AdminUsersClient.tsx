@@ -2,7 +2,15 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { UserPlus, Shield, Search, MoreVertical, CheckCircle, Ban, Mail, Crown, Loader2 } from 'lucide-react'
+import { UserPlus, Shield, Search, MoreVertical, CheckCircle, Ban, Mail, Crown, Loader2, UserCog, Power } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Dialog,
   DialogContent,
@@ -14,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { inviteUserAction } from "@/lib/actions/auth"
+import { updateUserRoleAction, updateUserStatusAction } from "@/app/actions/users"
 import { formatDate } from "@/lib/date"
 
 interface UserProfile {
@@ -25,8 +34,7 @@ interface UserProfile {
   created_at: string
 }
 
-export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[] }) {
-  const [users] = useState<UserProfile[]>(initialUsers)
+export function AdminUsersClient({ initialUsers: users }: { initialUsers: UserProfile[] }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [isInviteOpen, setIsInviteOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -56,6 +64,32 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
         setMessage(null)
         router.refresh()
       }, 2000)
+    }
+  }
+
+  const handleRoleChange = async (userId: string, currentRole: string) => {
+    const newRole = currentRole === 'admin' ? 'student' : 'admin'
+    const res = await updateUserRoleAction(userId, newRole)
+    if (res.error) {
+      setMessage({ type: 'error', text: res.error })
+      setTimeout(() => setMessage(null), 4000)
+    } else if (res.success && res.message) {
+      setMessage({ type: 'success', text: res.message })
+      setTimeout(() => setMessage(null), 4000)
+      router.refresh()
+    }
+  }
+
+  const handleStatusChange = async (userId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'suspended' : 'active'
+    const res = await updateUserStatusAction(userId, newStatus)
+    if (res.error) {
+      setMessage({ type: 'error', text: res.error })
+      setTimeout(() => setMessage(null), 4000)
+    } else if (res.success && res.message) {
+      setMessage({ type: 'success', text: res.message })
+      setTimeout(() => setMessage(null), 4000)
+      router.refresh()
     }
   }
 
@@ -205,9 +239,31 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserProfile[]
                   </td>
 
                   <td className="py-4 px-6 text-right">
-                    <button className="p-2 rounded-lg text-ink-400 hover:text-ink-100 hover:bg-ink-800/60 transition-colors">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="p-2 rounded-lg text-ink-400 hover:text-ink-100 hover:bg-ink-800/60 transition-colors focus:outline-none focus:ring-2 focus:ring-coral-500">
+                        <MoreVertical className="w-4 h-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48 bg-ink-950 border-ink-800 text-ink-100 rounded-xl shadow-xl">
+                        <DropdownMenuLabel className="text-xs text-ink-400 font-semibold px-3 py-2">
+                          Acciones
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator className="bg-ink-800/80" />
+                        <DropdownMenuItem 
+                          onClick={() => handleRoleChange(u.id, u.role)}
+                          className="px-3 py-2 text-sm cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white rounded-lg flex items-center gap-2"
+                        >
+                          <UserCog className="w-4 h-4 text-amber-400" />
+                          {u.role === 'admin' ? 'Quitar Admin' : 'Hacer Admin'}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleStatusChange(u.id, u.status)}
+                          className="px-3 py-2 text-sm cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white rounded-lg flex items-center gap-2"
+                        >
+                          <Power className={`w-4 h-4 ${u.status === 'active' ? 'text-rose-400' : 'text-emerald-400'}`} />
+                          {u.status === 'active' ? 'Suspender' : 'Activar'}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </td>
                 </tr>
               ))}
