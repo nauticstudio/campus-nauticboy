@@ -379,7 +379,7 @@ export function CategoryResourcesClient({
                           className="inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/20 transition-all active:scale-95 group/mac shadow-sm text-center cursor-pointer whitespace-nowrap"
                           title={`Descargar macOS (${formatFileSize(macItem!.file_size)})`}
                         >
-                          <AppleLogo className="w-3.5 h-3.5 text-white shrink-0" />
+                          <AppleLogo className="text-sm text-white shrink-0" />
                           <span>macOS</span>
                         </a>
 
@@ -405,7 +405,7 @@ export function CategoryResourcesClient({
                       title={`Descargar macOS (${formatFileSize(macItem.file_size)})`}
                     >
                       <div className="flex items-center gap-2">
-                        <AppleLogo className="w-4 h-4 text-white shrink-0" />
+                        <AppleLogo className="text-base text-white shrink-0" />
                         <span>Descargar macOS</span>
                       </div>
                       {macItem.file_size && (
