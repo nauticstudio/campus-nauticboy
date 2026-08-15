@@ -15,6 +15,12 @@ export default async function CourseDetailPage({
   const { profile } = await requireUser()
   const isAdmin = profile?.role === 'admin'
 
+  const { getAdminViewMode } = await import('@/app/actions/view-mode')
+  let currentViewMode = await getAdminViewMode()
+  if (isAdmin && !currentViewMode) currentViewMode = 'admin'
+  if (!isAdmin) currentViewMode = 'student'
+  const showAdminUI = isAdmin && currentViewMode === 'admin'
+
   // Fetch course by slug
   const { data: course } = await supabase
     .from('courses')
@@ -46,7 +52,7 @@ export default async function CourseDetailPage({
     <CourseDetailClient 
       course={course} 
       initialModules={modules} 
-      isAdmin={isAdmin} 
+      isAdmin={showAdminUI} 
     />
   )
 }

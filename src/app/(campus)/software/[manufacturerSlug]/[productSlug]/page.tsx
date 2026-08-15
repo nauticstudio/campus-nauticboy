@@ -2,7 +2,8 @@ import { getProductEcosystem } from '@/lib/data/software'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Download, ShieldCheck, Cpu, HardDrive, Layers, CheckCircle2, FolderArchive, Apple, AppWindow, KeyRound } from 'lucide-react'
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
+import { requireUser } from '@/server/auth/guards'
 import { getAdminViewMode } from '@/app/actions/view-mode'
 import { InlineEditSoftwareModal } from '@/components/admin/InlineEditSoftwareModal'
 import { InlineEditSoftwareItemModal } from '@/components/admin/InlineEditSoftwareItemModal'
@@ -47,22 +48,20 @@ export default async function SoftwareProductPage({
 
   const { product, manufacturer, grouped } = ecosystem
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  let showAdminUI = false
-  let allManufacturers: any[] = []
+  const { profile } = await requireUser()
+  const isAdmin = profile?.role === 'admin'
 
-  if (user) {
+  const { getAdminViewMode } = await import('@/app/actions/view-mode')
+  let currentViewMode = await getAdminViewMode()
+  if (isAdmin && !currentViewMode) currentViewMode = 'admin'
+  if (!isAdmin) currentViewMode = 'student'
+  const showAdminUI = isAdmin && currentViewMode === 'admin'
+
+  let allManufacturers: any[] = []
+  if (showAdminUI) {
     const adminSupabase = await createAdminClient()
-    const { data: profile } = await adminSupabase.from('profiles').select('role').eq('id', user.id).single()
-    if (profile?.role === 'admin') {
-      const mode = await getAdminViewMode()
-      showAdminUI = mode === 'admin' || !mode
-      if (showAdminUI) {
-        const { data: m } = await adminSupabase.from('software_manufacturers').select('*').order('name')
-        allManufacturers = m || []
-      }
-    }
+    const { data: m } = await adminSupabase.from('software_manufacturers').select('*').order('name')
+    allManufacturers = m || []
   }
 
   return (

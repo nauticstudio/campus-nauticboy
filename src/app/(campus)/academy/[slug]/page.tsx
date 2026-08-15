@@ -21,6 +21,12 @@ export default async function CategoryResourcesPage({
   const supabase = await createClient()
   const isAdmin = profile?.role === 'admin'
 
+  const { getAdminViewMode } = await import('@/app/actions/view-mode')
+  let currentViewMode = await getAdminViewMode()
+  if (isAdmin && !currentViewMode) currentViewMode = 'admin'
+  if (!isAdmin) currentViewMode = 'student'
+  const showAdminUI = isAdmin && currentViewMode === 'admin'
+
   // Fetch category by slug con todos los campos para pintar banner premium.
   const { data: category } = await supabase
     .from('categories')
@@ -55,7 +61,7 @@ export default async function CategoryResourcesPage({
         allProducts={hub.allProducts}
         manufacturers={hub.manufacturers}
         selectedManufacturer={selectedManufacturer}
-        showAdminUI={isAdmin}
+        showAdminUI={showAdminUI}
       />
     )
   }
@@ -64,7 +70,7 @@ export default async function CategoryResourcesPage({
     <CategoryResourcesClient
       slug={slug}
       initialResources={resources}
-      isAdmin={isAdmin}
+      isAdmin={showAdminUI}
       softwareSlot={softwareSlot}
       categoryMeta={category ? {
         id: category.id,
