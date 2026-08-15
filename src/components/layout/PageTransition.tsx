@@ -11,13 +11,21 @@ export function PageTransition({ children }: { children: ReactNode }) {
   return (
     <motion.div
       key={pathname}
-      initial={{ opacity: 0, y: reduceMotion ? 0 : 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.32,
-        ease: [0.16, 1, 0.3, 1], // Curva suave y fluida
+      initial={{
+        opacity: 0,
+        y: reduceMotion ? 0 : 14,
+        filter: reduceMotion ? 'none' : 'blur(8px)',
       }}
-      className="w-full flex-1 flex flex-col"
+      animate={{
+        opacity: 1,
+        y: 0,
+        filter: 'blur(0px)',
+      }}
+      transition={{
+        duration: 0.65,
+        ease: [0.22, 1, 0.36, 1], // Curva cinematográfica suave y progresiva
+      }}
+      className="w-full flex-1 flex flex-col will-change-transform"
     >
       {children}
     </motion.div>
