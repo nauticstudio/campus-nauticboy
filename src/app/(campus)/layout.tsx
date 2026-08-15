@@ -3,6 +3,8 @@ import { BottomNav } from '@/components/layout/BottomNav'
 import { CommandMenu } from '@/components/layout/CommandMenu'
 import { TopBar } from '@/components/layout/TopBar'
 
+import { PageTransition } from '@/components/layout/PageTransition'
+
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
@@ -109,8 +111,10 @@ export default async function CampusLayout({
         <TopBar userName={userName} userEmail={userEmail} isAdmin={isAdmin} currentViewMode={currentViewMode} />
 
         {/* Main Content Area */}
-        <main className="flex-1 w-full relative pb-28 md:pb-32">
-          {children}
+        <main className="flex-1 w-full relative pb-28 md:pb-32 flex flex-col">
+          <PageTransition>
+            {children}
+          </PageTransition>
         </main>
       </div>
 
