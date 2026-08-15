@@ -24,6 +24,293 @@ export type ResourceActionResult =
   | { success: true; id?: string }
   | { success: false; error: string }
 
+function parseFileSizeToBytes(fileSizeStr: string | null | undefined): number | null {
+  if (!fileSizeStr) return null
+  const cleaned = fileSizeStr.replace(/,/g, '.').trim()
+  const num = parseFloat(cleaned)
+  if (isNaN(num)) return null
+  if (cleaned.toLowerCase().includes('gb')) return Math.round(num * 1024 * 1024 * 1024)
+  if (cleaned.toLowerCase().includes('mb')) return Math.round(num * 1024 * 1024)
+  if (cleaned.toLowerCase().includes('kb')) return Math.round(num * 1024)
+  if (num > 500) return Math.round(num)
+  return Math.round(num * 1024 * 1024 * 1024)
+}
+
+/**
+ * Crea un recurso unificado que puede incluir instalador para macOS, Windows o ambos.
+ */
+export async function createUnifiedResourceAction(formData: FormData): Promise<ResourceActionResult> {
+  try {
+    const auth = await checkAdmin()
+    if (!auth.ok) return { success: false, error: auth.error }
+
+    const title = (formData.get('title') as string)?.trim()
+    const categoryId = (formData.get('category_id') as string)?.trim()
+    const thumbnailUrl = (formData.get('thumbnail_url') as string)?.trim() || null
+    const description = (formData.get('description') as string)?.trim() || null
+    const software = (formData.get('software') as string)?.trim() || null
+    const isRestricted = formData.get('is_restricted') === 'true' || formData.get('is_restricted') === 'on'
+    const isPublished = formData.get('is_published') !== 'false'
+
+    // Datos macOS
+    const macDownloadUrl = (formData.get('mac_download_url') as string)?.trim()
+    const macVersion = (formData.get('mac_version') as string)?.trim() || '1.0'
+    const macFileName = (formData.get('mac_file_name') as string)?.trim() || `${title || 'archivo'}_macOS.dmg`
+    const macFileSize = (formData.get('mac_file_size') as string)?.trim()
+
+    // Datos Windows
+    const winDownloadUrl = (formData.get('win_download_url') as string)?.trim()
+    const winVersion = (formData.get('win_version') as string)?.trim() || '1.0'
+    const winFileName = (formData.get('win_file_name') as string)?.trim() || `${title || 'archivo'}_WIN.zip`
+    const winFileSize = (formData.get('win_file_size') as string)?.trim()
+
+    if (!title || title.length < 2) {
+      return { success: false, error: 'El título debe tener al menos 2 caracteres.' }
+    }
+    if (!categoryId) {
+      return { success: false, error: 'Debes asociar el recurso a una categoría válida.' }
+    }
+    if (!macDownloadUrl && !winDownloadUrl) {
+      return { success: false, error: 'Debes ingresar el enlace de descarga para al menos una plataforma (macOS o Windows).' }
+    }
+
+    const baseSlug = slugify(title)
+
+    // Crear versión macOS si está presente
+    if (macDownloadUrl) {
+      const extParts = macFileName.split('.')
+      const fileExtension = extParts.length > 1 ? extParts.pop()!.toLowerCase() : 'dmg'
+      const uniqueSlug = `${baseSlug}-mac-${Date.now().toString().slice(-4)}`
+
+      const { error: macErr } = await auth.admin.from('resources').insert({
+        title,
+        slug: uniqueSlug,
+        description,
+        thumbnail_url: thumbnailUrl,
+        category_id: categoryId,
+        storage_provider: 'google_drive',
+        storage_path: extractDriveId(macDownloadUrl),
+        file_name: macFileName,
+        file_extension: fileExtension,
+        file_size: parseFileSizeToBytes(macFileSize),
+        software,
+        version: macVersion,
+        tags: ['macos'],
+        is_restricted: isRestricted,
+        is_published: isPublished,
+      })
+      if (macErr) {
+        console.error('[createUnifiedResourceAction] DB Error macOS:', macErr)
+        return { success: false, error: `Error guardando versión macOS: ${macErr.message}` }
+      }
+    }
+
+    // Crear versión Windows si está presente
+    if (winDownloadUrl) {
+      const extParts = winFileName.split('.')
+      const fileExtension = extParts.length > 1 ? extParts.pop()!.toLowerCase() : 'zip'
+      const uniqueSlug = `${baseSlug}-win-${Date.now().toString().slice(-4)}`
+
+      const { error: winErr } = await auth.admin.from('resources').insert({
+        title,
+        slug: uniqueSlug,
+        description,
+        thumbnail_url: thumbnailUrl,
+        category_id: categoryId,
+        storage_provider: 'google_drive',
+        storage_path: extractDriveId(winDownloadUrl),
+        file_name: winFileName,
+        file_extension: fileExtension,
+        file_size: parseFileSizeToBytes(winFileSize),
+        software,
+        version: winVersion,
+        tags: ['windows'],
+        is_restricted: isRestricted,
+        is_published: isPublished,
+      })
+      if (winErr) {
+        console.error('[createUnifiedResourceAction] DB Error Windows:', winErr)
+        return { success: false, error: `Error guardando versión Windows: ${winErr.message}` }
+      }
+    }
+
+    revalidatePath('/academy')
+    revalidatePath('/academy/[slug]', 'page')
+    return { success: true }
+  } catch (err: any) {
+    console.error('[createUnifiedResourceAction] Exception:', err)
+    return { success: false, error: err?.message || 'Error inesperado al crear el recurso.' }
+  }
+}
+
+/**
+ * Actualiza o inserta las versiones de macOS y Windows de un recurso unificado.
+ */
+export async function updateUnifiedResourceAction(formData: FormData): Promise<ResourceActionResult> {
+  try {
+    const auth = await checkAdmin()
+    if (!auth.ok) return { success: false, error: auth.error }
+
+    const title = (formData.get('title') as string)?.trim()
+    const categoryId = (formData.get('category_id') as string)?.trim()
+    const thumbnailUrl = (formData.get('thumbnail_url') as string)?.trim() || null
+    const description = (formData.get('description') as string)?.trim() || null
+    const software = (formData.get('software') as string)?.trim() || null
+    const isRestricted = formData.get('is_restricted') === 'true' || formData.get('is_restricted') === 'on'
+
+    const macId = (formData.get('mac_id') as string)?.trim()
+    const macDownloadUrl = (formData.get('mac_download_url') as string)?.trim()
+    const macVersion = (formData.get('mac_version') as string)?.trim() || '1.0'
+    const macFileName = (formData.get('mac_file_name') as string)?.trim()
+    const macFileSize = (formData.get('mac_file_size') as string)?.trim()
+    const macDelete = formData.get('mac_delete') === 'true'
+
+    const winId = (formData.get('win_id') as string)?.trim()
+    const winDownloadUrl = (formData.get('win_download_url') as string)?.trim()
+    const winVersion = (formData.get('win_version') as string)?.trim() || '1.0'
+    const winFileName = (formData.get('win_file_name') as string)?.trim()
+    const winFileSize = (formData.get('win_file_size') as string)?.trim()
+    const winDelete = formData.get('win_delete') === 'true'
+
+    if (!title || title.length < 2) {
+      return { success: false, error: 'El título debe tener al menos 2 caracteres.' }
+    }
+
+    const baseSlug = slugify(title)
+
+    // 1. Manejo macOS
+    if (macDelete && macId) {
+      await auth.admin.from('resources').delete().eq('id', macId)
+    } else if (macId) {
+      // Actualizar registro macOS existente
+      const updatePayload: Record<string, any> = {
+        title,
+        description,
+        thumbnail_url: thumbnailUrl,
+        software,
+        version: macVersion,
+        is_restricted: isRestricted,
+        tags: ['macos'],
+        updated_at: new Date().toISOString(),
+      }
+      if (macDownloadUrl) updatePayload.storage_path = extractDriveId(macDownloadUrl)
+      if (macFileName) {
+        updatePayload.file_name = macFileName
+        const extParts = macFileName.split('.')
+        if (extParts.length > 1) updatePayload.file_extension = extParts.pop()!.toLowerCase()
+      }
+      if (macFileSize) updatePayload.file_size = parseFileSizeToBytes(macFileSize)
+
+      await auth.admin.from('resources').update(updatePayload).eq('id', macId)
+    } else if (macDownloadUrl && categoryId) {
+      // Insertar nuevo registro macOS para este recurso
+      const extParts = (macFileName || `${title}_macOS.dmg`).split('.')
+      const fileExtension = extParts.length > 1 ? extParts.pop()!.toLowerCase() : 'dmg'
+      const uniqueSlug = `${baseSlug}-mac-${Date.now().toString().slice(-4)}`
+
+      await auth.admin.from('resources').insert({
+        title,
+        slug: uniqueSlug,
+        description,
+        thumbnail_url: thumbnailUrl,
+        category_id: categoryId,
+        storage_provider: 'google_drive',
+        storage_path: extractDriveId(macDownloadUrl),
+        file_name: macFileName || `${title}_macOS.dmg`,
+        file_extension: fileExtension,
+        file_size: parseFileSizeToBytes(macFileSize),
+        software,
+        version: macVersion,
+        tags: ['macos'],
+        is_restricted: isRestricted,
+        is_published: true,
+      })
+    }
+
+    // 2. Manejo Windows
+    if (winDelete && winId) {
+      await auth.admin.from('resources').delete().eq('id', winId)
+    } else if (winId) {
+      // Actualizar registro Windows existente
+      const updatePayload: Record<string, any> = {
+        title,
+        description,
+        thumbnail_url: thumbnailUrl,
+        software,
+        version: winVersion,
+        is_restricted: isRestricted,
+        tags: ['windows'],
+        updated_at: new Date().toISOString(),
+      }
+      if (winDownloadUrl) updatePayload.storage_path = extractDriveId(winDownloadUrl)
+      if (winFileName) {
+        updatePayload.file_name = winFileName
+        const extParts = winFileName.split('.')
+        if (extParts.length > 1) updatePayload.file_extension = extParts.pop()!.toLowerCase()
+      }
+      if (winFileSize) updatePayload.file_size = parseFileSizeToBytes(winFileSize)
+
+      await auth.admin.from('resources').update(updatePayload).eq('id', winId)
+    } else if (winDownloadUrl && categoryId) {
+      // Insertar nuevo registro Windows para este recurso
+      const extParts = (winFileName || `${title}_WIN.zip`).split('.')
+      const fileExtension = extParts.length > 1 ? extParts.pop()!.toLowerCase() : 'zip'
+      const uniqueSlug = `${baseSlug}-win-${Date.now().toString().slice(-4)}`
+
+      await auth.admin.from('resources').insert({
+        title,
+        slug: uniqueSlug,
+        description,
+        thumbnail_url: thumbnailUrl,
+        category_id: categoryId,
+        storage_provider: 'google_drive',
+        storage_path: extractDriveId(winDownloadUrl),
+        file_name: winFileName || `${title}_WIN.zip`,
+        file_extension: fileExtension,
+        file_size: parseFileSizeToBytes(winFileSize),
+        software,
+        version: winVersion,
+        tags: ['windows'],
+        is_restricted: isRestricted,
+        is_published: true,
+      })
+    }
+
+    revalidatePath('/academy')
+    revalidatePath('/academy/[slug]', 'page')
+    return { success: true }
+  } catch (err: any) {
+    console.error('[updateUnifiedResourceAction] Exception:', err)
+    return { success: false, error: err?.message || 'Error al actualizar recurso unificado.' }
+  }
+}
+
+/**
+ * Elimina uno o más recursos asociados a una tarjeta unificada.
+ */
+export async function deleteUnifiedResourceAction(ids: string[]): Promise<ResourceActionResult> {
+  try {
+    const auth = await checkAdmin()
+    if (!auth.ok) return { success: false, error: auth.error }
+
+    const validIds = ids.filter(id => Boolean(id?.trim()))
+    if (validIds.length === 0) return { success: false, error: 'No se especificaron recursos para eliminar.' }
+
+    const { error } = await auth.admin.from('resources').delete().in('id', validIds)
+    if (error) {
+      console.error('[deleteUnifiedResourceAction] DB Error:', error)
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/academy')
+    revalidatePath('/academy/[slug]', 'page')
+    return { success: true }
+  } catch (err: any) {
+    console.error('[deleteUnifiedResourceAction] Exception:', err)
+    return { success: false, error: err?.message || 'Error al eliminar recursos.' }
+  }
+}
+
 /**
  * Crea un nuevo recurso dentro de una categoría de La Academia (DAWs, Templates, Presets, Samples, etc.).
  */
@@ -59,19 +346,7 @@ export async function createResourceAction(formData: FormData): Promise<Resource
     const extParts = fileName.split('.')
     const fileExtension = extParts.length > 1 ? extParts.pop()!.toLowerCase() : 'zip'
 
-    // Parse fileSize if in MB/GB/bytes or number
-    let fileSizeBytes: number | null = null
-    if (fileSizeStr) {
-      const cleaned = fileSizeStr.replace(/,/g, '.').trim()
-      const num = parseFloat(cleaned)
-      if (!isNaN(num)) {
-        if (cleaned.toLowerCase().includes('gb')) fileSizeBytes = Math.round(num * 1024 * 1024 * 1024)
-        else if (cleaned.toLowerCase().includes('mb')) fileSizeBytes = Math.round(num * 1024 * 1024)
-        else if (cleaned.toLowerCase().includes('kb')) fileSizeBytes = Math.round(num * 1024)
-        else if (num > 500) fileSizeBytes = Math.round(num)
-        else fileSizeBytes = Math.round(num * 1024 * 1024 * 1024)
-      }
-    }
+    const fileSizeBytes = parseFileSizeToBytes(fileSizeStr)
 
     let tags: string[] = []
     if (platform === 'macos') tags = ['macos']
@@ -167,15 +442,7 @@ export async function updateResourceAction(formData: FormData): Promise<Resource
       }
     }
     if (fileSizeStr) {
-      const cleaned = fileSizeStr.replace(/,/g, '.').trim()
-      const num = parseFloat(cleaned)
-      if (!isNaN(num)) {
-        if (cleaned.toLowerCase().includes('gb')) updatePayload.file_size = Math.round(num * 1024 * 1024 * 1024)
-        else if (cleaned.toLowerCase().includes('mb')) updatePayload.file_size = Math.round(num * 1024 * 1024)
-        else if (cleaned.toLowerCase().includes('kb')) updatePayload.file_size = Math.round(num * 1024)
-        else if (num > 500) updatePayload.file_size = Math.round(num)
-        else updatePayload.file_size = Math.round(num * 1024 * 1024 * 1024)
-      }
+      updatePayload.file_size = parseFileSizeToBytes(fileSizeStr)
     }
 
     const { error } = await auth.admin
@@ -185,7 +452,7 @@ export async function updateResourceAction(formData: FormData): Promise<Resource
 
     if (error) {
       console.error('[updateResourceAction] DB Error:', error)
-      return { success: false, error: `Error al actualizar recurso: ${error.message}` }
+      return { success: false, error: `Error al actualizar: ${error.message}` }
     }
 
     revalidatePath('/academy')
@@ -200,7 +467,7 @@ export async function updateResourceAction(formData: FormData): Promise<Resource
 /**
  * Elimina un recurso por ID.
  */
-export async function deleteResourceAction(resourceId: string): Promise<ResourceActionResult> {
+export async function deleteResourceAction(id: string): Promise<ResourceActionResult> {
   try {
     const auth = await checkAdmin()
     if (!auth.ok) return { success: false, error: auth.error }
@@ -208,11 +475,11 @@ export async function deleteResourceAction(resourceId: string): Promise<Resource
     const { error } = await auth.admin
       .from('resources')
       .delete()
-      .eq('id', resourceId)
+      .eq('id', id)
 
     if (error) {
       console.error('[deleteResourceAction] DB Error:', error)
-      return { success: false, error: 'No se pudo eliminar el recurso.' }
+      return { success: false, error: `Error al eliminar: ${error.message}` }
     }
 
     revalidatePath('/academy')
@@ -220,7 +487,7 @@ export async function deleteResourceAction(resourceId: string): Promise<Resource
     return { success: true }
   } catch (err: any) {
     console.error('[deleteResourceAction] Exception:', err)
-    return { success: false, error: 'Error inesperado al eliminar el recurso.' }
+    return { success: false, error: err?.message || 'Error al eliminar el recurso.' }
   }
 }
 

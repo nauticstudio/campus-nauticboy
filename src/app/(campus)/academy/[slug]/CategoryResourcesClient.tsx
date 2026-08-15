@@ -14,6 +14,7 @@ import { InlineCreateResourceModal } from '@/components/admin/InlineCreateResour
 import { InlineEditResourceModal } from '@/components/admin/InlineEditResourceModal'
 import { formatFileSize } from '@/lib/utils'
 import { getCoverStyle } from '@/lib/utils/cover-style'
+import { AppleLogo, WindowsLogo } from '@/components/icons/PlatformLogos'
 
 export interface ResourceItem {
   id: string
@@ -29,6 +30,61 @@ export interface ResourceItem {
   tags?: string[] | null
   storage_path?: string | null
   storage_provider?: string | null
+}
+
+interface UnifiedResourceGroup {
+  groupKey: string
+  title: string
+  software: string | null
+  thumbnail_url: string | null
+  description: string | null
+  category_id: string
+  is_published: boolean
+  macResource?: ResourceItem | null
+  winResource?: ResourceItem | null
+  universalResource?: ResourceItem | null
+}
+
+function groupResources(resources: ResourceItem[], categoryIdFallback: string): UnifiedResourceGroup[] {
+  const map = new Map<string, UnifiedResourceGroup>()
+
+  for (const r of resources) {
+    const key = r.title.trim().toLowerCase()
+    let group = map.get(key)
+    if (!group) {
+      group = {
+        groupKey: key,
+        title: r.title,
+        software: r.software ?? null,
+        thumbnail_url: r.thumbnail_url ?? null,
+        description: r.description ?? null,
+        category_id: categoryIdFallback,
+        is_published: r.is_published,
+        macResource: null,
+        winResource: null,
+        universalResource: null,
+      }
+      map.set(key, group)
+    }
+
+    const isMac = r.tags?.includes('macos')
+    const isWin = r.tags?.includes('windows')
+
+    if (isMac && !isWin) {
+      group.macResource = r
+    } else if (isWin && !isMac) {
+      group.winResource = r
+    } else {
+      group.universalResource = r
+    }
+
+    if (!group.thumbnail_url && r.thumbnail_url) group.thumbnail_url = r.thumbnail_url
+    if (!group.software && r.software) group.software = r.software
+    if (!group.description && r.description) group.description = r.description
+    if (r.is_published) group.is_published = true
+  }
+
+  return Array.from(map.values())
 }
 
 export function CategoryResourcesClient({
@@ -59,21 +115,23 @@ export function CategoryResourcesClient({
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPlatform, setSelectedPlatform] = useState<'all' | 'macos' | 'windows'>('all')
 
-  const hasMacResources = resources.some(r => r.tags?.includes('macos'))
-  const hasWinResources = resources.some(r => r.tags?.includes('windows'))
-  const showPlatformFilter = hasMacResources || hasWinResources
+  const groups = groupResources(resources, categoryMeta?.id || '')
 
-  const filteredResources = resources
-    .filter(r => isAdmin || r.is_published)
-    .filter(r => {
+  const hasMacResources = groups.some(g => Boolean(g.macResource || g.universalResource))
+  const hasWinResources = groups.some(g => Boolean(g.winResource || g.universalResource))
+  const showPlatformFilter = hasMacResources && hasWinResources
+
+  const filteredGroups = groups
+    .filter(g => isAdmin || g.is_published)
+    .filter(g => {
       const matchSearch =
-        r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (r.software && r.software.toLowerCase().includes(searchTerm.toLowerCase()))
+        g.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (g.software && g.software.toLowerCase().includes(searchTerm.toLowerCase()))
       if (!matchSearch) return false
 
       if (selectedPlatform === 'all') return true
-      if (selectedPlatform === 'macos') return r.tags?.includes('macos')
-      if (selectedPlatform === 'windows') return r.tags?.includes('windows')
+      if (selectedPlatform === 'macos') return Boolean(g.macResource || g.universalResource)
+      if (selectedPlatform === 'windows') return Boolean(g.winResource || g.universalResource)
       return true
     })
 
@@ -202,7 +260,8 @@ export function CategoryResourcesClient({
                 : 'bg-ink-950/70 border border-ink-800 text-ink-300 hover:text-white hover:bg-ink-900'
             }`}
           >
-            <span> macOS</span>
+            <AppleLogo className="w-3.5 h-3.5" />
+            <span>macOS</span>
           </button>
           <button
             type="button"
@@ -213,7 +272,8 @@ export function CategoryResourcesClient({
                 : 'bg-ink-950/70 border border-ink-800 text-ink-300 hover:text-white hover:bg-ink-900'
             }`}
           >
-            <span>🪟 Windows</span>
+            <WindowsLogo className="w-3.5 h-3.5" />
+            <span>Windows</span>
           </button>
         </div>
       )}
@@ -222,8 +282,8 @@ export function CategoryResourcesClient({
         <section aria-label="Catálogo de plugins">{softwareSlot}</section>
       )}
 
-      {/* Resource Cards */}
-      {filteredResources.length === 0 ? (
+      {/* Unified Resource Cards */}
+      {filteredGroups.length === 0 ? (
         !softwareSlot && (
           <div className="glass-card rounded-[var(--radius)] p-12 text-center space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-coral-500/15 text-coral-400 flex items-center justify-center mx-auto">
@@ -245,95 +305,145 @@ export function CategoryResourcesClient({
         )
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
-          {filteredResources.map(res => (
-            <div
-              key={res.id}
-              className={`glass-card glass-card-hover rounded-[var(--radius)] aspect-square overflow-hidden flex flex-col justify-between p-5 relative group border border-ink-800/80 bg-ink-950/75 hover:bg-ink-900/90 hover:border-coral-500/40 transition-all ${
-                !res.is_published ? 'opacity-70 grayscale-[30%]' : ''
-              }`}
-            >
-              {/* Top Row: Tags & Admin Action */}
-              <div className="flex items-center justify-between gap-2 z-10">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-coral-500/15 text-coral-300 border border-coral-500/30">
-                    {res.software || 'General'}
-                  </span>
-                  {res.tags?.includes('macos') && !res.tags?.includes('windows') && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-ink-900/90 text-ink-200 border border-ink-700/60 font-mono">
-                       macOS
-                    </span>
-                  )}
-                  {res.tags?.includes('windows') && !res.tags?.includes('macos') && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-950/40 text-cyan-300 border border-cyan-500/30 font-mono">
-                      🪟 WIN
-                    </span>
-                  )}
-                  {res.tags?.includes('macos') && res.tags?.includes('windows') && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-ink-900/90 text-ink-300 border border-ink-800 font-mono">
-                       • 🪟
-                    </span>
-                  )}
-                  {res.version && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-ink-900 text-ink-400 border border-ink-800 font-mono">
-                      v{res.version}
-                    </span>
-                  )}
-                </div>
+          {filteredGroups.map(group => {
+            const hasBoth = Boolean(group.macResource && group.winResource)
+            const macItem = group.macResource
+            const winItem = group.winResource
+            const uniItem = group.universalResource
 
-                {isAdmin && (
-                  <div className="bg-ink-900/80 backdrop-blur rounded-xl border border-ink-800 shrink-0">
-                    <InlineEditResourceModal resource={res} />
+            return (
+              <div
+                key={group.groupKey}
+                className={`glass-card glass-card-hover rounded-[var(--radius)] aspect-square overflow-hidden flex flex-col justify-between p-5 relative group border border-ink-800/80 bg-ink-950/75 hover:bg-ink-900/90 hover:border-coral-500/40 transition-all ${
+                  !group.is_published ? 'opacity-70 grayscale-[30%]' : ''
+                }`}
+              >
+                {/* Top Row: Software Tag & Admin Edit */}
+                <div className="flex items-center justify-between gap-2 z-10">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-coral-500/15 text-coral-300 border border-coral-500/30">
+                      {group.software || 'General'}
+                    </span>
                   </div>
-                )}
-              </div>
 
-              {/* Center: Square Icon & Info */}
-              <div className="flex flex-col items-center justify-center text-center my-auto py-1">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-ink-900/90 border border-ink-800/80 p-2.5 shadow-inner flex items-center justify-center group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
-                  {res.thumbnail_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={res.thumbnail_url}
-                      alt={res.title}
-                      className="w-full h-full object-contain filter drop-shadow-md"
-                    />
-                  ) : (
-                    <Package className="w-8 h-8 text-coral-400" />
+                  {isAdmin && (
+                    <div className="bg-ink-900/80 backdrop-blur rounded-xl border border-ink-800 shrink-0">
+                      <InlineEditResourceModal group={group} />
+                    </div>
                   )}
                 </div>
 
-                <h3 className="font-bold text-base sm:text-lg text-ink-50 group-hover:text-coral-400 transition-colors tracking-tight font-display text-center truncate w-full mt-2.5">
-                  {res.title}
-                </h3>
-                <p className="text-[11px] text-ink-400 text-center line-clamp-1 max-w-[90%] mx-auto mt-0.5">
-                  {res.description || 'Sin descripción.'}
-                </p>
-              </div>
+                {/* Center: Square Icon & Title & Description */}
+                <div className="flex flex-col items-center justify-center text-center my-auto py-1">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-ink-900/90 border border-ink-800/80 p-2.5 shadow-inner flex items-center justify-center group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
+                    {group.thumbnail_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={group.thumbnail_url}
+                        alt={group.title}
+                        className="w-full h-full object-contain filter drop-shadow-md"
+                      />
+                    ) : (
+                      <Package className="w-8 h-8 text-coral-400" />
+                    )}
+                  </div>
 
-              {/* Bottom Row: File Info & Download Button */}
-              <div className="pt-3 border-t border-ink-800/70 flex items-center justify-between gap-2 z-10">
-                <div className="min-w-0 flex-1">
-                  <span className="text-[10px] font-medium text-ink-300 truncate block font-mono">
-                    {res.file_size ? formatFileSize(res.file_size) : res.file_name}
-                  </span>
+                  <h3 className="font-bold text-base sm:text-lg text-ink-50 group-hover:text-coral-400 transition-colors tracking-tight font-display text-center truncate w-full mt-2.5">
+                    {group.title}
+                  </h3>
+                  <p className="text-[11px] text-ink-400 text-center line-clamp-1 max-w-[90%] mx-auto mt-0.5">
+                    {group.description || 'Sin descripción.'}
+                  </p>
                 </div>
 
-                <a
-                  href={`/api/download/${res.id}`}
-                  download={res.file_name}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-coral-500 text-white font-bold text-xs shadow-md shadow-coral-500/20 hover:bg-coral-600 hover:scale-105 active:scale-95 transition-all group/btn shrink-0"
-                >
-                  <Download className="w-3.5 h-3.5 group-hover/btn:translate-y-0.5 transition-transform" />
-                  <span>Descargar</span>
-                </a>
+                {/* Bottom Row: Dual Platform Download Action Buttons */}
+                <div className="pt-3 border-t border-ink-800/70 z-10 w-full">
+                  {hasBoth ? (
+                    <div className="grid grid-cols-2 gap-2 w-full">
+                      {/* Mac Button */}
+                      <a
+                        href={`/api/download/${macItem!.id}`}
+                        download={macItem!.file_name}
+                        className="inline-flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/20 transition-all active:scale-95 shadow-sm truncate"
+                        title={`Descargar macOS v${macItem!.version || ''} (${formatFileSize(macItem!.file_size)})`}
+                      >
+                        <AppleLogo className="w-3.5 h-3.5 shrink-0 text-white" />
+                        <span className="truncate">Mac</span>
+                        {macItem!.file_size && (
+                          <span className="text-[10px] text-ink-400 font-mono hidden sm:inline">
+                            ({formatFileSize(macItem!.file_size)})
+                          </span>
+                        )}
+                      </a>
+
+                      {/* Windows Button */}
+                      <a
+                        href={`/api/download/${winItem!.id}`}
+                        download={winItem!.file_name}
+                        className="inline-flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-cyan-950/40 hover:bg-cyan-900/60 text-cyan-300 font-bold text-xs border border-cyan-500/40 transition-all active:scale-95 shadow-sm truncate"
+                        title={`Descargar Windows v${winItem!.version || ''} (${formatFileSize(winItem!.file_size)})`}
+                      >
+                        <WindowsLogo className="w-3.5 h-3.5 shrink-0 text-cyan-300" />
+                        <span className="truncate">Win</span>
+                        {winItem!.file_size && (
+                          <span className="text-[10px] text-cyan-400/80 font-mono hidden sm:inline">
+                            ({formatFileSize(winItem!.file_size)})
+                          </span>
+                        )}
+                      </a>
+                    </div>
+                  ) : macItem ? (
+                    <div className="flex items-center justify-between gap-2 w-full">
+                      <span className="text-[10px] font-mono text-ink-400 truncate block">
+                        v{macItem.version || '1.0'} • {formatFileSize(macItem.file_size)}
+                      </span>
+                      <a
+                        href={`/api/download/${macItem.id}`}
+                        download={macItem.file_name}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs border border-white/20 transition-all active:scale-95 shadow-sm shrink-0"
+                        title={`Descargar macOS (${formatFileSize(macItem.file_size)})`}
+                      >
+                        <AppleLogo className="w-3.5 h-3.5 text-white" />
+                        <span>Descargar Mac</span>
+                      </a>
+                    </div>
+                  ) : winItem ? (
+                    <div className="flex items-center justify-between gap-2 w-full">
+                      <span className="text-[10px] font-mono text-ink-400 truncate block">
+                        v{winItem.version || '1.0'} • {formatFileSize(winItem.file_size)}
+                      </span>
+                      <a
+                        href={`/api/download/${winItem.id}`}
+                        download={winItem.file_name}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-950/50 hover:bg-cyan-900/70 text-cyan-300 font-bold text-xs border border-cyan-500/40 transition-all active:scale-95 shadow-sm shrink-0"
+                        title={`Descargar Windows (${formatFileSize(winItem.file_size)})`}
+                      >
+                        <WindowsLogo className="w-3.5 h-3.5 text-cyan-300" />
+                        <span>Descargar Win</span>
+                      </a>
+                    </div>
+                  ) : uniItem ? (
+                    <div className="flex items-center justify-between gap-2 w-full">
+                      <span className="text-[10px] font-mono text-ink-400 truncate block">
+                        {formatFileSize(uniItem.file_size) || uniItem.file_name}
+                      </span>
+                      <a
+                        href={`/api/download/${uniItem.id}`}
+                        download={uniItem.file_name}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-coral-500 text-white font-bold text-xs shadow-md shadow-coral-500/20 hover:bg-coral-600 transition-all active:scale-95 shrink-0"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Descargar</span>
+                      </a>
+                    </div>
+                  ) : null}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
     </div>
   )
 }
-
-
