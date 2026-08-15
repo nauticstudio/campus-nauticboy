@@ -40,6 +40,7 @@ export async function createResourceAction(formData: FormData): Promise<Resource
     const description = (formData.get('description') as string)?.trim() || null
     const software = (formData.get('software') as string)?.trim() || null
     const version = (formData.get('version') as string)?.trim() || '1.0'
+    const platform = (formData.get('platform') as string)?.trim() || 'all'
     const fileSizeStr = (formData.get('file_size') as string)?.trim() || null
     const isRestricted = formData.get('is_restricted') === 'true' || formData.get('is_restricted') === 'on'
     const isPublished = formData.get('is_published') !== 'false'
@@ -61,14 +62,21 @@ export async function createResourceAction(formData: FormData): Promise<Resource
     // Parse fileSize if in MB/GB/bytes or number
     let fileSizeBytes: number | null = null
     if (fileSizeStr) {
-      const num = parseFloat(fileSizeStr)
+      const cleaned = fileSizeStr.replace(/,/g, '.').trim()
+      const num = parseFloat(cleaned)
       if (!isNaN(num)) {
-        if (fileSizeStr.toLowerCase().includes('gb')) fileSizeBytes = Math.round(num * 1024 * 1024 * 1024)
-        else if (fileSizeStr.toLowerCase().includes('mb')) fileSizeBytes = Math.round(num * 1024 * 1024)
-        else if (fileSizeStr.toLowerCase().includes('kb')) fileSizeBytes = Math.round(num * 1024)
-        else fileSizeBytes = Math.round(num)
+        if (cleaned.toLowerCase().includes('gb')) fileSizeBytes = Math.round(num * 1024 * 1024 * 1024)
+        else if (cleaned.toLowerCase().includes('mb')) fileSizeBytes = Math.round(num * 1024 * 1024)
+        else if (cleaned.toLowerCase().includes('kb')) fileSizeBytes = Math.round(num * 1024)
+        else if (num > 500) fileSizeBytes = Math.round(num)
+        else fileSizeBytes = Math.round(num * 1024 * 1024 * 1024)
       }
     }
+
+    let tags: string[] = []
+    if (platform === 'macos') tags = ['macos']
+    else if (platform === 'windows') tags = ['windows']
+    else tags = ['macos', 'windows']
 
     const baseSlug = slugify(title)
     const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`
@@ -88,6 +96,7 @@ export async function createResourceAction(formData: FormData): Promise<Resource
         file_size: fileSizeBytes,
         software,
         version,
+        tags,
         is_restricted: isRestricted,
         is_published: isPublished,
       })
@@ -124,11 +133,17 @@ export async function updateResourceAction(formData: FormData): Promise<Resource
     const description = (formData.get('description') as string)?.trim() || null
     const software = (formData.get('software') as string)?.trim() || null
     const version = (formData.get('version') as string)?.trim() || '1.0'
+    const platform = (formData.get('platform') as string)?.trim() || 'all'
     const fileSizeStr = (formData.get('file_size') as string)?.trim() || null
     const isRestricted = formData.get('is_restricted') === 'true' || formData.get('is_restricted') === 'on'
 
     if (!id) return { success: false, error: 'ID de recurso no válido.' }
     if (!title || title.length < 2) return { success: false, error: 'El título debe tener al menos 2 caracteres.' }
+
+    let tags: string[] = []
+    if (platform === 'macos') tags = ['macos']
+    else if (platform === 'windows') tags = ['windows']
+    else tags = ['macos', 'windows']
 
     const updatePayload: Record<string, any> = {
       title,
@@ -136,6 +151,7 @@ export async function updateResourceAction(formData: FormData): Promise<Resource
       thumbnail_url: thumbnailUrl,
       software,
       version,
+      tags,
       is_restricted: isRestricted,
       updated_at: new Date().toISOString(),
     }
@@ -151,12 +167,14 @@ export async function updateResourceAction(formData: FormData): Promise<Resource
       }
     }
     if (fileSizeStr) {
-      const num = parseFloat(fileSizeStr)
+      const cleaned = fileSizeStr.replace(/,/g, '.').trim()
+      const num = parseFloat(cleaned)
       if (!isNaN(num)) {
-        if (fileSizeStr.toLowerCase().includes('gb')) updatePayload.file_size = Math.round(num * 1024 * 1024 * 1024)
-        else if (fileSizeStr.toLowerCase().includes('mb')) updatePayload.file_size = Math.round(num * 1024 * 1024)
-        else if (fileSizeStr.toLowerCase().includes('kb')) updatePayload.file_size = Math.round(num * 1024)
-        else updatePayload.file_size = Math.round(num)
+        if (cleaned.toLowerCase().includes('gb')) updatePayload.file_size = Math.round(num * 1024 * 1024 * 1024)
+        else if (cleaned.toLowerCase().includes('mb')) updatePayload.file_size = Math.round(num * 1024 * 1024)
+        else if (cleaned.toLowerCase().includes('kb')) updatePayload.file_size = Math.round(num * 1024)
+        else if (num > 500) updatePayload.file_size = Math.round(num)
+        else updatePayload.file_size = Math.round(num * 1024 * 1024 * 1024)
       }
     }
 

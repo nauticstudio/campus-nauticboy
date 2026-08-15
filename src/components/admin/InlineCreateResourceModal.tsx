@@ -26,12 +26,14 @@ export function InlineCreateResourceModal({
   const [loading, setLoading] = useState(false)
   const [thumbnailUrl, setThumbnailUrl] = useState('')
   const [imgError, setImgError] = useState(false)
+  const [platform, setPlatform] = useState<'macos' | 'windows' | 'all'>('all')
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     const formData = new FormData(e.currentTarget)
     formData.append('category_id', categoryId)
+    formData.append('platform', platform)
     const res = await createResourceAction(formData)
     setLoading(false)
     if (res.success) {
@@ -70,8 +72,50 @@ export function InlineCreateResourceModal({
                 name="title"
                 required
                 className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500"
-                placeholder="Ej. Ableton Live 12 Suite / FL Studio 24 / Plantilla Melodic Techno"
+                placeholder="Ej. FL Studio 24 / Ableton Live 12 Suite"
               />
+            </div>
+
+            {/* Plataforma / Sistema Operativo */}
+            <div>
+              <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                <Cpu className="w-3.5 h-3.5 text-coral-400" /> Plataforma / Sistema Operativo
+              </label>
+              <div className="grid grid-cols-3 gap-2 mt-1">
+                <button
+                  type="button"
+                  onClick={() => setPlatform('macos')}
+                  className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    platform === 'macos'
+                      ? 'bg-coral-500/20 border-coral-500 text-coral-300 shadow-sm'
+                      : 'bg-ink-900 border-ink-800 text-ink-400 hover:text-ink-200'
+                  }`}
+                >
+                  <span> macOS</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPlatform('windows')}
+                  className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    platform === 'windows'
+                      ? 'bg-coral-500/20 border-coral-500 text-coral-300 shadow-sm'
+                      : 'bg-ink-900 border-ink-800 text-ink-400 hover:text-ink-200'
+                  }`}
+                >
+                  <span>🪟 Windows</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPlatform('all')}
+                  className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    platform === 'all'
+                      ? 'bg-coral-500/20 border-coral-500 text-coral-300 shadow-sm'
+                      : 'bg-ink-900 border-ink-800 text-ink-400 hover:text-ink-200'
+                  }`}
+                >
+                  <span>Ambos / Multi</span>
+                </button>
+              </div>
             </div>
 
             <div>
@@ -132,18 +176,18 @@ export function InlineCreateResourceModal({
                   name="file_name"
                   required
                   className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
-                  placeholder="ej. paquete_v1.zip"
+                  placeholder="ej. FL_Studio_v24_macOS.zip"
                 />
               </div>
 
               <div>
                 <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
-                  <Tag className="w-3.5 h-3.5 text-coral-400" /> Tamaño (Opcional)
+                  <Tag className="w-3.5 h-3.5 text-coral-400" /> Tamaño (ej. 1.15 GB / 450 MB)
                 </label>
                 <Input
                   name="file_size"
                   className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 text-xs"
-                  placeholder="Ej. 1.2 GB / 45 MB"
+                  placeholder="Ej. 1.15 GB"
                 />
               </div>
             </div>
@@ -156,7 +200,7 @@ export function InlineCreateResourceModal({
                 <Input
                   name="software"
                   className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 text-xs"
-                  placeholder="Ej. Ableton, FL Studio, General"
+                  placeholder="Ej. FL Studio"
                 />
               </div>
 
@@ -168,7 +212,7 @@ export function InlineCreateResourceModal({
                   name="version"
                   defaultValue="1.0"
                   className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 text-xs"
-                  placeholder="1.0"
+                  placeholder="24.1"
                 />
               </div>
             </div>

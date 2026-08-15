@@ -12,6 +12,7 @@ import {
 import { CategoryEditButton } from '@/components/admin/CategoryModal'
 import { InlineCreateResourceModal } from '@/components/admin/InlineCreateResourceModal'
 import { InlineEditResourceModal } from '@/components/admin/InlineEditResourceModal'
+import { formatFileSize } from '@/lib/utils'
 import { getCoverStyle } from '@/lib/utils/cover-style'
 
 export interface ResourceItem {
@@ -25,6 +26,7 @@ export interface ResourceItem {
   is_published: boolean
   version?: string | null
   thumbnail_url?: string | null
+  tags?: string[] | null
 }
 
 export function CategoryResourcesClient({
@@ -53,10 +55,25 @@ export function CategoryResourcesClient({
 }) {
   const [resources] = useState<ResourceItem[]>(initialResources)
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedPlatform, setSelectedPlatform] = useState<'all' | 'macos' | 'windows'>('all')
+
+  const hasMacResources = resources.some(r => r.tags?.includes('macos'))
+  const hasWinResources = resources.some(r => r.tags?.includes('windows'))
+  const showPlatformFilter = hasMacResources || hasWinResources
 
   const filteredResources = resources
     .filter(r => isAdmin || r.is_published)
-    .filter(r => r.title.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(r => {
+      const matchSearch =
+        r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (r.software && r.software.toLowerCase().includes(searchTerm.toLowerCase()))
+      if (!matchSearch) return false
+
+      if (selectedPlatform === 'all') return true
+      if (selectedPlatform === 'macos') return r.tags?.includes('macos')
+      if (selectedPlatform === 'windows') return r.tags?.includes('windows')
+      return true
+    })
 
   return (
     <div className="p-6 md:p-10 lg:p-12 space-y-10 max-w-7xl mx-auto">
@@ -160,6 +177,45 @@ export function CategoryResourcesClient({
         </div>
       )}
 
+      {/* Platform Filter Tabs (macOS / Windows / Todos) */}
+      {!softwareSlot && showPlatformFilter && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <button
+            type="button"
+            onClick={() => setSelectedPlatform('all')}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              selectedPlatform === 'all'
+                ? 'bg-coral-500 text-white shadow-md shadow-coral-500/20'
+                : 'bg-ink-950/70 border border-ink-800 text-ink-300 hover:text-white hover:bg-ink-900'
+            }`}
+          >
+            Todos
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedPlatform('macos')}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              selectedPlatform === 'macos'
+                ? 'bg-coral-500 text-white shadow-md shadow-coral-500/20'
+                : 'bg-ink-950/70 border border-ink-800 text-ink-300 hover:text-white hover:bg-ink-900'
+            }`}
+          >
+            <span> macOS</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedPlatform('windows')}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              selectedPlatform === 'windows'
+                ? 'bg-coral-500 text-white shadow-md shadow-coral-500/20'
+                : 'bg-ink-950/70 border border-ink-800 text-ink-300 hover:text-white hover:bg-ink-900'
+            }`}
+          >
+            <span>🪟 Windows</span>
+          </button>
+        </div>
+      )}
+
       {softwareSlot && (
         <section aria-label="Catálogo de plugins">{softwareSlot}</section>
       )}
@@ -196,10 +252,25 @@ export function CategoryResourcesClient({
             >
               {/* Top Row: Tags & Admin Action */}
               <div className="flex items-center justify-between gap-2 z-10">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-coral-500/15 text-coral-300 border border-coral-500/30">
                     {res.software || 'General'}
                   </span>
+                  {res.tags?.includes('macos') && !res.tags?.includes('windows') && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-ink-900/90 text-ink-200 border border-ink-700/60 font-mono">
+                       macOS
+                    </span>
+                  )}
+                  {res.tags?.includes('windows') && !res.tags?.includes('macos') && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-950/40 text-cyan-300 border border-cyan-500/30 font-mono">
+                      🪟 WIN
+                    </span>
+                  )}
+                  {res.tags?.includes('macos') && res.tags?.includes('windows') && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-ink-900/90 text-ink-300 border border-ink-800 font-mono">
+                       • 🪟
+                    </span>
+                  )}
                   {res.version && (
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-ink-900 text-ink-400 border border-ink-800 font-mono">
                       v{res.version}
@@ -208,7 +279,7 @@ export function CategoryResourcesClient({
                 </div>
 
                 {isAdmin && (
-                  <div className="bg-ink-900/80 backdrop-blur rounded-xl border border-ink-800">
+                  <div className="bg-ink-900/80 backdrop-blur rounded-xl border border-ink-800 shrink-0">
                     <InlineEditResourceModal resource={res} />
                   </div>
                 )}
@@ -240,8 +311,8 @@ export function CategoryResourcesClient({
               {/* Bottom Row: File Info & Download Button */}
               <div className="pt-3 border-t border-ink-800/70 flex items-center justify-between gap-2 z-10">
                 <div className="min-w-0 flex-1">
-                  <span className="text-[10px] font-medium text-ink-400 truncate block font-mono">
-                    {res.file_size ? `${(res.file_size / (1024 * 1024)).toFixed(1)} MB` : res.file_name}
+                  <span className="text-[10px] font-medium text-ink-300 truncate block font-mono">
+                    {res.file_size ? formatFileSize(res.file_size) : res.file_name}
                   </span>
                 </div>
 

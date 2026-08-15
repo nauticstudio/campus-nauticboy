@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { updateResourceAction, deleteResourceAction } from '@/app/actions/resources'
+import { formatFileSize } from '@/lib/utils'
 
 export function InlineEditResourceModal({
   resource,
@@ -28,6 +29,7 @@ export function InlineEditResourceModal({
     version?: string | null
     storage_path?: string
     thumbnail_url?: string | null
+    tags?: string[] | null
   }
 }) {
   const [open, setOpen] = useState(false)
@@ -36,11 +38,19 @@ export function InlineEditResourceModal({
   const [thumbnailUrl, setThumbnailUrl] = useState(resource.thumbnail_url || '')
   const [imgError, setImgError] = useState(false)
 
+  const initialPlatform = resource.tags?.includes('macos') && !resource.tags?.includes('windows')
+    ? 'macos'
+    : resource.tags?.includes('windows') && !resource.tags?.includes('macos')
+    ? 'windows'
+    : 'all'
+  const [platform, setPlatform] = useState<'macos' | 'windows' | 'all'>(initialPlatform)
+
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     const formData = new FormData(e.currentTarget)
     formData.append('id', resource.id)
+    formData.append('platform', platform)
     const res = await updateResourceAction(formData)
     setLoading(false)
     if (res.success) {
@@ -66,9 +76,7 @@ export function InlineEditResourceModal({
     }
   }
 
-  const humanSize = resource.file_size
-    ? `${(resource.file_size / (1024 * 1024)).toFixed(1)} MB`
-    : ''
+  const humanSize = formatFileSize(resource.file_size)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -88,7 +96,7 @@ export function InlineEditResourceModal({
               Editar Recurso
             </DialogTitle>
             <DialogDescription className="text-xs font-medium text-ink-400">
-              Modifica los detalles, imagen o enlace de descarga de este material.
+              Modifica los detalles, imagen, plataforma o enlace de descarga de este material.
             </DialogDescription>
           </DialogHeader>
 
@@ -103,6 +111,48 @@ export function InlineEditResourceModal({
                 required
                 className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500"
               />
+            </div>
+
+            {/* Plataforma / Sistema Operativo */}
+            <div>
+              <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                <Cpu className="w-3.5 h-3.5 text-coral-400" /> Plataforma / Sistema Operativo
+              </label>
+              <div className="grid grid-cols-3 gap-2 mt-1">
+                <button
+                  type="button"
+                  onClick={() => setPlatform('macos')}
+                  className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    platform === 'macos'
+                      ? 'bg-coral-500/20 border-coral-500 text-coral-300 shadow-sm'
+                      : 'bg-ink-900 border-ink-800 text-ink-400 hover:text-ink-200'
+                  }`}
+                >
+                  <span> macOS</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPlatform('windows')}
+                  className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    platform === 'windows'
+                      ? 'bg-coral-500/20 border-coral-500 text-coral-300 shadow-sm'
+                      : 'bg-ink-900 border-ink-800 text-ink-400 hover:text-ink-200'
+                  }`}
+                >
+                  <span>🪟 Windows</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPlatform('all')}
+                  className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    platform === 'all'
+                      ? 'bg-coral-500/20 border-coral-500 text-coral-300 shadow-sm'
+                      : 'bg-ink-900 border-ink-800 text-ink-400 hover:text-ink-200'
+                  }`}
+                >
+                  <span>Ambos / Multi</span>
+                </button>
+              </div>
             </div>
 
             <div>
@@ -165,13 +215,13 @@ export function InlineEditResourceModal({
 
               <div>
                 <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
-                  <Tag className="w-3.5 h-3.5 text-coral-400" /> Tamaño
+                  <Tag className="w-3.5 h-3.5 text-coral-400" /> Tamaño (ej. 1.15 GB / 450 MB)
                 </label>
                 <Input
                   name="file_size"
                   defaultValue={humanSize}
                   className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 text-xs"
-                  placeholder="Ej. 120 MB"
+                  placeholder="Ej. 1.15 GB"
                 />
               </div>
             </div>
@@ -185,7 +235,7 @@ export function InlineEditResourceModal({
                   name="software"
                   defaultValue={resource.software || ''}
                   className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 text-xs"
-                  placeholder="Ej. Ableton Live"
+                  placeholder="Ej. FL Studio"
                 />
               </div>
 
