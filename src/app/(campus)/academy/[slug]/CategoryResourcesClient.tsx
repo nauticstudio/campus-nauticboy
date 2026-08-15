@@ -314,7 +314,7 @@ export function CategoryResourcesClient({
             return (
               <div
                 key={group.groupKey}
-                className={`glass-card glass-card-hover rounded-[var(--radius)] aspect-square overflow-hidden flex flex-col justify-between p-5 relative group border border-ink-800/80 bg-ink-950/75 hover:bg-ink-900/90 hover:border-coral-500/40 transition-all ${
+                className={`glass-card glass-card-hover rounded-[var(--radius)] min-h-[350px] overflow-hidden flex flex-col justify-between p-5 relative group border border-ink-800/80 bg-ink-950/75 hover:bg-ink-900/90 hover:border-coral-500/40 transition-all ${
                   !group.is_published ? 'opacity-70 grayscale-[30%]' : ''
                 }`}
               >
@@ -334,8 +334,8 @@ export function CategoryResourcesClient({
                 </div>
 
                 {/* Center: Square Icon & Title & Description */}
-                <div className="flex flex-col items-center justify-center text-center my-auto py-1">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-ink-900/90 border border-ink-800/80 p-2.5 shadow-inner flex items-center justify-center group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
+                <div className="flex flex-col items-center justify-center text-center my-auto py-2">
+                  <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-ink-900/90 border border-ink-800/80 p-2 shadow-inner flex items-center justify-center group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
                     {group.thumbnail_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -359,73 +359,77 @@ export function CategoryResourcesClient({
                 {/* Bottom Row: Dual Platform Download Action Buttons */}
                 <div className="pt-3 border-t border-ink-800/70 z-10 w-full">
                   {hasBoth ? (
-                    <div className="grid grid-cols-2 gap-2 w-full">
+                    <div className="grid grid-cols-2 gap-2.5 w-full">
                       {/* Mac Button */}
                       <a
                         href={`/api/download/${macItem!.id}`}
                         download={macItem!.file_name}
-                        className="inline-flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/20 transition-all active:scale-95 shadow-sm truncate"
+                        className="flex flex-col items-center justify-center py-2 px-2 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/20 transition-all active:scale-95 group/mac shadow-sm text-center cursor-pointer"
                         title={`Descargar macOS v${macItem!.version || ''} (${formatFileSize(macItem!.file_size)})`}
                       >
-                        <AppleLogo className="w-3.5 h-3.5 shrink-0 text-white" />
-                        <span className="truncate">Mac</span>
-                        {macItem!.file_size && (
-                          <span className="text-[10px] text-ink-400 font-mono hidden sm:inline">
-                            ({formatFileSize(macItem!.file_size)})
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1.5 font-bold text-xs">
+                          <AppleLogo className="w-3.5 h-3.5 text-white shrink-0" />
+                          <span>macOS</span>
+                        </div>
+                        <div className="text-[10px] text-ink-300 font-mono mt-0.5 flex items-center justify-center gap-1 truncate w-full px-1">
+                          {macItem!.version && <span>v{macItem!.version}</span>}
+                          {macItem!.version && macItem!.file_size && <span>•</span>}
+                          {macItem!.file_size && <span>{formatFileSize(macItem!.file_size)}</span>}
+                        </div>
                       </a>
 
                       {/* Windows Button */}
                       <a
                         href={`/api/download/${winItem!.id}`}
                         download={winItem!.file_name}
-                        className="inline-flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-[#0078D4]/10 hover:bg-[#0078D4]/25 text-sky-200 font-bold text-xs border border-[#0078D4]/40 transition-all active:scale-95 shadow-[0_0_12px_rgba(0,120,212,0.15)] truncate group/win"
+                        className="flex flex-col items-center justify-center py-2 px-2 rounded-xl bg-[#0078D4]/10 hover:bg-[#0078D4]/25 text-sky-200 border border-[#0078D4]/40 transition-all active:scale-95 group/win shadow-[0_0_12px_rgba(0,120,212,0.15)] text-center cursor-pointer"
                         title={`Descargar Windows v${winItem!.version || ''} (${formatFileSize(winItem!.file_size)})`}
                       >
-                        <span className="inline-flex items-center justify-center bg-[#0078D4]/25 text-sky-200 p-0.5 rounded border border-[#0078D4]/40 shadow-[0_0_6px_rgba(0,120,212,0.3)] shrink-0">
-                          <WindowsLogo className="w-3 h-3 text-sky-300" />
-                        </span>
-                        <span className="truncate">Win</span>
-                        {winItem!.file_size && (
-                          <span className="text-[10px] text-sky-300/80 font-mono hidden sm:inline">
-                            ({formatFileSize(winItem!.file_size)})
+                        <div className="flex items-center gap-1.5 font-bold text-xs text-sky-100">
+                          <span className="inline-flex items-center justify-center bg-[#0078D4]/25 text-sky-200 p-0.5 rounded border border-[#0078D4]/40 shrink-0">
+                            <WindowsLogo className="w-3 h-3 text-sky-300" />
                           </span>
-                        )}
+                          <span>Windows</span>
+                        </div>
+                        <div className="text-[10px] text-sky-300/80 font-mono mt-0.5 flex items-center justify-center gap-1 truncate w-full px-1">
+                          {winItem!.version && <span>v{winItem!.version}</span>}
+                          {winItem!.version && winItem!.file_size && <span>•</span>}
+                          {winItem!.file_size && <span>{formatFileSize(winItem!.file_size)}</span>}
+                        </div>
                       </a>
                     </div>
                   ) : macItem ? (
-                    <div className="flex items-center justify-between gap-2 w-full">
-                      <span className="text-[10px] font-mono text-ink-400 truncate block">
-                        v{macItem.version || '1.0'} • {formatFileSize(macItem.file_size)}
+                    <a
+                      href={`/api/download/${macItem.id}`}
+                      download={macItem.file_name}
+                      className="flex items-center justify-between py-2.5 px-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/20 transition-all active:scale-95 shadow-sm w-full group/mac cursor-pointer"
+                      title={`Descargar macOS (${formatFileSize(macItem.file_size)})`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <AppleLogo className="w-4 h-4 text-white shrink-0" />
+                        <span className="font-bold text-xs">Descargar macOS</span>
+                      </div>
+                      <span className="text-[11px] font-mono text-ink-300 font-semibold">
+                        {macItem.version ? `v${macItem.version} • ` : ''}{formatFileSize(macItem.file_size)}
                       </span>
-                      <a
-                        href={`/api/download/${macItem.id}`}
-                        download={macItem.file_name}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs border border-white/20 transition-all active:scale-95 shadow-sm shrink-0"
-                        title={`Descargar macOS (${formatFileSize(macItem.file_size)})`}
-                      >
-                        <AppleLogo className="w-3.5 h-3.5 text-white" />
-                        <span>Descargar Mac</span>
-                      </a>
-                    </div>
+                    </a>
                   ) : winItem ? (
-                    <div className="flex items-center justify-between gap-2 w-full">
-                      <span className="text-[10px] font-mono text-ink-400 truncate block">
-                        v{winItem.version || '1.0'} • {formatFileSize(winItem.file_size)}
-                      </span>
-                      <a
-                        href={`/api/download/${winItem.id}`}
-                        download={winItem.file_name}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#0078D4]/10 hover:bg-[#0078D4]/25 text-sky-200 font-bold text-xs border border-[#0078D4]/40 transition-all active:scale-95 shadow-[0_0_12px_rgba(0,120,212,0.15)] shrink-0"
-                        title={`Descargar Windows (${formatFileSize(winItem.file_size)})`}
-                      >
-                        <span className="inline-flex items-center justify-center bg-[#0078D4]/25 text-sky-200 p-0.5 rounded border border-[#0078D4]/40 shadow-[0_0_6px_rgba(0,120,212,0.3)] shrink-0">
-                          <WindowsLogo className="w-3 h-3 text-sky-300" />
+                    <a
+                      href={`/api/download/${winItem.id}`}
+                      download={winItem.file_name}
+                      className="flex items-center justify-between py-2.5 px-3.5 rounded-xl bg-[#0078D4]/15 hover:bg-[#0078D4]/30 text-sky-200 border border-[#0078D4]/40 transition-all active:scale-95 shadow-[0_0_15px_rgba(0,120,212,0.2)] w-full group/win cursor-pointer"
+                      title={`Descargar Windows (${formatFileSize(winItem.file_size)})`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center bg-[#0078D4]/25 text-sky-200 p-0.5 rounded border border-[#0078D4]/40 shrink-0">
+                          <WindowsLogo className="w-3.5 h-3.5 text-sky-300" />
                         </span>
-                        <span>Descargar Win</span>
-                      </a>
-                    </div>
+                        <span className="font-bold text-xs text-sky-100">Descargar Windows</span>
+                      </div>
+                      <span className="text-[11px] font-mono text-sky-300 font-semibold">
+                        {winItem.version ? `v${winItem.version} • ` : ''}{formatFileSize(winItem.file_size)}
+                      </span>
+                    </a>
                   ) : uniItem ? (
                     <div className="flex items-center justify-between gap-2 w-full">
                       <span className="text-[10px] font-mono text-ink-400 truncate block">
