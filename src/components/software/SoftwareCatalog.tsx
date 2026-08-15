@@ -3,6 +3,7 @@ import { ArrowRight, CheckCircle2, Cpu, Package, ShieldCheck } from 'lucide-reac
 import type { SoftwareProduct, SoftwareManufacturer } from '@/lib/data/software'
 import { InlineCreateSoftwareModal } from '@/components/admin/InlineCreateSoftwareModal'
 import { InlineCreateManufacturerModal } from '@/components/admin/InlineCreateManufacturerModal'
+import { InlineEditManufacturerModal } from '@/components/admin/InlineEditManufacturerModal'
 
 /**
  * Catálogo reutilizable del hub de software y sintetizadores.
@@ -108,31 +109,33 @@ export function SoftwareCatalog({
             {manufacturers.map((m) => {
               const isSelected = selectedManufacturer === m.slug
               return (
-                <Link
-                  key={m.id}
-                  href={isSelected ? '/academy/plugins#catalog-grid' : `/academy/plugins?manufacturer=${m.slug}#catalog-grid`}
-                  className={`rounded-2xl p-3.5 flex flex-col items-center justify-center text-center gap-2.5 transition-all group border ${
-                    isSelected
-                      ? 'border-coral-500 bg-coral-500/15 shadow-[0_0_20px_rgba(255,98,19,0.3)]'
-                      : 'border-ink-800/80 bg-ink-900/60 hover:border-coral-500/40 hover:bg-ink-900 hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)]'
-                  }`}
-                >
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden transition-transform border ${
-                    isSelected ? 'bg-ink-950 border-coral-500/50 shadow-sm' : 'bg-ink-950/80 border-ink-800 group-hover:scale-105'
-                  }`}>
-                    {m.logo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={m.logo_url} alt={m.name} className="w-full h-full object-contain p-1.5" />
-                    ) : (
-                      <Package className="w-6 h-6 text-coral-400" />
-                    )}
-                  </div>
-                  <span className={`font-bold text-xs transition-colors ${
-                    isSelected ? 'text-coral-400 font-extrabold' : 'text-ink-100 group-hover:text-coral-300'
-                  }`}>
-                    {m.name}
-                  </span>
-                </Link>
+                <div key={m.id} className="relative group/m-card">
+                  <Link
+                    href={isSelected ? '/academy/plugins#catalog-grid' : `/academy/plugins?manufacturer=${m.slug}#catalog-grid`}
+                    className={`h-full rounded-2xl p-3.5 flex flex-col items-center justify-center text-center gap-2.5 transition-all group border ${
+                      isSelected
+                        ? 'border-coral-500 bg-coral-500/15 shadow-[0_0_20px_rgba(255,98,19,0.3)]'
+                        : 'border-ink-800/80 bg-ink-900/60 hover:border-coral-500/40 hover:bg-ink-900 hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)]'
+                    }`}
+                  >
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden transition-transform border ${
+                      isSelected ? 'bg-ink-950 border-coral-500/50 shadow-sm' : 'bg-ink-950/80 border-ink-800 group-hover:scale-105'
+                    }`}>
+                      {m.logo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={m.logo_url} alt={m.name} className="w-full h-full object-contain p-1.5" />
+                      ) : (
+                        <Package className="w-6 h-6 text-coral-400" />
+                      )}
+                    </div>
+                    <span className={`font-bold text-xs transition-colors ${
+                      isSelected ? 'text-coral-400 font-extrabold' : 'text-ink-100 group-hover:text-coral-300'
+                    }`}>
+                      {m.name}
+                    </span>
+                  </Link>
+                  {showAdminUI && <InlineEditManufacturerModal manufacturer={m} />}
+                </div>
               )
             })}
           </div>
