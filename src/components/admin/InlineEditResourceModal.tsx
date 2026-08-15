@@ -1,0 +1,223 @@
+'use client'
+
+import { useState } from 'react'
+import { Pencil, Loader2, Link2, FileText, HardDrive, Cpu, Tag, Trash2 } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { updateResourceAction, deleteResourceAction } from '@/app/actions/resources'
+
+export function InlineEditResourceModal({
+  resource,
+}: {
+  resource: {
+    id: string
+    title: string
+    description: string | null
+    software: string | null
+    file_name: string
+    file_size: number | null
+    version?: string | null
+    storage_path?: string
+  }
+}) {
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
+    const formData = new FormData(e.currentTarget)
+    formData.append('id', resource.id)
+    const res = await updateResourceAction(formData)
+    setLoading(false)
+    if (res.success) {
+      setOpen(false)
+      window.location.reload()
+    } else {
+      alert(res.error)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm(`¿Eliminar el recurso "${resource.title}"? Esta acción no se puede deshacer.`)) {
+      return
+    }
+    setDeleting(true)
+    const res = await deleteResourceAction(resource.id)
+    setDeleting(false)
+    if (res.success) {
+      setOpen(false)
+      window.location.reload()
+    } else {
+      alert(res.error)
+    }
+  }
+
+  const humanSize = resource.file_size
+    ? `${(resource.file_size / (1024 * 1024)).toFixed(1)} MB`
+    : ''
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        className="p-2 rounded-xl text-ink-400 hover:text-white hover:bg-ink-800 transition-colors border border-transparent hover:border-ink-700 cursor-pointer"
+        title={`Editar ${resource.title}`}
+        aria-label={`Editar ${resource.title}`}
+      >
+        <Pencil className="w-3.5 h-3.5" />
+      </DialogTrigger>
+
+      <DialogContent className="sm:max-w-[480px] bg-ink-950 text-ink-100 rounded-[var(--radius)] p-6 border border-ink-800 shadow-2xl">
+        <form onSubmit={handleUpdate}>
+          <DialogHeader className="space-y-2 mb-4">
+            <DialogTitle className="text-xl font-bold font-display text-ink-50 flex items-center gap-2">
+              <Pencil className="w-5 h-5 text-coral-400" />
+              Editar Recurso
+            </DialogTitle>
+            <DialogDescription className="text-xs font-medium text-ink-400">
+              Modifica los detalles o el enlace de descarga de este material.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3.5 max-h-[60vh] overflow-y-auto pr-1">
+            <div>
+              <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                <FileText className="w-3.5 h-3.5 text-coral-400" /> Título del Recurso
+              </label>
+              <Input
+                name="title"
+                defaultValue={resource.title}
+                required
+                className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500"
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                <Link2 className="w-3.5 h-3.5 text-coral-400" /> Enlace de Google Drive / Descarga (Opcional si no cambia)
+              </label>
+              <Input
+                name="download_url"
+                type="url"
+                className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 font-mono text-xs"
+                placeholder="https://drive.google.com/..."
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                  <HardDrive className="w-3.5 h-3.5 text-coral-400" /> Nombre de Archivo
+                </label>
+                <Input
+                  name="file_name"
+                  defaultValue={resource.file_name}
+                  required
+                  className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                  <Tag className="w-3.5 h-3.5 text-coral-400" /> Tamaño
+                </label>
+                <Input
+                  name="file_size"
+                  defaultValue={humanSize}
+                  className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 text-xs"
+                  placeholder="Ej. 120 MB"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                  <Cpu className="w-3.5 h-3.5 text-coral-400" /> Software / DAW
+                </label>
+                <Input
+                  name="software"
+                  defaultValue={resource.software || ''}
+                  className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 text-xs"
+                  placeholder="Ej. Ableton Live"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                  Versión
+                </label>
+                <Input
+                  name="version"
+                  defaultValue={resource.version || '1.0'}
+                  className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 text-xs"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Descripción</label>
+              <textarea
+                name="description"
+                defaultValue={resource.description || ''}
+                className="w-full rounded-xl border border-ink-800 bg-ink-900 text-xs p-3 text-ink-100 min-h-[65px] mt-1 focus:outline-none focus:border-coral-500"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="mt-5 flex items-center justify-between sm:justify-between w-full gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={deleting || loading}
+              onClick={handleDelete}
+              className="rounded-xl border border-rose-900/40 bg-rose-950/20 text-rose-400 hover:bg-rose-950/50 hover:text-rose-300 hover:border-rose-800 text-xs font-semibold h-10 px-3 flex items-center gap-1.5"
+            >
+              {deleting ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="w-3.5 h-3.5" />
+              )}
+              <span>Eliminar</span>
+            </Button>
+
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setOpen(false)}
+                className="rounded-xl border border-ink-800 hover:bg-ink-900 text-ink-300 h-10 text-xs"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading || deleting}
+                className="bg-coral-500 hover:bg-coral-600 text-white font-bold rounded-xl h-10 px-4 text-xs shadow-lg shadow-coral-500/20"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  'Guardar Cambios'
+                )}
+              </Button>
+            </div>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}

@@ -2,20 +2,16 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { 
   ArrowLeft, 
   Download, 
   Search, 
   Layers,
-  Eye,
-  EyeOff,
   Package
 } from 'lucide-react'
-import { AdminQuickToolbar } from '@/components/admin/AdminQuickToolbar'
 import { CategoryEditButton } from '@/components/admin/CategoryModal'
-import { setResourcePublishedAction } from '@/app/actions/resources'
-
+import { InlineCreateResourceModal } from '@/components/admin/InlineCreateResourceModal'
+import { InlineEditResourceModal } from '@/components/admin/InlineEditResourceModal'
 import { getCoverStyle } from '@/lib/utils/cover-style'
 
 export interface ResourceItem {
@@ -27,6 +23,7 @@ export interface ResourceItem {
   file_size: number | null
   is_restricted: boolean
   is_published: boolean
+  version?: string | null
 }
 
 export function CategoryResourcesClient({
@@ -53,31 +50,11 @@ export function CategoryResourcesClient({
     description: string | null
   }
 }) {
-  const [resources, setResources] = useState<ResourceItem[]>(initialResources)
-  const [isEditMode, setIsEditMode] = useState(false)
+  const [resources] = useState<ResourceItem[]>(initialResources)
   const [searchTerm, setSearchTerm] = useState('')
-  const router = useRouter()
-
-  const toggleResourceVisibility = async (id: string, currentStatus: boolean) => {
-    // Optimista: la UI responde al instante y revertimos si la acción falla.
-    setResources(prev =>
-      prev.map(r => (r.id === id ? { ...r, is_published: !currentStatus } : r))
-    )
-
-    const result = await setResourcePublishedAction(id, !currentStatus)
-    if (!result.success) {
-      setResources(prev =>
-        prev.map(r => (r.id === id ? { ...r, is_published: currentStatus } : r))
-      )
-      console.error(result.error)
-      return
-    }
-
-    router.refresh()
-  }
 
   const filteredResources = resources
-    .filter(r => isEditMode || r.is_published)
+    .filter(r => isAdmin || r.is_published)
     .filter(r => r.title.toLowerCase().includes(searchTerm.toLowerCase()))
 
   return (
@@ -87,7 +64,7 @@ export function CategoryResourcesClient({
       <div>
         <Link
           href="/academy"
-          className="inline-flex items-center gap-2 text-xs font-bold text-ink-500 hover:text-primary transition-colors group"
+          className="inline-flex items-center gap-2 text-xs font-bold text-ink-400 hover:text-coral-400 transition-colors group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           <span>Volver a la Academia</span>
@@ -137,15 +114,23 @@ export function CategoryResourcesClient({
               )}
             </div>
 
-            <div className="relative w-full md:w-72">
-              <Search className="w-4 h-4 text-ink-400 absolute left-3.5 top-3.5" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                placeholder="Filtrar recursos..."
-                className="w-full bg-ink-900/60 backdrop-blur border border-ink-700/50 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold text-ink-50 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-coral-500/30 focus:border-coral-500/50 transition-all"
-              />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              {isAdmin && !softwareSlot && categoryMeta && (
+                <InlineCreateResourceModal
+                  categoryId={categoryMeta.id}
+                  categoryName={categoryMeta.name}
+                />
+              )}
+              <div className="relative w-full sm:w-64">
+                <Search className="w-4 h-4 text-ink-400 absolute left-3.5 top-3" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  placeholder="Filtrar recursos..."
+                  className="w-full bg-ink-900/60 backdrop-blur border border-ink-700/50 rounded-xl pl-10 pr-4 py-2 text-xs font-semibold text-ink-50 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-coral-500/30 focus:border-coral-500/50 transition-all"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -159,15 +144,17 @@ export function CategoryResourcesClient({
               Recursos En {slug}
             </h1>
           </div>
-          <div className="relative w-full md:w-72">
-            <Search className="w-4 h-4 text-ink-400 absolute left-3.5 top-3.5" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              placeholder="Filtrar recursos..."
-              className="w-full bg-ink-900/60 border border-ink-700/50 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold text-ink-50 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-coral-500/30 transition-all"
-            />
+          <div className="flex items-center gap-3">
+            <div className="relative w-full md:w-72">
+              <Search className="w-4 h-4 text-ink-400 absolute left-3.5 top-3.5" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Filtrar recursos..."
+                className="w-full bg-ink-900/60 border border-ink-700/50 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold text-ink-50 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-coral-500/30 transition-all"
+              />
+            </div>
           </div>
         </div>
       )}
@@ -176,76 +163,72 @@ export function CategoryResourcesClient({
         <section aria-label="Catálogo de plugins">{softwareSlot}</section>
       )}
 
-      {isAdmin && (
-        <AdminQuickToolbar
-          isEditMode={isEditMode}
-          onToggleEditMode={() => setIsEditMode(!isEditMode)}
-        />
-      )}
-
       {/* Resource Cards */}
       {filteredResources.length === 0 ? (
         !softwareSlot && (
-        <div className="glass-card rounded-[var(--radius)] p-12 text-center space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-coral-500/15 text-primary flex items-center justify-center mx-auto">
-            <Package className="w-6 h-6" />
+          <div className="glass-card rounded-[var(--radius)] p-12 text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-coral-500/15 text-coral-400 flex items-center justify-center mx-auto">
+              <Package className="w-6 h-6" />
+            </div>
+            <h3 className="font-display text-lg font-semibold text-ink-50">No hay recursos disponibles</h3>
+            <p className="text-xs font-semibold text-ink-400 max-w-sm mx-auto">
+              Aún no has agregado recursos en la categoría <span className="font-bold text-coral-400 capitalize">{categoryMeta?.name || slug}</span>.
+            </p>
+            {isAdmin && categoryMeta && (
+              <div className="pt-2">
+                <InlineCreateResourceModal
+                  categoryId={categoryMeta.id}
+                  categoryName={categoryMeta.name}
+                />
+              </div>
+            )}
           </div>
-          <h3 className="font-display text-lg font-semibold text-ink-50">No hay recursos disponibles</h3>
-          <p className="text-xs font-semibold text-ink-500 max-w-sm mx-auto">
-            Aún no has agregado recursos en la categoría <span className="font-bold text-primary capitalize">{slug}</span> de la base de datos.
-          </p>
-        </div>
         )
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredResources.map(res => (
-            <div key={res.id} className={`glass-card glass-card-hover rounded-[var(--radius)] p-6 flex flex-col justify-between h-full relative overflow-hidden group ${!res.is_published ? 'opacity-70 grayscale-[30%]' : ''}`}>
-              
+            <div
+              key={res.id}
+              className={`glass-card glass-card-hover rounded-[var(--radius)] p-6 flex flex-col justify-between h-full relative overflow-hidden group border border-ink-800/80 bg-ink-900/60 hover:bg-ink-900 hover:border-coral-500/40 transition-all ${
+                !res.is_published ? 'opacity-70 grayscale-[30%]' : ''
+              }`}
+            >
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="px-3 py-1 rounded-full text-[11px] font-extrabold bg-coral-500/15 text-coral-700 border border-coral-300">
+                  <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-coral-500/15 text-coral-300 border border-coral-500/30">
                     {res.software || 'General'}
                   </span>
                   
-                  <div className="flex items-center gap-2">
-                    {isEditMode && (
-                      <button
-                        type="button"
-                        onClick={() => toggleResourceVisibility(res.id, res.is_published)}
-                        className={`p-2 rounded-xl border transition-all duration-200 ${
-                          res.is_published 
-                            ? 'bg-coral-500/10 border-coral-500/30 text-coral-300 hover:bg-coral-500/20' 
-                            : 'bg-[var(--surface-elevated)] border-[var(--border)] text-ink-400 hover:text-ink-200'
-                        }`}
-                        title={res.is_published ? "Ocultar recurso" : "Publicar recurso"}
-                      >
-                        {res.is_published ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                      </button>
-                    )}
-                  </div>
+                  {isAdmin && (
+                    <div className="flex items-center gap-1">
+                      <InlineEditResourceModal resource={res} />
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <h3 className="font-extrabold text-xl text-ink-50 group-hover:text-primary transition-colors tracking-tight">
+                  <h3 className="font-bold text-xl text-ink-50 group-hover:text-coral-400 transition-colors tracking-tight font-display">
                     {res.title}
                   </h3>
-                  <p className="text-xs font-medium text-ink-500 leading-relaxed line-clamp-3">
+                  <p className="text-xs font-medium text-ink-300 leading-relaxed line-clamp-3">
                     {res.description || 'Sin descripción.'}
                   </p>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="pt-6 mt-6 border-t border-ink-700/50 flex items-center justify-between">
+              <div className="pt-6 mt-6 border-t border-ink-800/80 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] font-bold text-ink-400 uppercase tracking-wider block">Archivo</span>
-                  <span className="text-xs font-extrabold text-ink-300 truncate max-w-[120px] block">{res.file_name}</span>
+                  <span className="text-xs font-semibold text-ink-200 truncate max-w-[140px] block font-mono">
+                    {res.file_name}
+                  </span>
                 </div>
 
                 <a
                   href={`/api/download/${res.id}`}
                   download={res.file_name}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-coral-500 to-coral-700 text-white font-bold text-xs shadow-md shadow-[0_14px_32px_-8px_rgba(255,98,19,0.45)] hover:shadow-[0_18px_40px_-8px_rgba(255,98,19,0.55)] hover:scale-105 active:scale-95 transition-all duration-200 group/btn"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-coral-500 text-white font-bold text-xs shadow-md shadow-coral-500/20 hover:bg-coral-600 hover:scale-105 active:scale-95 transition-all group/btn"
                 >
                   <Download className="w-3.5 h-3.5 group-hover/btn:translate-y-0.5 transition-transform" />
                   <span>Descargar</span>
@@ -260,3 +243,4 @@ export function CategoryResourcesClient({
     </div>
   )
 }
+

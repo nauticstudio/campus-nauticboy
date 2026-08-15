@@ -57,27 +57,20 @@ export default async function CampusLayout({
     ?.map(e => e.courses)
     .filter(Boolean) as unknown as { title: string, slug: string }[] | undefined
 
-  // Fetch Category IDs for Plantillas and Presets
-  const { data: categories } = await supabase
+  // Fetch published categories dynamically for the navigation system
+  const { data: dbCategories } = await supabase
     .from('categories')
-    .select('id, slug')
-    .in('slug', ['plantillas', 'presets'])
-    
-  const plantillasId = categories?.find(c => c.slug === 'plantillas')?.id
-  const presetsId = categories?.find(c => c.slug === 'presets')?.id
+    .select('id, name, slug, icon, icon_url, is_published, sort_order')
+    .order('sort_order', { ascending: true })
 
-  // Fetch Content Availability for Sidebar
+  const publishedCategories = (dbCategories || []).filter(c => c.is_published !== false)
+
+  // Fetch Content Availability for Sidebar / Drawer
   const [
-    plantillasRes,
-    presetsRes,
     announcementsRes,
-    softwareRes,
     classMaterialsRes
   ] = await Promise.all([
-    plantillasId ? supabase.from('resources').select('id', { count: 'exact', head: true }).eq('category_id', plantillasId).eq('is_published', true) : Promise.resolve({ count: 0 }),
-    presetsId ? supabase.from('resources').select('id', { count: 'exact', head: true }).eq('category_id', presetsId).eq('is_published', true) : Promise.resolve({ count: 0 }),
     supabase.from('announcements').select('id', { count: 'exact', head: true }),
-    supabase.from('software_products').select('id', { count: 'exact', head: true }).eq('is_published', true),
     isAdmin
       ? supabase.from('class_materials').select('id', { count: 'exact', head: true })
       : supabase.from('class_materials').select('id', { count: 'exact', head: true }).eq('student_id', user.id).eq('is_published', true)
@@ -88,10 +81,14 @@ export default async function CampusLayout({
     currentViewMode: currentViewMode,
     userName: userName,
     enrolledCourses: enrolledCourses || [],
-    hasPlantillas: (plantillasRes.count || 0) > 0,
-    hasPresets: (presetsRes.count || 0) > 0,
+    publishedCategories: publishedCategories.map(c => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      icon: c.icon,
+      icon_url: c.icon_url,
+    })),
     hasAnnouncements: (announcementsRes.count || 0) > 0,
-    hasSoftware: (softwareRes.count || 0) > 0,
     hasProgress: (enrolledCourses?.length || 0) > 0,
     hasClassMaterials: isAdmin || (classMaterialsRes.count || 0) > 0,
   }

@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { AdminQuickToolbar } from '@/components/admin/AdminQuickToolbar'
 import { CourseEditor } from '@/components/admin/CourseEditor'
 import { 
   BookOpen, 
@@ -81,10 +80,24 @@ export function CourseDetailClient({
       {/* Hero Course Banner */}
       <div className="glass-card rounded-[var(--radius)] p-8 md:p-10 relative overflow-hidden space-y-6">
         <div className="space-y-3 max-w-3xl">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-3">
             <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-coral-100 text-coral-700 border border-coral-200">
               {course.software || 'General'}
             </span>
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => setIsEditMode(!isEditMode)}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all border ${
+                  isEditMode
+                    ? 'bg-coral-500 text-white border-coral-500 shadow-md shadow-coral-500/20'
+                    : 'bg-ink-900/40 text-ink-300 border-ink-800 hover:text-white hover:bg-ink-800'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-coral-400" />
+                <span>{isEditMode ? 'Finalizar Edición' : 'Editar Curso & Módulos'}</span>
+              </button>
+            )}
           </div>
 
           <h1 className="font-display text-3xl md:text-4xl font-semibold text-ink-900 tracking-editorial leading-tight">
@@ -119,14 +132,6 @@ export function CourseDetailClient({
         )}
       </div>
 
-      {/* Admin Floating Toolbar */}
-      {isAdmin && (
-        <AdminQuickToolbar 
-          isEditMode={isEditMode} 
-          onToggleEditMode={() => setIsEditMode(!isEditMode)} 
-        />
-      )}
-
       {/* Main Content: Edit Mode OR View Mode */}
       {isEditMode ? (
         <CourseEditor courseId={course.id} initialModules={modules} />
@@ -137,7 +142,7 @@ export function CourseDetailClient({
           </div>
           <h3 className="text-lg font-extrabold text-ink-900">Este curso no tiene módulos aún</h3>
           <p className="text-xs font-semibold text-ink-500 max-w-sm mx-auto">
-            Activa el &quot;Modo Edición&quot; desde la barra flotante inferior para agregar y ordenar módulos.
+            Haz clic en &quot;Editar Curso &amp; Módulos&quot; para agregar y ordenar módulos.
           </p>
         </div>
       ) : (

@@ -1,0 +1,179 @@
+'use client'
+
+import { useState } from 'react'
+import { Plus, Loader2, Link2, FileText, HardDrive, Cpu, Tag } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { createResourceAction } from '@/app/actions/resources'
+
+export function InlineCreateResourceModal({
+  categoryId,
+  categoryName,
+}: {
+  categoryId: string
+  categoryName: string
+}) {
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
+    const formData = new FormData(e.currentTarget)
+    formData.append('category_id', categoryId)
+    const res = await createResourceAction(formData)
+    setLoading(false)
+    if (res.success) {
+      setOpen(false)
+      window.location.reload()
+    } else {
+      alert(res.error)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-coral-500 text-white font-bold text-xs hover:bg-coral-600 transition-all shadow-[0_4px_16px_rgba(255,98,19,0.35)] active:scale-95 cursor-pointer">
+        <Plus className="w-4 h-4" />
+        <span>Añadir Recurso</span>
+      </DialogTrigger>
+
+      <DialogContent className="sm:max-w-[480px] bg-ink-950 text-ink-100 rounded-[var(--radius)] p-6 border border-ink-800 shadow-2xl">
+        <form onSubmit={handleCreate}>
+          <DialogHeader className="space-y-2 mb-4">
+            <DialogTitle className="text-xl font-bold font-display text-ink-50 flex items-center gap-2">
+              <Plus className="w-5 h-5 text-coral-400" />
+              Nuevo Recurso en {categoryName}
+            </DialogTitle>
+            <DialogDescription className="text-xs font-medium text-ink-400">
+              Añade un nuevo material o archivo para que los alumnos lo descarguen.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3.5 max-h-[60vh] overflow-y-auto pr-1">
+            <div>
+              <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                <FileText className="w-3.5 h-3.5 text-coral-400" /> Título del Recurso
+              </label>
+              <Input
+                name="title"
+                required
+                className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500"
+                placeholder="Ej. Ableton Live 12 Suite / Plantilla Melodic Techno"
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                <Link2 className="w-3.5 h-3.5 text-coral-400" /> Enlace de Google Drive o Descarga
+              </label>
+              <Input
+                name="download_url"
+                required
+                type="url"
+                className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 font-mono text-xs"
+                placeholder="https://drive.google.com/file/d/..."
+              />
+              <span className="text-[10px] text-ink-400 mt-0.5 block">
+                Pega el link de Drive o URL directa del archivo.
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                  <HardDrive className="w-3.5 h-3.5 text-coral-400" /> Nombre de Archivo
+                </label>
+                <Input
+                  name="file_name"
+                  required
+                  className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
+                  placeholder="ej. paquete_v1.zip"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                  <Tag className="w-3.5 h-3.5 text-coral-400" /> Tamaño (Opcional)
+                </label>
+                <Input
+                  name="file_size"
+                  className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 text-xs"
+                  placeholder="Ej. 1.2 GB / 45 MB"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                  <Cpu className="w-3.5 h-3.5 text-coral-400" /> Software / DAW
+                </label>
+                <Input
+                  name="software"
+                  className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 text-xs"
+                  placeholder="Ej. Ableton, FL Studio, General"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                  Versión
+                </label>
+                <Input
+                  name="version"
+                  defaultValue="1.0"
+                  className="rounded-xl mt-1 bg-ink-900 border-ink-800 text-ink-100 focus:border-coral-500 text-xs"
+                  placeholder="1.0"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Descripción</label>
+              <textarea
+                name="description"
+                className="w-full rounded-xl border border-ink-800 bg-ink-900 text-xs p-3 text-ink-100 min-h-[65px] mt-1 focus:outline-none focus:border-coral-500"
+                placeholder="Breve descripción o notas para el alumno..."
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="mt-5 gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setOpen(false)}
+              className="rounded-xl border border-ink-800 hover:bg-ink-900 text-ink-300 h-10 text-xs"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="bg-coral-500 hover:bg-coral-600 text-white font-bold rounded-xl h-10 px-5 text-xs shadow-lg shadow-coral-500/20"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                'Publicar Recurso'
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
