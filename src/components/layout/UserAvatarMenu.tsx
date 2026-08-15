@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Crown, LogOut, Settings, User, UserCog, FolderDown } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
@@ -20,7 +20,6 @@ interface UserAvatarMenuProps {
 }
 
 export function UserAvatarMenu({ userName, userEmail, isAdmin }: UserAvatarMenuProps) {
-  const router = useRouter()
   const initial = (userName || userEmail || 'A').charAt(0).toUpperCase()
 
   return (
@@ -57,24 +56,24 @@ export function UserAvatarMenu({ userName, userEmail, isAdmin }: UserAvatarMenuP
 
         <DropdownMenuSeparator className="bg-ink-800/80" />
 
-        <DropdownMenuItem onClick={() => router.push('/settings/profile')} className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white flex items-center gap-2.5 w-full px-3 py-2">
+        <DropdownMenuItem render={<Link href="/settings/profile" />} className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white flex items-center gap-2.5 w-full px-3 py-2">
           <User className="w-4 h-4 text-coral-400" />
           <span className="text-sm font-semibold text-ink-200 hover:text-white">Mi perfil</span>
         </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={() => router.push('/my-materials')} className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white flex items-center gap-2.5 w-full px-3 py-2">
+        <DropdownMenuItem render={<Link href="/my-materials" />} className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white flex items-center gap-2.5 w-full px-3 py-2">
           <FolderDown className="w-4 h-4 text-coral-400" />
           <span className="text-sm font-semibold text-ink-200 hover:text-white">Material de clase</span>
         </DropdownMenuItem>
 
         {isAdmin && (
-          <DropdownMenuItem onClick={() => router.push('/admin/users')} className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white flex items-center gap-2.5 w-full px-3 py-2">
+          <DropdownMenuItem render={<Link href="/admin/users" />} className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white flex items-center gap-2.5 w-full px-3 py-2">
             <UserCog className="w-4 h-4 text-coral-400" />
             <span className="text-sm font-semibold text-ink-200 hover:text-white">Gestionar usuarios</span>
           </DropdownMenuItem>
         )}
 
-        <DropdownMenuItem onClick={() => router.push('/settings/profile')} className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white flex items-center gap-2.5 w-full px-3 py-2">
+        <DropdownMenuItem render={<Link href="/settings/profile" />} className="rounded-xl cursor-pointer hover:bg-ink-900 focus:bg-ink-900 focus:text-white flex items-center gap-2.5 w-full px-3 py-2">
           <Settings className="w-4 h-4 text-coral-400" />
           <span className="text-sm font-semibold text-ink-200 hover:text-white">Configuración</span>
         </DropdownMenuItem>
