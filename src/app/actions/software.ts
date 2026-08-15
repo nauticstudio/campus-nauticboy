@@ -72,6 +72,7 @@ export async function createManufacturerAction(formData: FormData): Promise<Acti
     if (error) throw error
     revalidatePath('/admin/software')
     revalidatePath('/software')
+    revalidatePath('/academy/plugins')
     return { success: true }
   } catch (error) {
     console.error('[software] createManufacturer:', error)
@@ -106,6 +107,7 @@ export async function updateManufacturerAction(formData: FormData): Promise<Acti
     if (error) throw error
     revalidatePath('/admin/software')
     revalidatePath('/software')
+    revalidatePath('/academy/plugins')
     return { success: true }
   } catch (error) {
     console.error('[software] updateManufacturer:', error)
@@ -129,10 +131,11 @@ export async function deleteManufacturerAction(manufacturerId: string): Promise<
     if (error) throw error
     revalidatePath('/admin/software')
     revalidatePath('/software')
+    revalidatePath('/academy/plugins')
     return { success: true }
   } catch (error) {
     console.error('[software] deleteManufacturer:', error)
-    return { success: false, error: 'Error al eliminar el fabricante.' }
+    return { success: false, error: dbErrorMessage(error, 'Error al eliminar el fabricante. Asegúrate de que no tenga productos asociados.') }
   }
 }
 

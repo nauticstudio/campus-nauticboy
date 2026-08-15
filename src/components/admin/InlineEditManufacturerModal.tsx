@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Pencil, Loader2, Package, Image as ImageIcon } from 'lucide-react'
+import { Pencil, Loader2, Package, Image as ImageIcon, Trash2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -13,12 +13,13 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { updateManufacturerAction } from '@/app/actions/software'
+import { updateManufacturerAction, deleteManufacturerAction } from '@/app/actions/software'
 import type { SoftwareManufacturer } from '@/lib/data/software'
 
 export function InlineEditManufacturerModal({ manufacturer }: { manufacturer: SoftwareManufacturer }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [logoUrl, setLogoUrl] = useState(manufacturer.logo_url || '')
   const [imgError, setImgError] = useState(false)
 
@@ -34,6 +35,21 @@ export function InlineEditManufacturerModal({ manufacturer }: { manufacturer: So
       window.location.reload()
     } else {
       alert(res.error)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm(`¿Estás seguro de eliminar el fabricante "${manufacturer.name}"?\n\nSi tiene productos o plugins asignados, primero deberás reasignarlos o eliminarlos.`)) {
+      return
+    }
+    setDeleting(true)
+    const res = await deleteManufacturerAction(manufacturer.id)
+    setDeleting(false)
+    if (res.success) {
+      setOpen(false)
+      window.location.reload()
+    } else {
+      alert(res.error || 'Error al eliminar el fabricante.')
     }
   }
 
@@ -61,7 +77,7 @@ export function InlineEditManufacturerModal({ manufacturer }: { manufacturer: So
               Editar Fabricante
             </DialogTitle>
             <DialogDescription className="text-xs font-medium text-ink-400">
-              Modifica los datos y el logo del fabricante <strong className="text-ink-200">{manufacturer.name}</strong>.
+              Modifica los datos o elimina el fabricante <strong className="text-ink-200">{manufacturer.name}</strong>.
             </DialogDescription>
           </DialogHeader>
 
@@ -128,33 +144,51 @@ export function InlineEditManufacturerModal({ manufacturer }: { manufacturer: So
             </div>
           </div>
 
-          <DialogFooter className="mt-6 gap-2">
+          <DialogFooter className="mt-6 flex items-center justify-between sm:justify-between w-full gap-2">
             <Button
               type="button"
               variant="ghost"
-              onClick={() => setOpen(false)}
-              className="rounded-xl border border-ink-800 hover:bg-ink-900 text-ink-300"
+              disabled={deleting || loading}
+              onClick={handleDelete}
+              className="rounded-xl border border-rose-900/40 bg-rose-950/20 text-rose-400 hover:bg-rose-950/50 hover:text-rose-300 hover:border-rose-800 text-xs font-semibold h-10 px-3 flex items-center gap-1.5"
             >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-coral-500 hover:bg-coral-600 text-white font-bold rounded-xl h-10 px-5 shadow-lg shadow-coral-500/20"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Guardando...
-                </>
+              {deleting ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                'Guardar Cambios'
+                <Trash2 className="w-3.5 h-3.5" />
               )}
+              <span>Eliminar</span>
             </Button>
+
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setOpen(false)}
+                className="rounded-xl border border-ink-800 hover:bg-ink-900 text-ink-300 h-10 text-xs font-semibold"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading || deleting}
+                className="bg-coral-500 hover:bg-coral-600 text-white font-bold rounded-xl h-10 px-4 text-xs shadow-lg shadow-coral-500/20"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  'Guardar Cambios'
+                )}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   )
 }
+
 
