@@ -52,6 +52,7 @@ export async function createUnifiedResourceAction(formData: FormData): Promise<R
     const isRestricted = formData.get('is_restricted') === 'true' || formData.get('is_restricted') === 'on'
     const isPublished = formData.get('is_published') !== 'false'
     const mode = (formData.get('mode') as string)?.trim()
+    const collectionId = (formData.get('collection_id') as string)?.trim() || null
     const downloadUrl = (formData.get('download_url') as string)?.trim()
     const version = (formData.get('version') as string)?.trim() || '1.0'
     const fileName = (formData.get('file_name') as string)?.trim() || `${title || 'archivo'}.zip`
@@ -94,6 +95,7 @@ export async function createUnifiedResourceAction(formData: FormData): Promise<R
         description,
         thumbnail_url: thumbnailUrl,
         category_id: categoryId,
+        collection_id: collectionId,
         storage_provider: 'google_drive',
         storage_path: extractDriveId(downloadUrl),
         file_name: fileName,
@@ -113,6 +115,7 @@ export async function createUnifiedResourceAction(formData: FormData): Promise<R
 
       revalidatePath('/academy')
       revalidatePath('/academy/[slug]', 'page')
+      revalidatePath('/academy/[slug]/[collectionSlug]', 'page')
       return { success: true }
     }
 
@@ -132,6 +135,7 @@ export async function createUnifiedResourceAction(formData: FormData): Promise<R
         description,
         thumbnail_url: thumbnailUrl,
         category_id: categoryId,
+        collection_id: collectionId,
         storage_provider: 'google_drive',
         storage_path: extractDriveId(macDownloadUrl),
         file_name: macFileName,
@@ -161,6 +165,7 @@ export async function createUnifiedResourceAction(formData: FormData): Promise<R
         description,
         thumbnail_url: thumbnailUrl,
         category_id: categoryId,
+        collection_id: collectionId,
         storage_provider: 'google_drive',
         storage_path: extractDriveId(winDownloadUrl),
         file_name: winFileName,
@@ -180,6 +185,7 @@ export async function createUnifiedResourceAction(formData: FormData): Promise<R
 
     revalidatePath('/academy')
     revalidatePath('/academy/[slug]', 'page')
+    revalidatePath('/academy/[slug]/[collectionSlug]', 'page')
     return { success: true }
   } catch (err: any) {
     console.error('[createUnifiedResourceAction] Exception:', err)
@@ -203,6 +209,10 @@ export async function updateUnifiedResourceAction(formData: FormData): Promise<R
     const isRestricted = formData.get('is_restricted') === 'true' || formData.get('is_restricted') === 'on'
 
     const mode = (formData.get('mode') as string)?.trim()
+    const collectionIdRaw = formData.get('collection_id')
+    const hasCollectionId = collectionIdRaw !== null
+    const collectionId = hasCollectionId ? ((collectionIdRaw as string)?.trim() || null) : undefined
+
     const universalId = (formData.get('universal_id') as string)?.trim()
     const universalDownloadUrl = (formData.get('download_url') as string)?.trim()
     const universalVersion = (formData.get('version') as string)?.trim() || '1.0'
@@ -245,6 +255,7 @@ export async function updateUnifiedResourceAction(formData: FormData): Promise<R
           tags: ['universal'],
           updated_at: new Date().toISOString(),
         }
+        if (hasCollectionId) updatePayload.collection_id = collectionId
         if (universalDownloadUrl) updatePayload.storage_path = extractDriveId(universalDownloadUrl)
         if (universalFileName) {
           updatePayload.file_name = universalFileName
@@ -269,6 +280,7 @@ export async function updateUnifiedResourceAction(formData: FormData): Promise<R
           description,
           thumbnail_url: thumbnailUrl,
           category_id: categoryId,
+          collection_id: collectionId ?? null,
           storage_provider: 'google_drive',
           storage_path: extractDriveId(universalDownloadUrl),
           file_name: universalFileName || `${title}.zip`,
@@ -288,6 +300,7 @@ export async function updateUnifiedResourceAction(formData: FormData): Promise<R
 
       revalidatePath('/academy')
       revalidatePath('/academy/[slug]', 'page')
+      revalidatePath('/academy/[slug]/[collectionSlug]', 'page')
       return { success: true }
     }
 
@@ -306,6 +319,7 @@ export async function updateUnifiedResourceAction(formData: FormData): Promise<R
         tags: ['macos'],
         updated_at: new Date().toISOString(),
       }
+      if (hasCollectionId) updatePayload.collection_id = collectionId
       if (macDownloadUrl) updatePayload.storage_path = extractDriveId(macDownloadUrl)
       if (macFileName) {
         updatePayload.file_name = macFileName
@@ -327,6 +341,7 @@ export async function updateUnifiedResourceAction(formData: FormData): Promise<R
         description,
         thumbnail_url: thumbnailUrl,
         category_id: categoryId,
+        collection_id: collectionId ?? null,
         storage_provider: 'google_drive',
         storage_path: extractDriveId(macDownloadUrl),
         file_name: macFileName || `${title}_macOS.dmg`,
@@ -355,6 +370,7 @@ export async function updateUnifiedResourceAction(formData: FormData): Promise<R
         tags: ['windows'],
         updated_at: new Date().toISOString(),
       }
+      if (hasCollectionId) updatePayload.collection_id = collectionId
       if (winDownloadUrl) updatePayload.storage_path = extractDriveId(winDownloadUrl)
       if (winFileName) {
         updatePayload.file_name = winFileName
@@ -376,6 +392,7 @@ export async function updateUnifiedResourceAction(formData: FormData): Promise<R
         description,
         thumbnail_url: thumbnailUrl,
         category_id: categoryId,
+        collection_id: collectionId ?? null,
         storage_provider: 'google_drive',
         storage_path: extractDriveId(winDownloadUrl),
         file_name: winFileName || `${title}_WIN.zip`,
@@ -391,6 +408,7 @@ export async function updateUnifiedResourceAction(formData: FormData): Promise<R
 
     revalidatePath('/academy')
     revalidatePath('/academy/[slug]', 'page')
+    revalidatePath('/academy/[slug]/[collectionSlug]', 'page')
     return { success: true }
   } catch (err: any) {
     console.error('[updateUnifiedResourceAction] Exception:', err)
@@ -434,6 +452,7 @@ export async function createResourceAction(formData: FormData): Promise<Resource
 
     const title = (formData.get('title') as string)?.trim()
     const categoryId = (formData.get('category_id') as string)?.trim()
+    const collectionId = (formData.get('collection_id') as string)?.trim() || null
     const downloadUrl = (formData.get('download_url') as string)?.trim()
     const thumbnailUrl = (formData.get('thumbnail_url') as string)?.trim() || null
     const fileName = (formData.get('file_name') as string)?.trim() || `${title || 'archivo'}.zip`
@@ -477,6 +496,7 @@ export async function createResourceAction(formData: FormData): Promise<Resource
         description,
         thumbnail_url: thumbnailUrl,
         category_id: categoryId,
+        collection_id: collectionId,
         storage_provider: 'google_drive',
         storage_path: storagePath,
         file_name: fileName,
@@ -498,6 +518,7 @@ export async function createResourceAction(formData: FormData): Promise<Resource
 
     revalidatePath('/academy')
     revalidatePath('/academy/[slug]', 'page')
+    revalidatePath('/academy/[slug]/[collectionSlug]', 'page')
     return { success: true, id: inserted.id }
   } catch (err: any) {
     console.error('[createResourceAction] Exception:', err)
@@ -515,6 +536,9 @@ export async function updateResourceAction(formData: FormData): Promise<Resource
 
     const id = (formData.get('id') as string)?.trim()
     const title = (formData.get('title') as string)?.trim()
+    const collectionIdRaw = formData.get('collection_id')
+    const hasCollectionId = collectionIdRaw !== null
+    const collectionId = hasCollectionId ? ((collectionIdRaw as string)?.trim() || null) : undefined
     const downloadUrl = (formData.get('download_url') as string)?.trim()
     const thumbnailUrl = (formData.get('thumbnail_url') as string)?.trim() || null
     const fileName = (formData.get('file_name') as string)?.trim()
@@ -542,6 +566,10 @@ export async function updateResourceAction(formData: FormData): Promise<Resource
       tags,
       is_restricted: isRestricted,
       updated_at: new Date().toISOString(),
+    }
+
+    if (hasCollectionId) {
+      updatePayload.collection_id = collectionId
     }
 
     if (downloadUrl) {

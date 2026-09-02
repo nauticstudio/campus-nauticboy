@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Loader2, Link2, FileText, FolderArchive, Cpu, ImageIcon, Sparkles } from 'lucide-react'
+import { Plus, Loader2, Link2, FileText, Folder, FolderArchive, Cpu, ImageIcon, Sparkles } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -26,10 +26,16 @@ export function InlineCreateResourceModal({
   categoryId,
   categoryName,
   categorySlug,
+  collectionId,
+  collectionName,
+  availableCollections = [],
 }: {
   categoryId: string
   categoryName: string
   categorySlug?: string
+  collectionId?: string
+  collectionName?: string
+  availableCollections?: { id: string; name: string }[]
 }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -46,6 +52,9 @@ export function InlineCreateResourceModal({
     formData.append('category_id', categoryId)
     if (isUniversal) {
       formData.append('mode', 'universal')
+    }
+    if (collectionId) {
+      formData.set('collection_id', collectionId)
     }
     const res = await createUnifiedResourceAction(formData)
     setLoading(false)
@@ -67,24 +76,43 @@ export function InlineCreateResourceModal({
       <DialogContent className="sm:max-w-[560px] bg-ink-950 text-ink-100 rounded-[var(--radius)] p-6 border border-ink-800 shadow-2xl">
         <form onSubmit={handleCreate}>
           {isUniversal && <input type="hidden" name="mode" value="universal" />}
+          {collectionId && <input type="hidden" name="collection_id" value={collectionId} />}
 
           <DialogHeader className="space-y-2 mb-4">
             <DialogTitle className="text-xl font-bold font-display text-ink-50 flex items-center gap-2">
               <Plus className="w-5 h-5 text-coral-400" />
-              Nuevo Recurso en {categoryName}
+              Nuevo Recurso en {collectionName ? `${collectionName} (${categoryName})` : categoryName}
             </DialogTitle>
             <DialogDescription className="text-xs font-medium text-ink-400">
-              {isUniversal
-                ? (categorySlug?.toLowerCase() === 'samples'
-                    ? 'Sube el sample pack con descarga directa e independiente de sistema operativo o DAW.'
-                    : 'Carga el material o recurso con enlace directo independiente de sistema operativo.')
-                : 'Carga el DAW o material una sola vez con soporte para macOS, Windows o ambos.'}
+              {collectionName ? (
+                <>Este recurso se agregará directamente dentro de la colección <strong className="text-coral-300">{collectionName}</strong>.</>
+              ) : isUniversal ? (
+                categorySlug?.toLowerCase() === 'samples'
+                  ? 'Sube el sample pack con descarga directa e independiente de sistema operativo o DAW.'
+                  : 'Carga el material o recurso con enlace directo independiente de sistema operativo.'
+              ) : (
+                'Carga el DAW o material una sola vez con soporte para macOS, Windows o ambos.'
+              )}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
             {/* General Info Card */}
             <div className="p-3.5 rounded-2xl bg-ink-900/60 border border-ink-800 space-y-3">
+              {/* Indicador visual destacado de colección pre-asignada */}
+              {collectionId && collectionName && (
+                <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-coral-500/10 border border-coral-500/30 text-coral-200 text-xs">
+                  <Folder className="w-4 h-4 text-coral-400 shrink-0" />
+                  <div className="flex-1">
+                    <span className="text-[10px] text-coral-400/80 font-bold uppercase tracking-wider block">Carpeta de destino</span>
+                    <span className="font-bold text-white text-xs">{collectionName}</span>
+                  </div>
+                  <span className="text-[10px] font-mono bg-coral-500/20 text-coral-300 px-2 py-0.5 rounded-full font-semibold">
+                    Auto-asignado
+                  </span>
+                </div>
+              )}
+
               <div>
                 <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
                   <FileText className="w-3.5 h-3.5 text-coral-400" /> Título del Recurso
@@ -93,9 +121,29 @@ export function InlineCreateResourceModal({
                   name="title"
                   required
                   className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-sm font-semibold"
-                  placeholder={isUniversal ? "Ej. Vengeance Essential Clubsound Vol. 1" : "Ej. FL Studio 26 / Ableton Live 12 Suite"}
+                  placeholder={isUniversal ? (collectionName ? `Ej. ${collectionName} Essential Pack Vol. 1` : "Ej. Vengeance Essential Clubsound Vol. 1") : "Ej. FL Studio 26 / Ableton Live 12 Suite"}
                 />
               </div>
+
+              {/* Selector de Colección si estamos en vista general y existen colecciones */}
+              {!collectionId && availableCollections.length > 0 && (
+                <div>
+                  <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                    <FolderArchive className="w-3.5 h-3.5 text-coral-400" /> Carpeta / Colección (Opcional)
+                  </label>
+                  <select
+                    name="collection_id"
+                    className="rounded-xl mt-1 bg-ink-950 border border-ink-800 text-ink-100 text-xs py-2 px-3 focus:border-coral-500 w-full outline-none transition-colors"
+                  >
+                    <option value="">(Sin carpeta / Recurso suelto)</option>
+                    {availableCollections.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -104,8 +152,9 @@ export function InlineCreateResourceModal({
                   </label>
                   <Input
                     name="software"
+                    defaultValue={collectionName || ''}
                     className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs"
-                    placeholder={isUniversal ? "Ej. Vengeance / WAV" : "Ej. FL Studio / Ableton"}
+                    placeholder={collectionName || (isUniversal ? "Ej. Vengeance / WAV" : "Ej. FL Studio / Ableton")}
                   />
                 </div>
 

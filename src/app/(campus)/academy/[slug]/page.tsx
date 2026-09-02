@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireUser } from '@/server/auth/guards'
 import { CategoryResourcesClient } from './CategoryResourcesClient'
 import type { ResourceItem } from './CategoryResourcesClient'
+import type { CollectionCardData } from '@/components/campus/CollectionCard'
 import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -39,15 +40,40 @@ export default async function CategoryResourcesPage({
     notFound()
   }
 
-  let resources: ResourceItem[] = []
+  // Fetch resources y sub-colecciones en paralelo
+  const [resourcesRes, collectionsRes] = await Promise.all([
+    supabase
+      .from('resources')
+      .select('id, title, description, software, file_name, file_size, is_restricted, is_published, thumbnail_url, version, tags, storage_path, storage_provider, collection_id')
+      .eq('category_id', category.id)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('resource_collections')
+      .select('id, name, slug, description, thumbnail_url, sort_order, is_published')
+      .eq('category_id', category.id)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false })
+  ])
 
-  const { data } = await supabase
-    .from('resources')
-    .select('id, title, description, software, file_name, file_size, is_restricted, is_published, thumbnail_url, version, tags, storage_path, storage_provider')
-    .eq('category_id', category.id)
-    .order('created_at', { ascending: false })
+  const rawResources = (resourcesRes.data ?? []) as (ResourceItem & { collection_id?: string | null })[]
 
-  resources = (data ?? []) as ResourceItem[]
+  // Conteo de recursos por colección
+  const countsByCollection: Record<string, number> = {}
+  for (const r of rawResources) {
+    if (r.collection_id) {
+      countsByCollection[r.collection_id] = (countsByCollection[r.collection_id] || 0) + 1
+    }
+  }
+
+  const collections: CollectionCardData[] = ((collectionsRes.data ?? []) as any[]).map((col) => ({
+    id: col.id,
+    name: col.name,
+    slug: col.slug,
+    description: col.description,
+    thumbnail_url: col.thumbnail_url,
+    is_published: col.is_published,
+    count: countsByCollection[col.id] || 0,
+  }))
 
   const isPlugins = slug === 'plugins'
 
@@ -72,9 +98,10 @@ export default async function CategoryResourcesPage({
   return (
     <CategoryResourcesClient
       slug={slug}
-      initialResources={resources}
+      initialResources={rawResources}
       isAdmin={showAdminUI}
       softwareSlot={softwareSlot}
+      collections={collections}
       categoryMeta={{
         id: category.id,
         slug: slug,

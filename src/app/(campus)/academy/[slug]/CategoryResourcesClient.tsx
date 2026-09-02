@@ -7,11 +7,15 @@ import {
   Download, 
   Search, 
   Layers,
-  Package
+  Package,
+  Folder
 } from 'lucide-react'
 import { CategoryEditButton } from '@/components/admin/CategoryModal'
 import { InlineCreateResourceModal } from '@/components/admin/InlineCreateResourceModal'
+import { InlineCreateCollectionModal } from '@/components/admin/InlineCreateCollectionModal'
 import { InlineEditResourceModal } from '@/components/admin/InlineEditResourceModal'
+import { InlineEditCollectionModal } from '@/components/admin/InlineEditCollectionModal'
+import { CollectionCard, type CollectionCardData } from '@/components/campus/CollectionCard'
 import { formatFileSize } from '@/lib/utils'
 import { getCoverStyle } from '@/lib/utils/cover-style'
 import { AppleLogo, WindowsLogo } from '@/components/icons/PlatformLogos'
@@ -30,6 +34,7 @@ export interface ResourceItem {
   tags?: string[] | null
   storage_path?: string | null
   storage_provider?: string | null
+  collection_id?: string | null
 }
 
 interface UnifiedResourceGroup {
@@ -39,6 +44,7 @@ interface UnifiedResourceGroup {
   thumbnail_url: string | null
   description: string | null
   category_id: string
+  collection_id?: string | null
   is_published: boolean
   macResource?: ResourceItem | null
   winResource?: ResourceItem | null
@@ -59,12 +65,17 @@ function groupResources(resources: ResourceItem[], categoryIdFallback: string): 
         thumbnail_url: r.thumbnail_url ?? null,
         description: r.description ?? null,
         category_id: categoryIdFallback,
+        collection_id: r.collection_id ?? null,
         is_published: r.is_published,
         macResource: null,
         winResource: null,
         universalResource: null,
       }
       map.set(key, group)
+    }
+
+    if (!group.collection_id && r.collection_id) {
+      group.collection_id = r.collection_id
     }
 
     const isMac = r.tags?.includes('macos')
@@ -93,6 +104,8 @@ export function CategoryResourcesClient({
   isAdmin,
   softwareSlot,
   categoryMeta,
+  collections = [],
+  collectionMeta,
 }: {
   slug: string
   initialResources: ResourceItem[]
@@ -109,6 +122,17 @@ export function CategoryResourcesClient({
     accent_color: 'coral' | 'violet' | 'cyan' | 'emerald' | 'rose'
     blurb: string | null
     description: string | null
+  }
+  /** Colecciones / Marcas pertenecientes a esta categoría */
+  collections?: CollectionCardData[]
+  /** Metadatos si estamos navegando DENTRO de una colección específica */
+  collectionMeta?: {
+    id: string
+    name: string
+    slug: string
+    description?: string | null
+    thumbnail_url?: string | null
+    is_published?: boolean
   }
 }) {
   const [resources] = useState<ResourceItem[]>(initialResources)
@@ -135,22 +159,104 @@ export function CategoryResourcesClient({
       return true
     })
 
+  const availableCollections = collections.map(c => ({ id: c.id, name: c.name }))
+
+  // Si estamos en la categoría principal y hay colecciones, dividimos en colecciones vs sueltos
+  const hasCollectionsInCat = !collectionMeta && collections.length > 0
+  const directLooseGroups = hasCollectionsInCat
+    ? filteredGroups.filter(g => !g.collection_id)
+    : filteredGroups
+
   return (
     <div className="p-6 md:p-10 lg:p-12 space-y-10 max-w-7xl mx-auto">
       
       {/* Back Button */}
       <div>
-        <Link
-          href="/academy"
-          className="inline-flex items-center gap-2 text-xs font-bold text-ink-400 hover:text-coral-400 transition-colors group"
-        >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          <span>Volver a la Academia</span>
-        </Link>
+        {collectionMeta ? (
+          <Link
+            href={`/academy/${slug}`}
+            className="inline-flex items-center gap-2 text-xs font-bold text-ink-400 hover:text-coral-400 transition-colors group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span>Volver a {categoryMeta?.name || 'la categoría'}</span>
+          </Link>
+        ) : (
+          <Link
+            href="/academy"
+            className="inline-flex items-center gap-2 text-xs font-bold text-ink-400 hover:text-coral-400 transition-colors group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span>Volver a la Academia</span>
+          </Link>
+        )}
       </div>
 
       {/* Header Banner — con portada si existe */}
-      {categoryMeta ? (
+      {collectionMeta ? (
+        /* BANNER DE VISTA DE COLECCIÓN */
+        <div className="relative overflow-hidden rounded-[var(--radius)] bg-ink-950 border border-ink-700/40 shadow-[var(--shadow-hero)]">
+          <div className="absolute top-0 right-0 -mr-24 -mt-24 w-72 h-72 bg-coral-500/10 blur-[80px] rounded-full pointer-events-none" />
+
+          <div className="relative z-10 p-7 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex items-center gap-5">
+              {collectionMeta.thumbnail_url && (
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-ink-900 border border-ink-800 p-2 shadow-inner flex items-center justify-center shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={collectionMeta.thumbnail_url}
+                    alt={collectionMeta.name}
+                    className="w-full h-full object-contain filter drop-shadow-md"
+                  />
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-bold text-coral-300 uppercase tracking-widest flex items-center gap-1.5">
+                  <Folder className="w-3.5 h-3.5" /> Colección de {categoryMeta?.name || 'Recursos'}
+                </span>
+                <div className="flex items-center gap-3">
+                  <h1 className="font-display text-3xl md:text-4xl font-semibold text-ink-50 tracking-quant">
+                    {collectionMeta.name}
+                  </h1>
+                  {isAdmin && (
+                    <div className="bg-ink-950/50 backdrop-blur rounded-xl border border-ink-800/50">
+                      <InlineEditCollectionModal
+                        collection={collectionMeta}
+                        categorySlug={slug}
+                      />
+                    </div>
+                  )}
+                </div>
+                {collectionMeta.description && (
+                  <p className="text-sm text-ink-300 max-w-xl">{collectionMeta.description}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              {isAdmin && categoryMeta && (
+                <InlineCreateResourceModal
+                  categoryId={categoryMeta.id}
+                  categoryName={categoryMeta.name}
+                  categorySlug={categoryMeta.slug}
+                  collectionId={collectionMeta.id}
+                  collectionName={collectionMeta.name}
+                />
+              )}
+              <div className="relative w-full sm:w-64">
+                <Search className="w-4 h-4 text-ink-400 absolute left-3.5 top-3" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  placeholder="Filtrar en esta colección..."
+                  className="w-full bg-ink-900/60 backdrop-blur border border-ink-700/50 rounded-xl pl-10 pr-4 py-2 text-xs font-semibold text-ink-50 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-coral-500/30 focus:border-coral-500/50 transition-all"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : categoryMeta ? (
+        /* BANNER DE VISTA DE CATEGORÍA */
         <div className="relative overflow-hidden rounded-[var(--radius)] bg-ink-950 border border-ink-700/40 shadow-[var(--shadow-hero)]">
           {categoryMeta.cover_image_url ? (
             <>
@@ -192,13 +298,20 @@ export function CategoryResourcesClient({
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-wrap">
               {isAdmin && !softwareSlot && categoryMeta && (
-                <InlineCreateResourceModal
-                  categoryId={categoryMeta.id}
-                  categoryName={categoryMeta.name}
-                  categorySlug={categoryMeta.slug}
-                />
+                <>
+                  <InlineCreateCollectionModal
+                    categoryId={categoryMeta.id}
+                    categoryName={categoryMeta.name}
+                  />
+                  <InlineCreateResourceModal
+                    categoryId={categoryMeta.id}
+                    categoryName={categoryMeta.name}
+                    categorySlug={categoryMeta.slug}
+                    availableCollections={availableCollections}
+                  />
+                </>
               )}
               <div className="relative w-full sm:w-64">
                 <Search className="w-4 h-4 text-ink-400 absolute left-3.5 top-3" />
@@ -283,188 +396,246 @@ export function CategoryResourcesClient({
         <section aria-label="Catálogo de plugins">{softwareSlot}</section>
       )}
 
-      {/* Unified Resource Cards */}
-      {filteredGroups.length === 0 ? (
-        !softwareSlot && (
-          <div className="glass-card rounded-[var(--radius)] p-12 text-center space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-coral-500/15 text-coral-400 flex items-center justify-center mx-auto">
-              <Package className="w-6 h-6" />
-            </div>
-            <h3 className="font-display text-lg font-semibold text-ink-50">No hay recursos disponibles</h3>
-            <p className="text-xs font-semibold text-ink-400 max-w-sm mx-auto">
-              Aún no has agregado recursos en la categoría <span className="font-bold text-coral-400 capitalize">{categoryMeta?.name || slug}</span>.
-            </p>
-            {isAdmin && categoryMeta && (
-              <div className="pt-2">
-                <InlineCreateResourceModal
-                  categoryId={categoryMeta.id}
-                  categoryName={categoryMeta.name}
-                  categorySlug={categoryMeta.slug}
-                />
-              </div>
-            )}
+      {/* SECCIÓN 1: COLECCIONES / CARPETAS (Solo en vista de categoría, si existen y no hay búsqueda activa) */}
+      {hasCollectionsInCat && !searchTerm && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 border-b border-ink-800/80 pb-2.5">
+            <Folder className="w-4 h-4 text-coral-400" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-ink-200">
+              Colecciones y Marcas
+            </h2>
           </div>
-        )
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
-          {filteredGroups.map(group => {
-            const hasBoth = Boolean(group.macResource && group.winResource)
-            const macItem = group.macResource
-            const winItem = group.winResource
-            const uniItem = group.universalResource
-
-            return (
-              <div
-                key={group.groupKey}
-                className={`glass-card glass-card-hover rounded-[var(--radius)] min-h-[340px] overflow-hidden flex flex-col justify-between p-5 relative group border border-ink-800/80 bg-ink-950/75 hover:bg-ink-900/90 hover:border-coral-500/40 transition-all ${
-                  !group.is_published ? 'opacity-70 grayscale-[30%]' : ''
-                }`}
-              >
-                {/* Top Row: Software Tag, Version Badge & Admin Edit */}
-                <div className="flex items-center justify-between gap-2 z-10">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-coral-500/15 text-coral-300 border border-coral-500/30">
-                      {group.software || 'General'}
-                    </span>
-                    {(macItem?.version || winItem?.version || uniItem?.version) && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-ink-900/90 text-ink-300 border border-ink-800 shadow-sm">
-                        v{macItem?.version || winItem?.version || uniItem?.version}
-                      </span>
-                    )}
-                  </div>
-
-                  {isAdmin && (
-                    <div className="bg-ink-900/80 backdrop-blur rounded-xl border border-ink-800 shrink-0">
-                      <InlineEditResourceModal group={group} categorySlug={categoryMeta?.slug || slug} />
-                    </div>
-                  )}
-                </div>
-
-                {/* Center: Square Icon & Title & Description */}
-                <div className="flex flex-col items-center justify-center text-center my-auto py-2">
-                  <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-ink-900/90 border border-ink-800/80 p-2 shadow-inner flex items-center justify-center group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
-                    {group.thumbnail_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={group.thumbnail_url}
-                        alt={group.title}
-                        className="w-full h-full object-contain filter drop-shadow-md"
-                      />
-                    ) : (
-                      <Package className="w-8 h-8 text-coral-400" />
-                    )}
-                  </div>
-
-                  <h3 className="font-bold text-base sm:text-lg text-ink-50 group-hover:text-coral-400 transition-colors tracking-tight font-display text-center truncate w-full mt-2.5">
-                    {group.title}
-                  </h3>
-                  <p className="text-[11px] text-ink-400 text-center line-clamp-1 max-w-[90%] mx-auto mt-0.5">
-                    {group.description || 'Sin descripción.'}
-                  </p>
-                </div>
-
-                {/* Bottom Row: Interactive Download Buttons with Hover Size Swap */}
-                <div className="pt-3 border-t border-ink-800/70 z-10 w-full">
-                  {hasBoth ? (
-                    <div className="grid grid-cols-2 gap-2.5 w-full">
-                      {/* Mac Button */}
-                      <a
-                        href={`/api/download/${macItem!.id}`}
-                        download={macItem!.file_name}
-                        className="group/btn relative inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/20 transition-all active:scale-95 group/mac shadow-sm text-center cursor-pointer whitespace-nowrap overflow-hidden"
-                        title={`Descargar macOS (${formatFileSize(macItem!.file_size) || 'macOS'})`}
-                      >
-                        <AppleLogo className="text-sm text-white shrink-0" />
-                        <span className="relative inline-flex items-center justify-center min-w-[44px]">
-                          <span className="transition-all duration-200 group-hover/btn:opacity-0 group-hover/btn:-translate-y-1">
-                            macOS
-                          </span>
-                          <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] opacity-0 translate-y-1 transition-all duration-200 group-hover/btn:opacity-100 group-hover/btn:translate-y-0 text-ink-100 font-semibold">
-                            {formatFileSize(macItem!.file_size) || 'macOS'}
-                          </span>
-                        </span>
-                      </a>
-
-                      {/* Windows Button */}
-                      <a
-                        href={`/api/download/${winItem!.id}`}
-                        download={winItem!.file_name}
-                        className="group/btn relative inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#0078D4]/10 hover:bg-[#0078D4]/25 text-sky-200 font-bold text-xs border border-[#0078D4]/40 transition-all active:scale-95 group/win shadow-[0_0_12px_rgba(0,120,212,0.15)] text-center cursor-pointer whitespace-nowrap overflow-hidden"
-                        title={`Descargar Windows (${formatFileSize(winItem!.file_size) || 'Windows'})`}
-                      >
-                        <span className="inline-flex items-center justify-center bg-[#0078D4]/25 text-sky-200 p-0.5 rounded border border-[#0078D4]/40 shrink-0">
-                          <WindowsLogo className="w-3 h-3 text-sky-300" />
-                        </span>
-                        <span className="relative inline-flex items-center justify-center min-w-[52px]">
-                          <span className="transition-all duration-200 group-hover/btn:opacity-0 group-hover/btn:-translate-y-1 text-sky-100">
-                            Windows
-                          </span>
-                          <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] opacity-0 translate-y-1 transition-all duration-200 group-hover/btn:opacity-100 group-hover/btn:translate-y-0 text-sky-200 font-semibold">
-                            {formatFileSize(winItem!.file_size) || 'Windows'}
-                          </span>
-                        </span>
-                      </a>
-                    </div>
-                  ) : macItem ? (
-                    <a
-                      href={`/api/download/${macItem.id}`}
-                      download={macItem.file_name}
-                      className="group/btn relative inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/20 transition-all active:scale-95 shadow-sm w-full cursor-pointer whitespace-nowrap overflow-hidden"
-                      title={`Descargar macOS (${formatFileSize(macItem.file_size) || 'macOS'})`}
-                    >
-                      <AppleLogo className="text-sm text-white shrink-0" />
-                      <span className="relative inline-flex items-center justify-center min-w-[48px]">
-                        <span className="transition-all duration-200 group-hover/btn:opacity-0 group-hover/btn:-translate-y-1">
-                          macOS
-                        </span>
-                        <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] opacity-0 translate-y-1 transition-all duration-200 group-hover/btn:opacity-100 group-hover/btn:translate-y-0 text-ink-100 font-semibold">
-                          {formatFileSize(macItem.file_size) || 'macOS'}
-                        </span>
-                      </span>
-                    </a>
-                  ) : winItem ? (
-                    <a
-                      href={`/api/download/${winItem.id}`}
-                      download={winItem.file_name}
-                      className="group/btn relative inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#0078D4]/10 hover:bg-[#0078D4]/25 text-sky-200 font-bold text-xs border border-[#0078D4]/40 transition-all active:scale-95 shadow-[0_0_12px_rgba(0,120,212,0.15)] w-full cursor-pointer whitespace-nowrap overflow-hidden"
-                      title={`Descargar Windows (${formatFileSize(winItem.file_size) || 'Windows'})`}
-                    >
-                      <span className="inline-flex items-center justify-center bg-[#0078D4]/25 text-sky-200 p-0.5 rounded border border-[#0078D4]/40 shrink-0">
-                        <WindowsLogo className="w-3 h-3 text-sky-300" />
-                      </span>
-                      <span className="relative inline-flex items-center justify-center min-w-[52px]">
-                        <span className="transition-all duration-200 group-hover/btn:opacity-0 group-hover/btn:-translate-y-1 text-sky-100">
-                          Windows
-                        </span>
-                        <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] opacity-0 translate-y-1 transition-all duration-200 group-hover/btn:opacity-100 group-hover/btn:translate-y-0 text-sky-200 font-semibold">
-                          {formatFileSize(winItem.file_size) || 'Windows'}
-                        </span>
-                      </span>
-                    </a>
-                  ) : uniItem ? (
-                    <a
-                      href={`/api/download/${uniItem.id}`}
-                      download={uniItem.file_name}
-                      className="group/btn relative inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-coral-500/15 hover:bg-coral-500 text-coral-300 hover:text-white font-bold text-xs border border-coral-500/30 hover:border-coral-500 transition-all active:scale-95 shadow-[0_2px_12px_rgba(255,98,19,0.15)] w-full cursor-pointer whitespace-nowrap overflow-hidden text-center"
-                      title={`Descargar ${uniItem.title} (${formatFileSize(uniItem.file_size) || 'Descargar'})`}
-                    >
-                      <Download className="w-3.5 h-3.5 shrink-0" />
-                      <span className="relative inline-flex items-center justify-center min-w-[60px]">
-                        <span className="transition-all duration-200 group-hover/btn:opacity-0 group-hover/btn:-translate-y-1">
-                          Descargar
-                        </span>
-                        <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] opacity-0 translate-y-1 transition-all duration-200 group-hover/btn:opacity-100 group-hover/btn:translate-y-0 font-semibold">
-                          {formatFileSize(uniItem.file_size) || uniItem.file_name}
-                        </span>
-                      </span>
-                    </a>
-                  ) : null}
-                </div>
-              </div>
-            )
-          })}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
+            {collections.map(col => (
+              <CollectionCard
+                key={col.id}
+                collection={col}
+                categorySlug={slug}
+                isAdmin={isAdmin}
+              />
+            ))}
+          </div>
         </div>
       )}
+
+      {/* SECCIÓN 2: RECURSOS (Sueltos o de la colección) */}
+      {(() => {
+        const groupsToDisplay = searchTerm ? filteredGroups : directLooseGroups
+
+        if (groupsToDisplay.length === 0) {
+          if (hasCollectionsInCat && !searchTerm) {
+            return null // Ya mostramos las carpetas, no hace falta tarjeta vacía de recursos
+          }
+
+          return (
+            !softwareSlot && (
+              <div className="glass-card rounded-[var(--radius)] p-12 text-center space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-coral-500/15 text-coral-400 flex items-center justify-center mx-auto">
+                  <Package className="w-6 h-6" />
+                </div>
+                <h3 className="font-display text-lg font-semibold text-ink-50">
+                  {collectionMeta
+                    ? 'No hay recursos en esta colección'
+                    : 'No hay recursos disponibles'}
+                </h3>
+                <p className="text-xs font-semibold text-ink-400 max-w-sm mx-auto">
+                  {collectionMeta
+                    ? `Aún no has agregado recursos dentro de ${collectionMeta.name}. Añade el primero arriba.`
+                    : `Aún no has agregado recursos en la categoría ${categoryMeta?.name || slug}.`}
+                </p>
+                {isAdmin && categoryMeta && (
+                  <div className="pt-2">
+                    <InlineCreateResourceModal
+                      categoryId={categoryMeta.id}
+                      categoryName={categoryMeta.name}
+                      categorySlug={categoryMeta.slug}
+                      collectionId={collectionMeta?.id}
+                      collectionName={collectionMeta?.name}
+                      availableCollections={availableCollections}
+                    />
+                  </div>
+                )}
+              </div>
+            )
+          )
+        }
+
+        return (
+          <div className="space-y-4">
+            {hasCollectionsInCat && !searchTerm && (
+              <div className="flex items-center gap-2 border-b border-ink-800/80 pb-2.5 pt-2">
+                <Layers className="w-4 h-4 text-coral-400" />
+                <h2 className="text-xs font-bold uppercase tracking-wider text-ink-200">
+                  Otros Recursos Sueltos
+                </h2>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
+              {groupsToDisplay.map(group => {
+                const hasBoth = Boolean(group.macResource && group.winResource)
+                const macItem = group.macResource
+                const winItem = group.winResource
+                const uniItem = group.universalResource
+
+                return (
+                  <div
+                    key={group.groupKey}
+                    className={`glass-card glass-card-hover rounded-[var(--radius)] min-h-[340px] overflow-hidden flex flex-col justify-between p-5 relative group border border-ink-800/80 bg-ink-950/75 hover:bg-ink-900/90 hover:border-coral-500/40 transition-all ${
+                      !group.is_published ? 'opacity-70 grayscale-[30%]' : ''
+                    }`}
+                  >
+                    {/* Top Row: Software Tag, Version Badge & Admin Edit */}
+                    <div className="flex items-center justify-between gap-2 z-10">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-coral-500/15 text-coral-300 border border-coral-500/30">
+                          {group.software || 'General'}
+                        </span>
+                        {(macItem?.version || winItem?.version || uniItem?.version) && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-ink-900/90 text-ink-300 border border-ink-800 shadow-sm">
+                            v{macItem?.version || winItem?.version || uniItem?.version}
+                          </span>
+                        )}
+                      </div>
+
+                      {isAdmin && (
+                        <div className="bg-ink-900/80 backdrop-blur rounded-xl border border-ink-800 shrink-0">
+                          <InlineEditResourceModal
+                            group={group}
+                            categorySlug={categoryMeta?.slug || slug}
+                            availableCollections={availableCollections}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Center: Square Icon & Title & Description */}
+                    <div className="flex flex-col items-center justify-center text-center my-auto py-2">
+                      <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-ink-900/90 border border-ink-800/80 p-2 shadow-inner flex items-center justify-center group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
+                        {group.thumbnail_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={group.thumbnail_url}
+                            alt={group.title}
+                            className="w-full h-full object-contain filter drop-shadow-md"
+                          />
+                        ) : (
+                          <Package className="w-8 h-8 text-coral-400" />
+                        )}
+                      </div>
+
+                      <h3 className="font-bold text-base sm:text-lg text-ink-50 group-hover:text-coral-400 transition-colors tracking-tight font-display text-center truncate w-full mt-2.5">
+                        {group.title}
+                      </h3>
+                      <p className="text-[11px] text-ink-400 text-center line-clamp-1 max-w-[90%] mx-auto mt-0.5">
+                        {group.description || 'Sin descripción.'}
+                      </p>
+                    </div>
+
+                    {/* Bottom Row: Interactive Download Buttons with Hover Size Swap */}
+                    <div className="pt-3 border-t border-ink-800/70 z-10 w-full">
+                      {hasBoth ? (
+                        <div className="grid grid-cols-2 gap-2.5 w-full">
+                          {/* Mac Button */}
+                          <a
+                            href={`/api/download/${macItem!.id}`}
+                            download={macItem!.file_name}
+                            className="group/btn relative inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/20 transition-all active:scale-95 group/mac shadow-sm text-center cursor-pointer whitespace-nowrap overflow-hidden"
+                            title={`Descargar macOS (${formatFileSize(macItem!.file_size) || 'macOS'})`}
+                          >
+                            <AppleLogo className="text-sm text-white shrink-0" />
+                            <span className="relative inline-flex items-center justify-center min-w-[44px]">
+                              <span className="transition-all duration-200 group-hover/btn:opacity-0 group-hover/btn:-translate-y-1">
+                                macOS
+                              </span>
+                              <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] opacity-0 translate-y-1 transition-all duration-200 group-hover/btn:opacity-100 group-hover/btn:translate-y-0 text-ink-100 font-semibold">
+                                {formatFileSize(macItem!.file_size) || 'macOS'}
+                              </span>
+                            </span>
+                          </a>
+
+                          {/* Windows Button */}
+                          <a
+                            href={`/api/download/${winItem!.id}`}
+                            download={winItem!.file_name}
+                            className="group/btn relative inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#0078D4]/10 hover:bg-[#0078D4]/25 text-sky-200 font-bold text-xs border border-[#0078D4]/40 transition-all active:scale-95 group/win shadow-[0_0_12px_rgba(0,120,212,0.15)] text-center cursor-pointer whitespace-nowrap overflow-hidden"
+                            title={`Descargar Windows (${formatFileSize(winItem!.file_size) || 'Windows'})`}
+                          >
+                            <span className="inline-flex items-center justify-center bg-[#0078D4]/25 text-sky-200 p-0.5 rounded border border-[#0078D4]/40 shrink-0">
+                              <WindowsLogo className="w-3 h-3 text-sky-300" />
+                            </span>
+                            <span className="relative inline-flex items-center justify-center min-w-[52px]">
+                              <span className="transition-all duration-200 group-hover/btn:opacity-0 group-hover/btn:-translate-y-1 text-sky-100">
+                                Windows
+                              </span>
+                              <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] opacity-0 translate-y-1 transition-all duration-200 group-hover/btn:opacity-100 group-hover/btn:translate-y-0 text-sky-200 font-semibold">
+                                {formatFileSize(winItem!.file_size) || 'Windows'}
+                              </span>
+                            </span>
+                          </a>
+                        </div>
+                      ) : macItem ? (
+                        <a
+                          href={`/api/download/${macItem.id}`}
+                          download={macItem.file_name}
+                          className="group/btn relative inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/20 transition-all active:scale-95 shadow-sm w-full cursor-pointer whitespace-nowrap overflow-hidden"
+                          title={`Descargar macOS (${formatFileSize(macItem.file_size) || 'macOS'})`}
+                        >
+                          <AppleLogo className="text-sm text-white shrink-0" />
+                          <span className="relative inline-flex items-center justify-center min-w-[48px]">
+                            <span className="transition-all duration-200 group-hover/btn:opacity-0 group-hover/btn:-translate-y-1">
+                              macOS
+                            </span>
+                            <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] opacity-0 translate-y-1 transition-all duration-200 group-hover/btn:opacity-100 group-hover/btn:translate-y-0 text-ink-100 font-semibold">
+                              {formatFileSize(macItem.file_size) || 'macOS'}
+                            </span>
+                          </span>
+                        </a>
+                      ) : winItem ? (
+                        <a
+                          href={`/api/download/${winItem.id}`}
+                          download={winItem.file_name}
+                          className="group/btn relative inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#0078D4]/10 hover:bg-[#0078D4]/25 text-sky-200 font-bold text-xs border border-[#0078D4]/40 transition-all active:scale-95 shadow-[0_0_12px_rgba(0,120,212,0.15)] w-full cursor-pointer whitespace-nowrap overflow-hidden"
+                          title={`Descargar Windows (${formatFileSize(winItem.file_size) || 'Windows'})`}
+                        >
+                          <span className="inline-flex items-center justify-center bg-[#0078D4]/25 text-sky-200 p-0.5 rounded border border-[#0078D4]/40 shrink-0">
+                            <WindowsLogo className="w-3 h-3 text-sky-300" />
+                          </span>
+                          <span className="relative inline-flex items-center justify-center min-w-[52px]">
+                            <span className="transition-all duration-200 group-hover/btn:opacity-0 group-hover/btn:-translate-y-1 text-sky-100">
+                              Windows
+                            </span>
+                            <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] opacity-0 translate-y-1 transition-all duration-200 group-hover/btn:opacity-100 group-hover/btn:translate-y-0 text-sky-200 font-semibold">
+                              {formatFileSize(winItem.file_size) || 'Windows'}
+                            </span>
+                          </span>
+                        </a>
+                      ) : uniItem ? (
+                        <a
+                          href={`/api/download/${uniItem.id}`}
+                          download={uniItem.file_name}
+                          className="group/btn relative inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-coral-500/15 hover:bg-coral-500 text-coral-300 hover:text-white font-bold text-xs border border-coral-500/30 hover:border-coral-500 transition-all active:scale-95 shadow-[0_2px_12px_rgba(255,98,19,0.15)] w-full cursor-pointer whitespace-nowrap overflow-hidden text-center"
+                          title={`Descargar ${uniItem.title} (${formatFileSize(uniItem.file_size) || 'Descargar'})`}
+                        >
+                          <Download className="w-3.5 h-3.5 shrink-0" />
+                          <span className="relative inline-flex items-center justify-center min-w-[60px]">
+                            <span className="transition-all duration-200 group-hover/btn:opacity-0 group-hover/btn:-translate-y-1">
+                              Descargar
+                            </span>
+                            <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] opacity-0 translate-y-1 transition-all duration-200 group-hover/btn:opacity-100 group-hover/btn:translate-y-0 font-semibold">
+                              {formatFileSize(uniItem.file_size) || uniItem.file_name}
+                            </span>
+                          </span>
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })()}
 
     </div>
   )

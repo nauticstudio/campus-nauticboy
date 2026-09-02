@@ -30,6 +30,7 @@ export interface ResourceVariant {
   thumbnail_url?: string | null
   tags?: string[] | null
   category_id?: string
+  collection_id?: string | null
 }
 
 const isUniversalCategory = (slug?: string) => {
@@ -41,6 +42,7 @@ const isUniversalCategory = (slug?: string) => {
 export function InlineEditResourceModal({
   group,
   categorySlug,
+  availableCollections = [],
 }: {
   group: {
     title: string
@@ -53,6 +55,7 @@ export function InlineEditResourceModal({
     universalResource?: ResourceVariant | null
   }
   categorySlug?: string
+  availableCollections?: { id: string; name: string }[]
 }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -178,6 +181,32 @@ export function InlineEditResourceModal({
                   className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-sm font-semibold"
                 />
               </div>
+
+              {/* Selector de Carpeta / Colección si existen colecciones */}
+              {availableCollections.length > 0 && (
+                <div>
+                  <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                    <FolderArchive className="w-3.5 h-3.5 text-coral-400" /> Carpeta / Colección
+                  </label>
+                  <select
+                    name="collection_id"
+                    defaultValue={
+                      group.universalResource?.collection_id ||
+                      group.macResource?.collection_id ||
+                      group.winResource?.collection_id ||
+                      ''
+                    }
+                    className="rounded-xl mt-1 bg-ink-950 border border-ink-800 text-ink-100 text-xs py-2 px-3 focus:border-coral-500 w-full outline-none transition-colors"
+                  >
+                    <option value="">(Sin carpeta / Recurso suelto)</option>
+                    {availableCollections.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
