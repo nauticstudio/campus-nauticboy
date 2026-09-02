@@ -51,6 +51,11 @@ export async function createUnifiedResourceAction(formData: FormData): Promise<R
     const software = (formData.get('software') as string)?.trim() || null
     const isRestricted = formData.get('is_restricted') === 'true' || formData.get('is_restricted') === 'on'
     const isPublished = formData.get('is_published') !== 'false'
+    const mode = (formData.get('mode') as string)?.trim()
+    const downloadUrl = (formData.get('download_url') as string)?.trim()
+    const version = (formData.get('version') as string)?.trim() || '1.0'
+    const fileName = (formData.get('file_name') as string)?.trim() || `${title || 'archivo'}.zip`
+    const fileSize = (formData.get('file_size') as string)?.trim()
 
     // Datos macOS
     const macDownloadUrl = (formData.get('mac_download_url') as string)?.trim()
@@ -70,11 +75,50 @@ export async function createUnifiedResourceAction(formData: FormData): Promise<R
     if (!categoryId) {
       return { success: false, error: 'Debes asociar el recurso a una categoría válida.' }
     }
+
+    const baseSlug = slugify(title)
+
+    // Modo Universal (Samples, Presets, Plantillas sin distinción de SO)
+    if (mode === 'universal') {
+      if (!downloadUrl) {
+        return { success: false, error: 'Debes ingresar el enlace de Google Drive o descarga del recurso.' }
+      }
+
+      const extParts = fileName.split('.')
+      const fileExtension = extParts.length > 1 ? extParts.pop()!.toLowerCase() : 'zip'
+      const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`
+
+      const { error: uniErr } = await auth.admin.from('resources').insert({
+        title,
+        slug: uniqueSlug,
+        description,
+        thumbnail_url: thumbnailUrl,
+        category_id: categoryId,
+        storage_provider: 'google_drive',
+        storage_path: extractDriveId(downloadUrl),
+        file_name: fileName,
+        file_extension: fileExtension,
+        file_size: parseFileSizeToBytes(fileSize),
+        software,
+        version,
+        tags: ['universal'],
+        is_restricted: isRestricted,
+        is_published: isPublished,
+      })
+
+      if (uniErr) {
+        console.error('[createUnifiedResourceAction] DB Error Universal:', uniErr)
+        return { success: false, error: `Error guardando recurso: ${uniErr.message}` }
+      }
+
+      revalidatePath('/academy')
+      revalidatePath('/academy/[slug]', 'page')
+      return { success: true }
+    }
+
     if (!macDownloadUrl && !winDownloadUrl) {
       return { success: false, error: 'Debes ingresar el enlace de descarga para al menos una plataforma (macOS o Windows).' }
     }
-
-    const baseSlug = slugify(title)
 
     // Crear versión macOS si está presente
     if (macDownloadUrl) {
@@ -158,6 +202,14 @@ export async function updateUnifiedResourceAction(formData: FormData): Promise<R
     const software = (formData.get('software') as string)?.trim() || null
     const isRestricted = formData.get('is_restricted') === 'true' || formData.get('is_restricted') === 'on'
 
+    const mode = (formData.get('mode') as string)?.trim()
+    const universalId = (formData.get('universal_id') as string)?.trim()
+    const universalDownloadUrl = (formData.get('download_url') as string)?.trim()
+    const universalVersion = (formData.get('version') as string)?.trim() || '1.0'
+    const universalFileName = (formData.get('file_name') as string)?.trim()
+    const universalFileSize = (formData.get('file_size') as string)?.trim()
+    const universalDelete = formData.get('universal_delete') === 'true'
+
     const macId = (formData.get('mac_id') as string)?.trim()
     const macDownloadUrl = (formData.get('mac_download_url') as string)?.trim()
     const macVersion = (formData.get('mac_version') as string)?.trim() || '1.0'
@@ -177,6 +229,67 @@ export async function updateUnifiedResourceAction(formData: FormData): Promise<R
     }
 
     const baseSlug = slugify(title)
+
+    // Manejo de Recurso Universal (Samples, Presets, etc.)
+    if (mode === 'universal' || universalId) {
+      if (universalDelete && universalId) {
+        await auth.admin.from('resources').delete().eq('id', universalId)
+      } else if (universalId) {
+        const updatePayload: Record<string, any> = {
+          title,
+          description,
+          thumbnail_url: thumbnailUrl,
+          software,
+          version: universalVersion,
+          is_restricted: isRestricted,
+          tags: ['universal'],
+          updated_at: new Date().toISOString(),
+        }
+        if (universalDownloadUrl) updatePayload.storage_path = extractDriveId(universalDownloadUrl)
+        if (universalFileName) {
+          updatePayload.file_name = universalFileName
+          const extParts = universalFileName.split('.')
+          if (extParts.length > 1) updatePayload.file_extension = extParts.pop()!.toLowerCase()
+        }
+        if (universalFileSize) updatePayload.file_size = parseFileSizeToBytes(universalFileSize)
+
+        const { error } = await auth.admin.from('resources').update(updatePayload).eq('id', universalId)
+        if (error) {
+          console.error('[updateUnifiedResourceAction] DB Error Universal Update:', error)
+          return { success: false, error: `Error al actualizar recurso: ${error.message}` }
+        }
+      } else if (universalDownloadUrl && categoryId) {
+        const extParts = (universalFileName || `${title}.zip`).split('.')
+        const fileExtension = extParts.length > 1 ? extParts.pop()!.toLowerCase() : 'zip'
+        const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`
+
+        const { error } = await auth.admin.from('resources').insert({
+          title,
+          slug: uniqueSlug,
+          description,
+          thumbnail_url: thumbnailUrl,
+          category_id: categoryId,
+          storage_provider: 'google_drive',
+          storage_path: extractDriveId(universalDownloadUrl),
+          file_name: universalFileName || `${title}.zip`,
+          file_extension: fileExtension,
+          file_size: parseFileSizeToBytes(universalFileSize),
+          software,
+          version: universalVersion,
+          tags: ['universal'],
+          is_restricted: isRestricted,
+          is_published: true,
+        })
+        if (error) {
+          console.error('[updateUnifiedResourceAction] DB Error Universal Insert:', error)
+          return { success: false, error: `Error al crear recurso: ${error.message}` }
+        }
+      }
+
+      revalidatePath('/academy')
+      revalidatePath('/academy/[slug]', 'page')
+      return { success: true }
+    }
 
     // 1. Manejo macOS
     if (macDelete && macId) {

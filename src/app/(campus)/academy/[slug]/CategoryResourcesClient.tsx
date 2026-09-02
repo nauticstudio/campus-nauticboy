@@ -117,8 +117,8 @@ export function CategoryResourcesClient({
 
   const groups = groupResources(resources, categoryMeta?.id || '')
 
-  const hasMacResources = groups.some(g => Boolean(g.macResource || g.universalResource))
-  const hasWinResources = groups.some(g => Boolean(g.winResource || g.universalResource))
+  const hasMacResources = groups.some(g => Boolean(g.macResource))
+  const hasWinResources = groups.some(g => Boolean(g.winResource))
   const showPlatformFilter = hasMacResources && hasWinResources
 
   const filteredGroups = groups
@@ -197,6 +197,7 @@ export function CategoryResourcesClient({
                 <InlineCreateResourceModal
                   categoryId={categoryMeta.id}
                   categoryName={categoryMeta.name}
+                  categorySlug={categoryMeta.slug}
                 />
               )}
               <div className="relative w-full sm:w-64">
@@ -298,6 +299,7 @@ export function CategoryResourcesClient({
                 <InlineCreateResourceModal
                   categoryId={categoryMeta.id}
                   categoryName={categoryMeta.name}
+                  categorySlug={categoryMeta.slug}
                 />
               </div>
             )}
@@ -333,7 +335,7 @@ export function CategoryResourcesClient({
 
                   {isAdmin && (
                     <div className="bg-ink-900/80 backdrop-blur rounded-xl border border-ink-800 shrink-0">
-                      <InlineEditResourceModal group={group} />
+                      <InlineEditResourceModal group={group} categorySlug={categoryMeta?.slug || slug} />
                     </div>
                   )}
                 </div>
@@ -440,19 +442,22 @@ export function CategoryResourcesClient({
                       </span>
                     </a>
                   ) : uniItem ? (
-                    <div className="flex items-center justify-between gap-2 w-full">
-                      <span className="text-[10px] font-mono text-ink-400 truncate block">
-                        {formatFileSize(uniItem.file_size) || uniItem.file_name}
+                    <a
+                      href={`/api/download/${uniItem.id}`}
+                      download={uniItem.file_name}
+                      className="group/btn relative inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-coral-500/15 hover:bg-coral-500 text-coral-300 hover:text-white font-bold text-xs border border-coral-500/30 hover:border-coral-500 transition-all active:scale-95 shadow-[0_2px_12px_rgba(255,98,19,0.15)] w-full cursor-pointer whitespace-nowrap overflow-hidden text-center"
+                      title={`Descargar ${uniItem.title} (${formatFileSize(uniItem.file_size) || 'Descargar'})`}
+                    >
+                      <Download className="w-3.5 h-3.5 shrink-0" />
+                      <span className="relative inline-flex items-center justify-center min-w-[60px]">
+                        <span className="transition-all duration-200 group-hover/btn:opacity-0 group-hover/btn:-translate-y-1">
+                          Descargar
+                        </span>
+                        <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] opacity-0 translate-y-1 transition-all duration-200 group-hover/btn:opacity-100 group-hover/btn:translate-y-0 font-semibold">
+                          {formatFileSize(uniItem.file_size) || uniItem.file_name}
+                        </span>
                       </span>
-                      <a
-                        href={`/api/download/${uniItem.id}`}
-                        download={uniItem.file_name}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-coral-500 text-white font-bold text-xs shadow-md shadow-coral-500/20 hover:bg-coral-600 transition-all active:scale-95 shrink-0"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        <span>Descargar</span>
-                      </a>
-                    </div>
+                    </a>
                   ) : null}
                 </div>
               </div>

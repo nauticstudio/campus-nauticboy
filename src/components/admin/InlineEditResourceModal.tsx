@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Pencil, Loader2, Link2, FileText, Cpu, Trash2, ImageIcon, Sparkles } from 'lucide-react'
+import { Pencil, Loader2, Link2, FileText, FolderArchive, Cpu, Trash2, ImageIcon, Sparkles } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -32,8 +32,15 @@ export interface ResourceVariant {
   category_id?: string
 }
 
+const isUniversalCategory = (slug?: string) => {
+  if (!slug) return false
+  const s = slug.toLowerCase().trim()
+  return ['samples', 'presets', 'plantillas', 'templates', 'librerias', 'loops'].includes(s)
+}
+
 export function InlineEditResourceModal({
   group,
+  categorySlug,
 }: {
   group: {
     title: string
@@ -43,13 +50,25 @@ export function InlineEditResourceModal({
     category_id: string
     macResource?: ResourceVariant | null
     winResource?: ResourceVariant | null
+    universalResource?: ResourceVariant | null
   }
+  categorySlug?: string
 }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [thumbnailUrl, setThumbnailUrl] = useState(group.thumbnail_url || '')
   const [imgError, setImgError] = useState(false)
+
+  const isUniversal = Boolean(group.universalResource) || isUniversalCategory(categorySlug)
+
+  // Universal State
+  const initialUniversalLink = group.universalResource?.storage_path
+    ? group.universalResource.storage_path.startsWith('http')
+      ? group.universalResource.storage_path
+      : `https://drive.google.com/file/d/${group.universalResource.storage_path}/view`
+    : ''
+  const [universalDownloadUrl, setUniversalDownloadUrl] = useState(initialUniversalLink)
 
   // macOS State
   const initialMacLink = group.macResource?.storage_path
@@ -75,13 +94,19 @@ export function InlineEditResourceModal({
     const formData = new FormData(e.currentTarget)
     formData.append('category_id', group.category_id)
 
-    if (group.macResource?.id) formData.append('mac_id', group.macResource.id)
-    formData.set('mac_download_url', macDownloadUrl)
-    if (macDelete) formData.append('mac_delete', 'true')
+    if (isUniversal) {
+      formData.append('mode', 'universal')
+      if (group.universalResource?.id) formData.append('universal_id', group.universalResource.id)
+      formData.set('download_url', universalDownloadUrl)
+    } else {
+      if (group.macResource?.id) formData.append('mac_id', group.macResource.id)
+      formData.set('mac_download_url', macDownloadUrl)
+      if (macDelete) formData.append('mac_delete', 'true')
 
-    if (group.winResource?.id) formData.append('win_id', group.winResource.id)
-    formData.set('win_download_url', winDownloadUrl)
-    if (winDelete) formData.append('win_delete', 'true')
+      if (group.winResource?.id) formData.append('win_id', group.winResource.id)
+      formData.set('win_download_url', winDownloadUrl)
+      if (winDelete) formData.append('win_delete', 'true')
+    }
 
     const res = await updateUnifiedResourceAction(formData)
     setLoading(false)
@@ -94,11 +119,12 @@ export function InlineEditResourceModal({
   }
 
   const handleDeleteAll = async () => {
-    if (!confirm(`¿Eliminar permanentemente "${group.title}" y todos sus instaladores? Esta acción no se puede deshacer.`)) {
+    if (!confirm(`¿Eliminar permanentemente "${group.title}"? Esta acción no se puede deshacer.`)) {
       return
     }
     setDeleting(true)
     const idsToDelete: string[] = []
+    if (group.universalResource?.id) idsToDelete.push(group.universalResource.id)
     if (group.macResource?.id) idsToDelete.push(group.macResource.id)
     if (group.winResource?.id) idsToDelete.push(group.winResource.id)
 
@@ -124,13 +150,17 @@ export function InlineEditResourceModal({
 
       <DialogContent className="sm:max-w-[560px] bg-ink-950 text-ink-100 rounded-[var(--radius)] p-6 border border-ink-800 shadow-2xl">
         <form onSubmit={handleUpdate}>
+          {isUniversal && <input type="hidden" name="mode" value="universal" />}
+
           <DialogHeader className="space-y-2 mb-4">
             <DialogTitle className="text-xl font-bold font-display text-ink-50 flex items-center gap-2">
               <Pencil className="w-5 h-5 text-coral-400" />
-              Editar Recurso Unificado
+              Editar {isUniversal ? 'Recurso' : 'Recurso Unificado'}
             </DialogTitle>
             <DialogDescription className="text-xs font-medium text-ink-400">
-              Actualiza datos generales o gestiona las descargas para macOS y Windows.
+              {isUniversal
+                ? 'Actualiza los datos o cambia el enlace de descarga del recurso.'
+                : 'Actualiza datos generales o gestiona las descargas para macOS y Windows.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -152,13 +182,13 @@ export function InlineEditResourceModal({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
-                    <Cpu className="w-3.5 h-3.5 text-coral-400" /> Software / DAW
+                    <Cpu className="w-3.5 h-3.5 text-coral-400" /> {isUniversal ? 'Fabricante / Formato' : 'Software / DAW'}
                   </label>
                   <Input
                     name="software"
                     defaultValue={group.software || ''}
                     className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs"
-                    placeholder="Ej. FL Studio"
+                    placeholder={isUniversal ? 'Ej. Vengeance / WAV' : 'Ej. FL Studio'}
                   />
                 </div>
 
@@ -204,171 +234,242 @@ export function InlineEditResourceModal({
               </div>
             </div>
 
-            {/* Title Section for Platforms */}
-            <div className="flex items-center gap-1.5 pt-1">
-              <Sparkles className="w-3.5 h-3.5 text-coral-400" />
-              <span className="text-[11px] font-bold text-ink-200 uppercase tracking-wider">Versiones por Sistema Operativo</span>
-            </div>
-
-            {/* macOS Section */}
-            <div className={`p-4 rounded-2xl border transition-all ${
-              macDelete 
-                ? 'bg-rose-950/20 border-rose-900/40 opacity-60' 
-                : 'bg-ink-900/80 border-ink-700/60'
-            } space-y-3`}>
-              <div className="flex items-center justify-between pb-1 border-b border-ink-800">
-                <div className="flex items-center gap-2">
-                  <span className="p-1 rounded-lg bg-white/10 text-white border border-white/20">
-                    <AppleLogo className="w-3.5 h-3.5" />
-                  </span>
-                  <span className="text-xs font-bold text-white tracking-wide">
-                    Versión Apple macOS
-                  </span>
-                  {group.macResource && (
-                    <span className="text-[10px] font-mono font-bold text-coral-400 bg-coral-500/10 px-1.5 py-0.5 rounded border border-coral-500/20">
-                      v{group.macResource.version || '1.0'}
+            {/* SECCIÓN MODO UNIVERSAL (SAMPLES / PRESETS / ETC.) */}
+            {isUniversal ? (
+              <div className="p-4 rounded-2xl bg-ink-900/80 border border-ink-700/60 space-y-3 relative overflow-hidden">
+                <div className="flex items-center justify-between pb-1 border-b border-ink-800">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1.5 rounded-lg bg-coral-500/15 text-coral-400 border border-coral-500/30">
+                      <FolderArchive className="w-3.5 h-3.5" />
                     </span>
+                    <span className="text-xs font-bold text-white tracking-wide">
+                      Descarga Multiplataforma (macOS & Windows)
+                    </span>
+                    {group.universalResource?.version && (
+                      <span className="text-[10px] font-mono font-bold text-coral-400 bg-coral-500/10 px-1.5 py-0.5 rounded border border-coral-500/20">
+                        v{group.universalResource.version}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] font-semibold text-coral-300 bg-coral-500/10 px-2.5 py-0.5 rounded-full border border-coral-500/20 uppercase tracking-wider">
+                    Universal
+                  </span>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                    <Link2 className="w-3 h-3 text-coral-400" /> Enlace de Descarga (Google Drive / Directo)
+                  </label>
+                  <Input
+                    name="download_url"
+                    value={universalDownloadUrl}
+                    onChange={(e) => setUniversalDownloadUrl(e.target.value)}
+                    type="url"
+                    required
+                    className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 font-mono text-xs"
+                    placeholder="https://drive.google.com/file/d/..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Versión</label>
+                    <Input
+                      name="version"
+                      defaultValue={group.universalResource?.version || '1.0'}
+                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Tamaño</label>
+                    <Input
+                      name="file_size"
+                      defaultValue={group.universalResource?.file_size ? formatFileSize(group.universalResource.file_size) : ''}
+                      placeholder="1.15 GB"
+                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Archivo</label>
+                    <Input
+                      name="file_name"
+                      defaultValue={group.universalResource?.file_name || ''}
+                      placeholder="Vengeance_Pack.zip"
+                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* SECCIÓN MODO SOFTWARE / DAWS CON MAC & WIN */
+              <>
+                {/* Title Section for Platforms */}
+                <div className="flex items-center gap-1.5 pt-1">
+                  <Sparkles className="w-3.5 h-3.5 text-coral-400" />
+                  <span className="text-[11px] font-bold text-ink-200 uppercase tracking-wider">Versiones por Sistema Operativo</span>
+                </div>
+
+                {/* macOS Section */}
+                <div className={`p-4 rounded-2xl border transition-all ${
+                  macDelete 
+                    ? 'bg-rose-950/20 border-rose-900/40 opacity-60' 
+                    : 'bg-ink-900/80 border-ink-700/60'
+                } space-y-3`}>
+                  <div className="flex items-center justify-between pb-1 border-b border-ink-800">
+                    <div className="flex items-center gap-2">
+                      <span className="p-1 rounded-lg bg-white/10 text-white border border-white/20">
+                        <AppleLogo className="w-3.5 h-3.5" />
+                      </span>
+                      <span className="text-xs font-bold text-white tracking-wide">
+                        Versión Apple macOS
+                      </span>
+                      {group.macResource && (
+                        <span className="text-[10px] font-mono font-bold text-coral-400 bg-coral-500/10 px-1.5 py-0.5 rounded border border-coral-500/20">
+                          v{group.macResource.version || '1.0'}
+                        </span>
+                      )}
+                    </div>
+
+                    {group.macResource && (
+                      <button
+                        type="button"
+                        onClick={() => setMacDelete(!macDelete)}
+                        className="text-[10px] font-bold text-rose-400 hover:text-rose-300 cursor-pointer underline"
+                      >
+                        {macDelete ? 'Deshacer eliminación' : 'Eliminar versión Mac'}
+                      </button>
+                    )}
+                  </div>
+
+                  {!macDelete && (
+                    <>
+                      <div>
+                        <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                          <Link2 className="w-3 h-3 text-coral-400" /> Enlace de Descarga macOS (Drive / Directo)
+                        </label>
+                        <Input
+                          name="mac_download_url"
+                          value={macDownloadUrl}
+                          onChange={(e) => setMacDownloadUrl(e.target.value)}
+                          type="url"
+                          className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 font-mono text-xs"
+                          placeholder="https://drive.google.com/file/d/..."
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2.5">
+                        <div>
+                          <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Versión</label>
+                          <Input
+                            name="mac_version"
+                            defaultValue={group.macResource?.version || '26.1.4.5356'}
+                            className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Tamaño</label>
+                          <Input
+                            name="mac_file_size"
+                            defaultValue={group.macResource?.file_size ? formatFileSize(group.macResource.file_size) : ''}
+                            placeholder="1.15 GB"
+                            className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Archivo</label>
+                          <Input
+                            name="mac_file_name"
+                            defaultValue={group.macResource?.file_name || ''}
+                            placeholder="FL_Studio_macOS.dmg"
+                            className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
 
-                {group.macResource && (
-                  <button
-                    type="button"
-                    onClick={() => setMacDelete(!macDelete)}
-                    className="text-[10px] font-bold text-rose-400 hover:text-rose-300 cursor-pointer underline"
-                  >
-                    {macDelete ? 'Deshacer eliminación' : 'Eliminar versión Mac'}
-                  </button>
-                )}
-              </div>
+                {/* Windows Section */}
+                <div className={`p-4 rounded-2xl border transition-all ${
+                  winDelete 
+                    ? 'bg-rose-950/20 border-rose-900/40 opacity-60' 
+                    : 'bg-[#0078D4]/10 border-[#0078D4]/40'
+                } space-y-3`}>
+                  <div className="flex items-center justify-between pb-1 border-b border-[#0078D4]/30">
+                    <div className="flex items-center gap-2">
+                      <span className="p-1 rounded-lg bg-[#0078D4]/25 text-sky-200 border border-[#0078D4]/40">
+                        <WindowsLogo className="w-3.5 h-3.5 text-sky-300" />
+                      </span>
+                      <span className="text-xs font-bold text-sky-100 tracking-wide">
+                        Versión Microsoft Windows
+                      </span>
+                      {group.winResource && (
+                        <span className="text-[10px] font-mono font-bold text-sky-300 bg-[#0078D4]/20 px-1.5 py-0.5 rounded border border-[#0078D4]/40">
+                          v{group.winResource.version || '1.0'}
+                        </span>
+                      )}
+                    </div>
 
-              {!macDelete && (
-                <>
-                  <div>
-                    <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
-                      <Link2 className="w-3 h-3 text-coral-400" /> Enlace de Descarga macOS (Drive / Directo)
-                    </label>
-                    <Input
-                      name="mac_download_url"
-                      value={macDownloadUrl}
-                      onChange={(e) => setMacDownloadUrl(e.target.value)}
-                      type="url"
-                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 font-mono text-xs"
-                      placeholder="https://drive.google.com/file/d/..."
-                    />
+                    {group.winResource && (
+                      <button
+                        type="button"
+                        onClick={() => setWinDelete(!winDelete)}
+                        className="text-[10px] font-bold text-rose-400 hover:text-rose-300 cursor-pointer underline"
+                      >
+                        {winDelete ? 'Deshacer eliminación' : 'Eliminar versión Windows'}
+                      </button>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2.5">
-                    <div>
-                      <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Versión</label>
-                      <Input
-                        name="mac_version"
-                        defaultValue={group.macResource?.version || '26.1.4.5356'}
-                        className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Tamaño</label>
-                      <Input
-                        name="mac_file_size"
-                        defaultValue={group.macResource?.file_size ? formatFileSize(group.macResource.file_size) : ''}
-                        placeholder="1.15 GB"
-                        className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Archivo</label>
-                      <Input
-                        name="mac_file_name"
-                        defaultValue={group.macResource?.file_name || ''}
-                        placeholder="FL_Studio_macOS.dmg"
-                        className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+                  {!winDelete && (
+                    <>
+                      <div>
+                        <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                          <Link2 className="w-3 h-3 text-sky-400" /> Enlace de Descarga Windows (Drive / Directo)
+                        </label>
+                        <Input
+                          name="win_download_url"
+                          value={winDownloadUrl}
+                          onChange={(e) => setWinDownloadUrl(e.target.value)}
+                          type="url"
+                          className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] font-mono text-xs"
+                          placeholder="https://drive.google.com/file/d/..."
+                        />
+                      </div>
 
-            {/* Windows Section */}
-            <div className={`p-4 rounded-2xl border transition-all ${
-              winDelete 
-                ? 'bg-rose-950/20 border-rose-900/40 opacity-60' 
-                : 'bg-[#0078D4]/10 border-[#0078D4]/40'
-            } space-y-3`}>
-              <div className="flex items-center justify-between pb-1 border-b border-[#0078D4]/30">
-                <div className="flex items-center gap-2">
-                  <span className="p-1 rounded-lg bg-[#0078D4]/25 text-sky-200 border border-[#0078D4]/40">
-                    <WindowsLogo className="w-3.5 h-3.5 text-sky-300" />
-                  </span>
-                  <span className="text-xs font-bold text-sky-100 tracking-wide">
-                    Versión Microsoft Windows
-                  </span>
-                  {group.winResource && (
-                    <span className="text-[10px] font-mono font-bold text-sky-300 bg-[#0078D4]/20 px-1.5 py-0.5 rounded border border-[#0078D4]/40">
-                      v{group.winResource.version || '1.0'}
-                    </span>
+                      <div className="grid grid-cols-3 gap-2.5">
+                        <div>
+                          <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Versión</label>
+                          <Input
+                            name="win_version"
+                            defaultValue={group.winResource?.version || '26.1.4.5589'}
+                            className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Tamaño</label>
+                          <Input
+                            name="win_file_size"
+                            defaultValue={group.winResource?.file_size ? formatFileSize(group.winResource.file_size) : ''}
+                            placeholder="1.04 GB"
+                            className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Archivo</label>
+                          <Input
+                            name="win_file_name"
+                            defaultValue={group.winResource?.file_name || ''}
+                            placeholder="FL_Studio_WIN.zip"
+                            className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
-
-                {group.winResource && (
-                  <button
-                    type="button"
-                    onClick={() => setWinDelete(!winDelete)}
-                    className="text-[10px] font-bold text-rose-400 hover:text-rose-300 cursor-pointer underline"
-                  >
-                    {winDelete ? 'Deshacer eliminación' : 'Eliminar versión Windows'}
-                  </button>
-                )}
-              </div>
-
-              {!winDelete && (
-                <>
-                  <div>
-                    <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
-                      <Link2 className="w-3 h-3 text-sky-400" /> Enlace de Descarga Windows (Drive / Directo)
-                    </label>
-                    <Input
-                      name="win_download_url"
-                      value={winDownloadUrl}
-                      onChange={(e) => setWinDownloadUrl(e.target.value)}
-                      type="url"
-                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] font-mono text-xs"
-                      placeholder="https://drive.google.com/file/d/..."
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2.5">
-                    <div>
-                      <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Versión</label>
-                      <Input
-                        name="win_version"
-                        defaultValue={group.winResource?.version || '26.1.4.5589'}
-                        className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Tamaño</label>
-                      <Input
-                        name="win_file_size"
-                        defaultValue={group.winResource?.file_size ? formatFileSize(group.winResource.file_size) : ''}
-                        placeholder="1.04 GB"
-                        className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Archivo</label>
-                      <Input
-                        name="win_file_name"
-                        defaultValue={group.winResource?.file_name || ''}
-                        placeholder="FL_Studio_WIN.zip"
-                        className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+              </>
+            )}
           </div>
 
           <DialogFooter className="mt-5 flex items-center justify-between sm:justify-between w-full gap-2">
@@ -384,7 +485,7 @@ export function InlineEditResourceModal({
               ) : (
                 <Trash2 className="w-3.5 h-3.5" />
               )}
-              <span>Eliminar DAW</span>
+              <span>{isUniversal ? 'Eliminar Recurso' : 'Eliminar DAW'}</span>
             </Button>
 
             <div className="flex items-center gap-2">

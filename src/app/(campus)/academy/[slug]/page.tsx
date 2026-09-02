@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireUser } from '@/server/auth/guards'
 import { CategoryResourcesClient } from './CategoryResourcesClient'
 import type { ResourceItem } from './CategoryResourcesClient'
+import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,17 +35,19 @@ export default async function CategoryResourcesPage({
     .eq('slug', slug)
     .single()
 
+  if (!category) {
+    notFound()
+  }
+
   let resources: ResourceItem[] = []
 
-  if (category) {
-    const { data } = await supabase
-      .from('resources')
-      .select('id, title, description, software, file_name, file_size, is_restricted, is_published, thumbnail_url, version, tags, storage_path, storage_provider')
-      .eq('category_id', category.id)
-      .order('created_at', { ascending: false })
+  const { data } = await supabase
+    .from('resources')
+    .select('id, title, description, software, file_name, file_size, is_restricted, is_published, thumbnail_url, version, tags, storage_path, storage_provider')
+    .eq('category_id', category.id)
+    .order('created_at', { ascending: false })
 
-    resources = (data ?? []) as ResourceItem[]
-  }
+  resources = (data ?? []) as ResourceItem[]
 
   const isPlugins = slug === 'plugins'
 
@@ -72,7 +75,7 @@ export default async function CategoryResourcesPage({
       initialResources={resources}
       isAdmin={showAdminUI}
       softwareSlot={softwareSlot}
-      categoryMeta={category ? {
+      categoryMeta={{
         id: category.id,
         slug: slug,
         name: category.name,
@@ -82,7 +85,7 @@ export default async function CategoryResourcesPage({
         accent_color: category.accent_color ?? 'coral',
         blurb: category.blurb,
         description: category.description,
-      } : undefined}
+      }}
     />
   )
 }

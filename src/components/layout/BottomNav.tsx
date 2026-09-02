@@ -17,8 +17,6 @@ import {
   Users,
   Sliders,
   FolderDown,
-  ChevronDown,
-  Layers,
   Package,
   AudioLines,
   Folder,
@@ -30,12 +28,6 @@ import {
   Flame,
   type LucideIcon,
 } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import {
   Sheet,
   SheetContent,
@@ -87,6 +79,47 @@ function getCategoryIcon(slug: string, iconName?: string | null): LucideIcon {
   return Package
 }
 
+interface BottomNavItemProps {
+  pathname: string
+  href?: string
+  icon: LucideIcon
+  label: string
+  onClick?: () => void
+}
+
+function BottomNavItem({ pathname, href, icon: Icon, label, onClick }: BottomNavItemProps) {
+  const isActive = href
+    ? pathname === href || pathname.startsWith(`${href}/`)
+    : false
+
+  const className = `relative inline-flex min-h-11 items-center gap-1.5 rounded-full px-2.5 text-xs transition-[background-color,border-color,color] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950 sm:px-3 ${
+    isActive
+      ? 'border border-coral-500/30 bg-coral-500/15 font-bold text-coral-300'
+      : 'border border-transparent font-medium text-ink-200 hover:bg-ink-800 hover:text-ink-50'
+  }`
+
+  const content = (
+    <>
+      <Icon className="size-4 shrink-0" strokeWidth={isActive ? 2.3 : 1.8} />
+      <span>{label}</span>
+    </>
+  )
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={className} aria-label={label}>
+        {content}
+      </button>
+    )
+  }
+
+  return (
+    <Link href={href ?? '/academy'} className={className} aria-current={isActive ? 'page' : undefined}>
+      {content}
+    </Link>
+  )
+}
+
 export function BottomNav({
   isAdmin = false,
   currentViewMode = 'student',
@@ -100,155 +133,39 @@ export function BottomNav({
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const NavItem = ({
-    href,
-    icon: Icon,
-    label,
-    onClick,
-  }: {
-    href?: string
-    icon: any
-    label: string
-    onClick?: () => void
-  }) => {
-    const isActive = href
-      ? pathname === href || (pathname.startsWith(href + '/') && href !== '/dashboard' && href !== '/academy')
-      : false
-
-    const content = (
-      <div
-        className={`relative flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200 ${
-          isActive
-            ? 'bg-coral-500/15 text-coral-400 font-bold shadow-[0_0_12px_rgba(255,98,19,0.15)] border border-coral-500/30'
-            : 'text-ink-300 hover:text-ink-100 hover:bg-ink-800/60 font-medium'
-        }`}
-      >
-        <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-coral-400' : ''}`} strokeWidth={isActive ? 2.3 : 1.8} />
-        <span className="text-xs tracking-tight">{label}</span>
-        {isActive && (
-          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-coral-500 shadow-[0_0_6px_#ff6213]" />
-        )}
-      </div>
-    )
-
-    if (onClick) {
-      return (
-        <button onClick={onClick} className="outline-none flex-shrink-0 group">
-          {content}
-        </button>
-      )
-    }
-
-    return (
-      <Link href={href || '#'} className="outline-none flex-shrink-0 group">
-        {content}
-      </Link>
-    )
-  }
-
-  // Si hay <= 2 categorías publicadas, se muestran directamente como pills
-  // Si hay > 2, se muestran las 2 primeras + un popover/dropdown elegante con el resto
-  const directCategories = publishedCategories.slice(0, 2)
-  const extraCategories = publishedCategories.slice(2)
-  const isAnyExtraCategoryActive = extraCategories.some(cat => pathname.startsWith(`/academy/${cat.slug}`))
-
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 max-w-[95vw] w-auto">
-      <nav className="bg-ink-950/85 backdrop-blur-2xl border border-ink-800/80 shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_25px_rgba(255,98,19,0.06)] rounded-full p-1.5 flex items-center gap-1 sm:gap-1.5 overflow-x-auto custom-scrollbar">
-        {/* Links principales */}
-        <NavItem href={isAdmin && currentViewMode === 'admin' ? '/dashboard' : '/academy'} icon={Home} label="Inicio" />
-        <NavItem
+    <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-1rem)] max-w-max -translate-x-1/2">
+      <nav aria-label="Navegación principal" className="flex items-center justify-center gap-0.5 rounded-full border border-ink-800 bg-ink-950 p-1.5 shadow-[var(--shadow-pop)]">
+        {isAdmin && currentViewMode === 'admin' && (
+          <BottomNavItem pathname={pathname} href="/dashboard" icon={Home} label="Inicio" />
+        )}
+        <BottomNavItem pathname={pathname} href="/academy" icon={BookOpen} label="Academia" />
+        <BottomNavItem
+          pathname={pathname}
           icon={Search}
           label="Buscar"
           onClick={() => document.dispatchEvent(new CustomEvent('open-command-menu'))}
         />
 
-        {/* Categorías Publicadas Dinámicas */}
-        {directCategories.map((cat) => {
-          const Icon = getCategoryIcon(cat.slug, cat.icon)
-          return (
-            <NavItem
-              key={cat.id}
-              href={`/academy/${cat.slug}`}
-              icon={Icon}
-              label={cat.name}
-            />
-          )
-        })}
-
-        {/* Dropdown elegante para categorías adicionales */}
-        {extraCategories.length > 0 && (
-          <DropdownMenu>
-            <DropdownMenuTrigger className="outline-none flex-shrink-0">
-              <div
-                className={`relative flex items-center gap-1.5 px-3 py-2 rounded-full transition-all duration-200 cursor-pointer ${
-                  isAnyExtraCategoryActive
-                    ? 'bg-coral-500/15 text-coral-400 font-bold shadow-[0_0_12px_rgba(255,98,19,0.15)] border border-coral-500/30'
-                    : 'text-ink-300 hover:text-ink-100 hover:bg-ink-800/60 font-medium'
-                }`}
-              >
-                <Layers className="w-4 h-4 shrink-0" strokeWidth={1.8} />
-                <span className="text-xs tracking-tight">Categorías</span>
-                <ChevronDown className="w-3 h-3 text-ink-400 ml-0.5" />
-                {isAnyExtraCategoryActive && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-coral-500 shadow-[0_0_6px_#ff6213]" />
-                )}
-              </div>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent
-              align="center"
-              sideOffset={12}
-              className="min-w-56 rounded-2xl border-ink-800/80 bg-ink-950/95 backdrop-blur-2xl text-ink-100 shadow-[0_16px_50px_rgba(0,0,0,0.8)] p-2 space-y-1"
-            >
-              <div className="px-2.5 py-1 text-[10px] font-bold text-coral-400 uppercase tracking-wider border-b border-ink-800/60 mb-1">
-                Más Categorías
-              </div>
-              {extraCategories.map((cat) => {
-                const Icon = getCategoryIcon(cat.slug, cat.icon)
-                const isCatActive = pathname === `/academy/${cat.slug}`
-                return (
-                  <DropdownMenuItem
-                    key={cat.id}
-                    render={<Link href={`/academy/${cat.slug}`} />}
-                    className={`rounded-xl cursor-pointer flex items-center gap-2.5 px-3 py-2 transition-all ${
-                      isCatActive
-                        ? 'bg-coral-500/20 text-coral-300 font-bold'
-                        : 'hover:bg-ink-900 focus:bg-ink-900 text-ink-200 hover:text-white'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 text-coral-400" />
-                    <span className="text-xs font-semibold">{cat.name}</span>
-                  </DropdownMenuItem>
-                )
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-
-        <NavItem href="/favorites" icon={Heart} label="Favoritos" />
+        <BottomNavItem pathname={pathname} href="/favorites" icon={Heart} label="Favoritos" />
 
         <div className="h-6 w-[1px] bg-ink-800/80 mx-1 shrink-0" />
 
         {/* Menú Drawer Adicional */}
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-          <SheetTrigger className="outline-none flex-shrink-0">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200 text-ink-300 hover:text-white hover:bg-ink-800/60 font-medium cursor-pointer">
-              <Menu className="w-4 h-4 shrink-0" strokeWidth={1.8} />
-              <span className="text-xs tracking-tight">Menú</span>
-            </div>
+          <SheetTrigger className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-transparent px-2.5 text-xs font-medium text-ink-200 transition-[background-color,border-color,color] duration-200 hover:bg-ink-800 hover:text-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950 sm:px-3">
+            <Menu className="size-4 shrink-0" strokeWidth={1.8} />
+            <span>Menú</span>
           </SheetTrigger>
 
           <SheetContent
             side="bottom"
-            className="h-[85vh] md:h-[75vh] max-w-lg mx-auto rounded-t-[2.5rem] p-6 bg-ink-950/95 backdrop-blur-3xl flex flex-col gap-6 shadow-[0_-20px_80px_rgba(0,0,0,0.8)] border-t border-ink-800/80 text-ink-100"
+            className="h-[85vh] md:h-[75vh] max-w-lg mx-auto rounded-t-[2.5rem] p-6 bg-ink-950 flex flex-col gap-6 shadow-[0_-20px_80px_rgba(0,0,0,0.8)] border-t border-ink-800/80 text-ink-100"
           >
             <SheetHeader className="text-left border-b border-ink-800/70 pb-4">
               <SheetTitle className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-coral-600 to-coral-400 p-0.5 shadow-lg shadow-coral-500/20">
-                  <div className="w-full h-full bg-ink-950 rounded-[14px] flex items-center justify-center">
-                    <Music2 className="w-6 h-6 text-coral-500" />
-                  </div>
+                <div className="w-12 h-12 rounded-2xl border border-coral-500/30 bg-coral-500/10 flex items-center justify-center">
+                  <Music2 className="w-6 h-6 text-coral-400" />
                 </div>
                 <div>
                   <h3 className="font-display font-bold text-ink-50 text-xl tracking-tight">
@@ -438,4 +355,3 @@ export function BottomNav({
     </div>
   )
 }
-

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Loader2, Link2, FileText, HardDrive, Cpu, Tag, ImageIcon, Sparkles } from 'lucide-react'
+import { Plus, Loader2, Link2, FileText, FolderArchive, Cpu, ImageIcon, Sparkles } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -16,12 +16,20 @@ import { Button } from "@/components/ui/button"
 import { createUnifiedResourceAction } from '@/app/actions/resources'
 import { AppleLogo, WindowsLogo } from '@/components/icons/PlatformLogos'
 
+const isUniversalCategory = (slug?: string) => {
+  if (!slug) return false
+  const s = slug.toLowerCase().trim()
+  return ['samples', 'presets', 'plantillas', 'templates', 'librerias', 'loops'].includes(s)
+}
+
 export function InlineCreateResourceModal({
   categoryId,
   categoryName,
+  categorySlug,
 }: {
   categoryId: string
   categoryName: string
+  categorySlug?: string
 }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -29,11 +37,16 @@ export function InlineCreateResourceModal({
   const [imgError, setImgError] = useState(false)
   const [activeTab, setActiveTab] = useState<'both' | 'macos' | 'windows'>('both')
 
+  const isUniversal = isUniversalCategory(categorySlug)
+
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     const formData = new FormData(e.currentTarget)
     formData.append('category_id', categoryId)
+    if (isUniversal) {
+      formData.append('mode', 'universal')
+    }
     const res = await createUnifiedResourceAction(formData)
     setLoading(false)
     if (res.success) {
@@ -53,13 +66,19 @@ export function InlineCreateResourceModal({
 
       <DialogContent className="sm:max-w-[560px] bg-ink-950 text-ink-100 rounded-[var(--radius)] p-6 border border-ink-800 shadow-2xl">
         <form onSubmit={handleCreate}>
+          {isUniversal && <input type="hidden" name="mode" value="universal" />}
+
           <DialogHeader className="space-y-2 mb-4">
             <DialogTitle className="text-xl font-bold font-display text-ink-50 flex items-center gap-2">
               <Plus className="w-5 h-5 text-coral-400" />
               Nuevo Recurso en {categoryName}
             </DialogTitle>
             <DialogDescription className="text-xs font-medium text-ink-400">
-              Carga el DAW o material una sola vez con soporte para macOS, Windows o ambos.
+              {isUniversal
+                ? (categorySlug?.toLowerCase() === 'samples'
+                    ? 'Sube el sample pack con descarga directa e independiente de sistema operativo o DAW.'
+                    : 'Carga el material o recurso con enlace directo independiente de sistema operativo.')
+                : 'Carga el DAW o material una sola vez con soporte para macOS, Windows o ambos.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -74,19 +93,19 @@ export function InlineCreateResourceModal({
                   name="title"
                   required
                   className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-sm font-semibold"
-                  placeholder="Ej. FL Studio 26 / Ableton Live 12 Suite"
+                  placeholder={isUniversal ? "Ej. Vengeance Essential Clubsound Vol. 1" : "Ej. FL Studio 26 / Ableton Live 12 Suite"}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
-                    <Cpu className="w-3.5 h-3.5 text-coral-400" /> Software / DAW
+                    <Cpu className="w-3.5 h-3.5 text-coral-400" /> {isUniversal ? 'Fabricante / Formato' : 'Software / DAW'}
                   </label>
                   <Input
                     name="software"
                     className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs"
-                    placeholder="Ej. FL Studio / Ableton"
+                    placeholder={isUniversal ? "Ej. Vengeance / WAV" : "Ej. FL Studio / Ableton"}
                   />
                 </div>
 
@@ -132,68 +151,31 @@ export function InlineCreateResourceModal({
               </div>
             </div>
 
-            {/* Platform Selector Tabs */}
-            <div className="flex items-center justify-between pt-1">
-              <span className="text-[11px] font-bold text-ink-200 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-coral-400" /> Instaladores Disponibles
-              </span>
-              <div className="flex items-center gap-1 bg-ink-900/90 p-1 rounded-xl border border-ink-800 text-xs font-semibold">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('both')}
-                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                    activeTab === 'both' ? 'bg-coral-500 text-white font-bold' : 'text-ink-400 hover:text-white'
-                  }`}
-                >
-                  Ambos
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('macos')}
-                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
-                    activeTab === 'macos' ? 'bg-coral-500 text-white font-bold' : 'text-ink-400 hover:text-white'
-                  }`}
-                >
-                  <AppleLogo className="w-3 h-3" />
-                  <span>Mac</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('windows')}
-                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
-                    activeTab === 'windows' ? 'bg-coral-500 text-white font-bold' : 'text-ink-400 hover:text-white'
-                  }`}
-                >
-                  <WindowsLogo className="w-3 h-3" />
-                  <span>Win</span>
-                </button>
-              </div>
-            </div>
-
-            {/* macOS Installer Section */}
-            {(activeTab === 'both' || activeTab === 'macos') && (
+            {/* SECCIÓN DE DESCARGA: MODO UNIVERSAL (SAMPLES, PRESETS, ETC.) */}
+            {isUniversal ? (
               <div className="p-4 rounded-2xl bg-ink-900/80 border border-ink-700/60 space-y-3 relative overflow-hidden">
                 <div className="flex items-center justify-between pb-1 border-b border-ink-800">
                   <div className="flex items-center gap-2">
-                    <span className="p-1 rounded-lg bg-white/10 text-white border border-white/20">
-                      <AppleLogo className="w-3.5 h-3.5" />
+                    <span className="p-1.5 rounded-lg bg-coral-500/15 text-coral-400 border border-coral-500/30">
+                      <FolderArchive className="w-3.5 h-3.5" />
                     </span>
                     <span className="text-xs font-bold text-white tracking-wide">
-                      Versión Apple macOS
+                      {categorySlug?.toLowerCase() === 'samples' ? 'Paquete de Samples' : 'Archivo de Descarga'}
                     </span>
                   </div>
-                  <span className="text-[10px] font-semibold text-ink-400 uppercase tracking-wider">
-                    {activeTab === 'both' ? 'Opcional si solo hay Windows' : 'Plataforma macOS'}
+                  <span className="text-[10px] font-semibold text-coral-300 bg-coral-500/10 px-2.5 py-0.5 rounded-full border border-coral-500/20 uppercase tracking-wider">
+                    Multiplataforma (macOS & Windows)
                   </span>
                 </div>
 
                 <div>
                   <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
-                    <Link2 className="w-3 h-3 text-coral-400" /> Enlace de Google Drive / Descarga macOS
+                    <Link2 className="w-3 h-3 text-coral-400" /> Enlace de Google Drive / Descarga Directa
                   </label>
                   <Input
-                    name="mac_download_url"
+                    name="download_url"
                     type="url"
+                    required
                     className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 font-mono text-xs"
                     placeholder="https://drive.google.com/file/d/..."
                   />
@@ -201,17 +183,17 @@ export function InlineCreateResourceModal({
 
                 <div className="grid grid-cols-3 gap-2.5">
                   <div>
-                    <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Versión Mac</label>
+                    <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Versión / Edición</label>
                     <Input
-                      name="mac_version"
-                      defaultValue="26.1.4.5356"
+                      name="version"
+                      defaultValue="1.0"
                       className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
                     />
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Tamaño (ej. 1.15 GB)</label>
                     <Input
-                      name="mac_file_size"
+                      name="file_size"
                       placeholder="1.15 GB"
                       className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
                     />
@@ -219,71 +201,170 @@ export function InlineCreateResourceModal({
                   <div>
                     <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Archivo</label>
                     <Input
-                      name="mac_file_name"
-                      placeholder="FL_Studio_macOS.dmg"
+                      name="file_name"
+                      placeholder={categorySlug?.toLowerCase() === 'samples' ? 'Vengeance_Pack.zip' : 'Material.zip'}
                       className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
                     />
                   </div>
                 </div>
               </div>
-            )}
-
-            {/* Windows Installer Section */}
-            {(activeTab === 'both' || activeTab === 'windows') && (
-              <div className="p-4 rounded-2xl bg-[#0078D4]/10 border border-[#0078D4]/40 space-y-3 relative overflow-hidden">
-                <div className="flex items-center justify-between pb-1 border-b border-[#0078D4]/30">
-                  <div className="flex items-center gap-2">
-                    <span className="p-1 rounded-lg bg-[#0078D4]/25 text-sky-200 border border-[#0078D4]/40">
-                      <WindowsLogo className="w-3.5 h-3.5 text-sky-300" />
-                    </span>
-                    <span className="text-xs font-bold text-sky-100 tracking-wide">
-                      Versión Microsoft Windows
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-semibold text-sky-300/70 uppercase tracking-wider">
-                    {activeTab === 'both' ? 'Opcional si solo hay Mac' : 'Plataforma Windows'}
+            ) : (
+              /* SECCIÓN DE INSTALADORES: MODO SOFTWARE / DAWS (MAC & WIN) */
+              <>
+                {/* Platform Selector Tabs */}
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[11px] font-bold text-ink-200 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-coral-400" /> Instaladores Disponibles
                   </span>
+                  <div className="flex items-center gap-1 bg-ink-900/90 p-1 rounded-xl border border-ink-800 text-xs font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('both')}
+                      className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                        activeTab === 'both' ? 'bg-coral-500 text-white font-bold' : 'text-ink-400 hover:text-white'
+                      }`}
+                    >
+                      Ambos
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('macos')}
+                      className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                        activeTab === 'macos' ? 'bg-coral-500 text-white font-bold' : 'text-ink-400 hover:text-white'
+                      }`}
+                    >
+                      <AppleLogo className="w-3 h-3" />
+                      <span>Mac</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('windows')}
+                      className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                        activeTab === 'windows' ? 'bg-coral-500 text-white font-bold' : 'text-ink-400 hover:text-white'
+                      }`}
+                    >
+                      <WindowsLogo className="w-3 h-3" />
+                      <span>Win</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
-                    <Link2 className="w-3 h-3 text-sky-400" /> Enlace de Google Drive / Descarga Windows
-                  </label>
-                  <Input
-                    name="win_download_url"
-                    type="url"
-                    className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] font-mono text-xs"
-                    placeholder="https://drive.google.com/file/d/..."
-                  />
-                </div>
+                {/* macOS Installer Section */}
+                {(activeTab === 'both' || activeTab === 'macos') && (
+                  <div className="p-4 rounded-2xl bg-ink-900/80 border border-ink-700/60 space-y-3 relative overflow-hidden">
+                    <div className="flex items-center justify-between pb-1 border-b border-ink-800">
+                      <div className="flex items-center gap-2">
+                        <span className="p-1 rounded-lg bg-white/10 text-white border border-white/20">
+                          <AppleLogo className="w-3.5 h-3.5" />
+                        </span>
+                        <span className="text-xs font-bold text-white tracking-wide">
+                          Versión Apple macOS
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-semibold text-ink-400 uppercase tracking-wider">
+                        {activeTab === 'both' ? 'Opcional si solo hay Windows' : 'Plataforma macOS'}
+                      </span>
+                    </div>
 
-                <div className="grid grid-cols-3 gap-2.5">
-                  <div>
-                    <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Versión Win</label>
-                    <Input
-                      name="win_version"
-                      defaultValue="26.1.4.5589"
-                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
-                    />
+                    <div>
+                      <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                        <Link2 className="w-3 h-3 text-coral-400" /> Enlace de Google Drive / Descarga macOS
+                      </label>
+                      <Input
+                        name="mac_download_url"
+                        type="url"
+                        className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 font-mono text-xs"
+                        placeholder="https://drive.google.com/file/d/..."
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2.5">
+                      <div>
+                        <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Versión Mac</label>
+                        <Input
+                          name="mac_version"
+                          defaultValue="26.1.4.5356"
+                          className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Tamaño (ej. 1.15 GB)</label>
+                        <Input
+                          name="mac_file_size"
+                          placeholder="1.15 GB"
+                          className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Archivo</label>
+                        <Input
+                          name="mac_file_name"
+                          placeholder="FL_Studio_macOS.dmg"
+                          className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Tamaño (ej. 1.04 GB)</label>
-                    <Input
-                      name="win_file_size"
-                      placeholder="1.04 GB"
-                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
-                    />
+                )}
+
+                {/* Windows Installer Section */}
+                {(activeTab === 'both' || activeTab === 'windows') && (
+                  <div className="p-4 rounded-2xl bg-[#0078D4]/10 border border-[#0078D4]/40 space-y-3 relative overflow-hidden">
+                    <div className="flex items-center justify-between pb-1 border-b border-[#0078D4]/30">
+                      <div className="flex items-center gap-2">
+                        <span className="p-1 rounded-lg bg-[#0078D4]/25 text-sky-200 border border-[#0078D4]/40">
+                          <WindowsLogo className="w-3.5 h-3.5 text-sky-300" />
+                        </span>
+                        <span className="text-xs font-bold text-sky-100 tracking-wide">
+                          Versión Microsoft Windows
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-semibold text-sky-300/70 uppercase tracking-wider">
+                        {activeTab === 'both' ? 'Opcional si solo hay Mac' : 'Plataforma Windows'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                        <Link2 className="w-3 h-3 text-sky-400" /> Enlace de Google Drive / Descarga Windows
+                      </label>
+                      <Input
+                        name="win_download_url"
+                        type="url"
+                        className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] font-mono text-xs"
+                        placeholder="https://drive.google.com/file/d/..."
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2.5">
+                      <div>
+                        <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Versión Win</label>
+                        <Input
+                          name="win_version"
+                          defaultValue="26.1.4.5589"
+                          className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Tamaño (ej. 1.04 GB)</label>
+                        <Input
+                          name="win_file_size"
+                          placeholder="1.04 GB"
+                          className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Archivo</label>
+                        <Input
+                          name="win_file_name"
+                          placeholder="FL_Studio_WIN.zip"
+                          className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Archivo</label>
-                    <Input
-                      name="win_file_name"
-                      placeholder="FL_Studio_WIN.zip"
-                      className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-[#0078D4] text-xs font-mono"
-                    />
-                  </div>
-                </div>
-              </div>
+                )}
+              </>
             )}
           </div>
 

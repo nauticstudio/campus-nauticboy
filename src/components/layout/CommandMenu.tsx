@@ -16,6 +16,17 @@ import {
   GraduationCap, Settings, Home, FolderDown
 } from 'lucide-react'
 
+type CourseResult = { id: string; title: string; description: string | null; href: string }
+type ResourceResult = { id: string; title: string; categorySlug: string | null; href: string }
+type SoftwareResult = { id: string; name: string; description: string | null; href: string }
+type SearchResults = {
+  courses: CourseResult[]
+  resources: ResourceResult[]
+  software: SoftwareResult[]
+}
+
+const EMPTY_RESULTS: SearchResults = { courses: [], resources: [], software: [] }
+
 // Custom debounce hook
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value)
@@ -59,11 +70,9 @@ export function CommandMenu() {
   const debouncedSearch = useDebounce(searchQuery, 300)
   
   const [loading, setLoading] = useState(false)
-  const [results, setResults] = useState<{
-    courses: any[];
-    resources: any[];
-    software: any[];
-  }>({ courses: [], resources: [], software: [] })
+  const [results, setResults] = useState<SearchResults>(EMPTY_RESULTS)
+  const [searchError, setSearchError] = useState(false)
+  const [resolvedQuery, setResolvedQuery] = useState('')
   const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([])
 
   const router = useRouter()
@@ -86,29 +95,38 @@ export function CommandMenu() {
     }
   }, [])
 
-  // Fetch results when debounced search changes
+  const queryIsEligible = searchQuery.trim().length >= 2
+  const searchIsReady = debouncedSearch.trim().length >= 2
+
+  // Cada búsqueda cancela la anterior: evita que una respuesta lenta pise la query actual.
   useEffect(() => {
-    if (!debouncedSearch || debouncedSearch.length < 2) {
-      setResults({ courses: [], resources: [], software: [] })
-      setLoading(false)
-      return
-    }
+    if (!searchIsReady) return
+
+    const controller = new AbortController()
 
     const fetchResults = async () => {
       setLoading(true)
+      setSearchError(false)
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(debouncedSearch)}`)
-        const data = await res.json()
-        setResults(data)
-      } catch (error) {
-        console.error('Error searching:', error)
+        const res = await fetch(`/api/search?q=${encodeURIComponent(debouncedSearch)}`, {
+          signal: controller.signal,
+        })
+        if (!res.ok) throw new Error('Search request failed')
+        const data = await res.json() as SearchResults
+        if (!controller.signal.aborted) {
+          setResults(data)
+          setResolvedQuery(debouncedSearch)
+        }
+      } catch {
+        if (!controller.signal.aborted) setSearchError(true)
       } finally {
-        setLoading(false)
+        if (!controller.signal.aborted) setLoading(false)
       }
     }
 
-    fetchResults()
-  }, [debouncedSearch])
+    void fetchResults()
+    return () => controller.abort()
+  }, [debouncedSearch, searchIsReady])
 
   // Recientes: leídos frescos en cada APERTURA vía event handler (no en un
   // effect). localStorage tiene guardia de window → SSR seguro.
@@ -140,7 +158,8 @@ export function CommandMenu() {
   }, [router])
 
   const hasResults = results.courses.length > 0 || results.resources.length > 0 || results.software.length > 0
-  const isSearching = searchQuery.length > 1
+  const hasFreshResults = searchIsReady && debouncedSearch === searchQuery.trim() && resolvedQuery === debouncedSearch && hasResults
+  const isPendingSearch = queryIsEligible && (loading || debouncedSearch !== searchQuery.trim())
 
   return (
     <CommandDialog
@@ -156,26 +175,23 @@ export function CommandMenu() {
         onValueChange={setSearchQuery}
       />
       <CommandList>
-        {/* vacío controlado: solo si estás buscando y no hay resultados o hay loader.
-            Sin query se muestran Recientes / Ir a / Categorías. */}
+        {/* Con una query corta, no filtramos los accesos rápidos hasta que el usuario pueda buscar. */}
         <CommandEmpty>
-          {loading ? (
+          {!queryIsEligible ? (
+            'Escribe al menos 2 caracteres para buscar.'
+          ) : isPendingSearch ? (
             <div className="flex items-center justify-center py-6 text-sm text-ink-400 gap-2">
               <Loader2 className="w-4 h-4 animate-spin" /> Buscando…
             </div>
+          ) : searchError ? (
+            'No se pudo completar la búsqueda. Intenta nuevamente.'
           ) : (
             'Sin resultados para tu búsqueda.'
           )}
         </CommandEmpty>
 
-        {loading && hasResults && (
-          <div className="absolute top-12 right-4 text-primary">
-            <Loader2 className="w-4 h-4 animate-spin" />
-          </div>
-        )}
-
         {/* Estado SIN búsqueda: Recientes + Quick Links → sensación de software profesional */}
-        {!isSearching && (
+        {!queryIsEligible && (
           <>
             {recents.length > 0 && (
               <CommandGroup heading="Recientes">
@@ -216,12 +232,12 @@ export function CommandMenu() {
         )}
 
         {/* Resultados de búsqueda */}
-        {results.courses.length > 0 && (
+        {hasFreshResults && results.courses.length > 0 && (
           <CommandGroup heading="Cursos">
             {results.courses.map(course => (
               <CommandItem
                 key={course.id}
-                onSelect={() => goAndRemember({ id: course.id, title: course.title, kind: 'course', href: `/courses/${course.slug}` })}
+                onSelect={() => goAndRemember({ id: course.id, title: course.title, kind: 'course', href: course.href })}
               >
                 <BookOpen className="mr-2 h-4 w-4 text-coral-300" />
                 <div className="flex flex-col">
@@ -233,37 +249,37 @@ export function CommandMenu() {
           </CommandGroup>
         )}
 
-        {results.courses.length > 0 && (results.resources.length > 0 || results.software.length > 0) && (
+        {hasFreshResults && results.courses.length > 0 && (results.resources.length > 0 || results.software.length > 0) && (
           <CommandSeparator />
         )}
 
-        {results.resources.length > 0 && (
+        {hasFreshResults && results.resources.length > 0 && (
           <CommandGroup heading="Academia & Recursos">
             {results.resources.map(resource => (
               <CommandItem
                 key={resource.id}
-                onSelect={() => goAndRemember({ id: resource.id, title: resource.title, kind: 'resource', href: `/academy/${resource.categorySlug}/${resource.slug}` })}
+                onSelect={() => goAndRemember({ id: resource.id, title: resource.title, kind: 'resource', href: resource.href })}
               >
                 <Library className="mr-2 h-4 w-4 text-ink-300" />
                 <div className="flex flex-col">
                   <span>{resource.title}</span>
-                  <span className="text-[10px] text-ink-400 uppercase">{resource.categorySlug}</span>
+                  {resource.categorySlug && <span className="text-[10px] text-ink-400 uppercase">{resource.categorySlug}</span>}
                 </div>
               </CommandItem>
             ))}
           </CommandGroup>
         )}
 
-        {results.resources.length > 0 && results.software.length > 0 && (
+        {hasFreshResults && results.resources.length > 0 && results.software.length > 0 && (
           <CommandSeparator />
         )}
 
-        {results.software.length > 0 && (
+        {hasFreshResults && results.software.length > 0 && (
           <CommandGroup heading="Software & Plugins">
             {results.software.map(soft => (
               <CommandItem
                 key={soft.id}
-                onSelect={() => goAndRemember({ id: soft.id, title: soft.name, kind: 'software', href: `/software/${soft.slug}` })}
+                onSelect={() => goAndRemember({ id: soft.id, title: soft.name, kind: 'software', href: soft.href })}
               >
                 <Cpu className="mr-2 h-4 w-4 text-ink-300" />
                 <div className="flex flex-col">

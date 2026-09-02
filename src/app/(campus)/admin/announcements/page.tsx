@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { Megaphone, Plus, Shield, Trash2, Package } from 'lucide-react'
+import { Shield, Package } from 'lucide-react'
 import { formatDate } from '@/lib/date'
 
 export default async function AdminAnnouncementsPage() {
@@ -13,44 +13,35 @@ export default async function AdminAnnouncementsPage() {
   return (
     <div className="p-6 md:p-10 lg:p-12 space-y-8 max-w-7xl mx-auto">
       
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
         <div>
           <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest mb-1">
             <Shield className="w-3.5 h-3.5" /> Panel de Administración
           </div>
-          <h1 className="font-display text-3xl font-semibold text-ink-900 tracking-editorial">Gestión de Novedades & Anuncios</h1>
+          <h1 className="font-display text-3xl font-semibold text-ink-50 tracking-editorial">Novedades & Anuncios</h1>
+          <p className="mt-2 text-sm font-medium text-ink-300">Consulta las comunicaciones publicadas en el campus.</p>
         </div>
-
-        <button 
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary text-white font-bold text-xs shadow-md hover:bg-primary/95 hover:scale-105 active:scale-95 transition-all duration-200"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Publicar Anuncio</span>
-        </button>
       </div>
 
       {(!announcements || announcements.length === 0) ? (
         <div className="glass-card rounded-[var(--radius)] p-12 text-center space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-coral-100 text-primary flex items-center justify-center mx-auto">
+          <div className="w-12 h-12 rounded-2xl bg-coral-500/10 text-coral-300 flex items-center justify-center mx-auto">
             <Package className="w-6 h-6" />
           </div>
-          <h3 className="font-display text-lg font-semibold text-ink-900">No hay novedades registradas</h3>
-          <p className="text-xs font-semibold text-ink-500 max-w-sm mx-auto">
-            Publica anuncios oficiales para informarle a tus estudiantes sobre actualizaciones.
+          <h3 className="font-display text-lg font-semibold text-ink-50">No hay novedades registradas</h3>
+          <p className="text-xs font-semibold text-ink-300 max-w-sm mx-auto">
+            Las comunicaciones publicadas para los alumnos aparecerán en esta lista.
           </p>
         </div>
       ) : (
         <div className="space-y-4">
           {announcements.map(ann => (
-            <div key={ann.id} className="glass-card glass-card-hover rounded-[var(--radius)] p-6 flex items-center justify-between">
+            <article key={ann.id} className="glass-card rounded-[var(--radius)] p-6">
               <div className="space-y-1">
-                <h3 className="font-extrabold text-ink-900 text-base">{ann.title}</h3>
+                <h3 className="font-extrabold text-ink-50 text-base">{ann.title}</h3>
                 <span className="text-xs font-medium text-ink-400">Publicado el {formatDate(ann.created_at)}</span>
               </div>
-              <button className="p-2 rounded-xl text-ink-400 hover:text-rose-600 hover:bg-rose-50 transition-colors">
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
+            </article>
           ))}
         </div>
       )}

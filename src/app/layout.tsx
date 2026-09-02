@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Toaster } from "sonner";
 import { fontSans, fontDisplay, fontMono } from "@/lib/fonts";
 import "./globals.css";
@@ -6,6 +6,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Nautic Campus — Academia de Producción Musical",
   description: "Campus virtual de producción musical premium de Nautic Boy Academy",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#050b14",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({

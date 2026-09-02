@@ -33,18 +33,23 @@ export default async function CourseDetailPage({
   }
 
   // Fetch modules for this course
-  const { data: dbModules } = await supabase
+  let modulesQuery = supabase
     .from('modules')
     .select('id, title, description, sort_order, is_published')
     .eq('course_id', course.id)
     .order('sort_order', { ascending: true })
+
+  if (!showAdminUI) {
+    modulesQuery = modulesQuery.eq('is_published', true)
+  }
+
+  const { data: dbModules } = await modulesQuery
 
   const modules = (dbModules || []).map(m => ({
     id: m.id,
     title: m.title,
     description: m.description || '',
     resources: [],
-    completed: false,
     is_published: m.is_published
   }))
 

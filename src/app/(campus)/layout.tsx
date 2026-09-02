@@ -98,10 +98,14 @@ export default async function CampusLayout({
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground relative overflow-x-hidden">
 
-      {/* Luz ambiental NAUTIC v3 */}
-      <div className="fixed -top-40 -left-40 w-96 h-96 bg-coral-500/8 rounded-full blur-3xl pointer-events-none z-0 animate-pulse-subtle" />
-      <div className="fixed top-1/3 -right-40 w-[30rem] h-[30rem] bg-ink-800/20 rounded-full blur-3xl pointer-events-none z-0" />
       <div className="grain-overlay fixed inset-0 z-0" />
+
+      <a
+        href="#main-content"
+        className="sr-only fixed left-4 top-4 z-[80] rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground focus:not-sr-only"
+      >
+        Saltar al contenido
+      </a>
 
       {/* Navegación flotante unificada en la parte inferior */}
       <BottomNav {...sidebarProps} />
@@ -111,7 +115,7 @@ export default async function CampusLayout({
         <TopBar userName={userName} userEmail={userEmail} isAdmin={isAdmin} currentViewMode={currentViewMode} />
 
         {/* Main Content Area */}
-        <main className="flex-1 w-full relative pb-28 md:pb-32 flex flex-col">
+        <main id="main-content" className="flex-1 w-full relative pb-28 md:pb-32 flex flex-col" tabIndex={-1}>
           <PageTransition>
             {children}
           </PageTransition>

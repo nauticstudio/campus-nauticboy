@@ -14,6 +14,18 @@ type ResourceRow = {
   categories: { slug: string } | null
 }
 
+type SoftwareRow = {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  manufacturer: { slug: string } | { slug: string }[] | null
+}
+
+function relationItem<T>(relation: T | T[] | null): T | null {
+  return Array.isArray(relation) ? relation[0] ?? null : relation
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const q = searchParams.get('q')?.trim() ?? ''
@@ -46,7 +58,7 @@ export async function GET(request: Request) {
 
     supabase
       .from('software_products')
-      .select('id, name, slug, description')
+      .select('id, name, slug, description, manufacturer:software_manufacturers(slug)')
       .eq('is_published', true)
       .or(`name.ilike.${searchTerm},description.ilike.${searchTerm}`)
       .limit(5)
@@ -58,12 +70,28 @@ export async function GET(request: Request) {
     id: r.id,
     title: r.title,
     slug: r.slug,
-    categorySlug: r.categories?.slug ?? 'general'
+    categorySlug: r.categories?.slug ?? null,
+    href: r.categories?.slug ? `/academy/${r.categories.slug}` : '/academy',
   }))
 
+  const software = (softwareRes.data ?? []) as unknown as SoftwareRow[]
+  const mappedSoftware = software.map(item => {
+    const manufacturer = relationItem(item.manufacturer)
+
+    return {
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      href: manufacturer ? `/software/${manufacturer.slug}/${item.slug}` : '/academy',
+    }
+  })
+
   return NextResponse.json({
-    courses: coursesRes.data || [],
+    courses: (coursesRes.data ?? []).map(course => ({
+      ...course,
+      href: `/courses/${course.slug}`,
+    })),
     resources: mappedResources,
-    software: softwareRes.data || []
+    software: mappedSoftware,
   })
 }
