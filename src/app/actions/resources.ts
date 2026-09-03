@@ -3,6 +3,7 @@
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { checkAdmin } from '@/server/auth/guards'
+import { extractVolumeNumber } from '@/lib/utils/volume'
 
 const resourceIdSchema = z.string().uuid('Recurso no válido.')
 
@@ -54,7 +55,9 @@ export async function createUnifiedResourceAction(formData: FormData): Promise<R
     const mode = (formData.get('mode') as string)?.trim()
     const collectionId = (formData.get('collection_id') as string)?.trim() || null
     const downloadUrl = (formData.get('download_url') as string)?.trim()
-    const version = (formData.get('version') as string)?.trim() || '1.0'
+    const rawVersion = (formData.get('version') as string)?.trim()
+    const detectedVol = extractVolumeNumber(title)
+    const version = rawVersion || (detectedVol !== null ? String(detectedVol) : (mode === 'universal' ? '1' : '1.0'))
     const fileName = (formData.get('file_name') as string)?.trim() || `${title || 'archivo'}.zip`
     const fileSize = (formData.get('file_size') as string)?.trim()
 
@@ -215,7 +218,9 @@ export async function updateUnifiedResourceAction(formData: FormData): Promise<R
 
     const universalId = (formData.get('universal_id') as string)?.trim()
     const universalDownloadUrl = (formData.get('download_url') as string)?.trim()
-    const universalVersion = (formData.get('version') as string)?.trim() || '1.0'
+    const rawUniversalVersion = (formData.get('version') as string)?.trim()
+    const detectedVol = extractVolumeNumber(title)
+    const universalVersion = rawUniversalVersion || (detectedVol !== null ? String(detectedVol) : '1')
     const universalFileName = (formData.get('file_name') as string)?.trim()
     const universalFileSize = (formData.get('file_size') as string)?.trim()
     const universalDelete = formData.get('universal_delete') === 'true'

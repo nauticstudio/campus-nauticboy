@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Pencil, Loader2, Link2, FileText, FolderArchive, Cpu, Trash2, ImageIcon, Sparkles } from 'lucide-react'
+import { Pencil, Loader2, Link2, FileText, FolderArchive, Cpu, Trash2, ImageIcon, Sparkles, Hash } from 'lucide-react'
+import { extractVolumeNumber } from '@/lib/utils/volume'
 import {
   Dialog,
   DialogContent,
@@ -65,7 +66,13 @@ export function InlineEditResourceModal({
 
   const isUniversal = Boolean(group.universalResource) || isUniversalCategory(categorySlug)
 
-  // Universal State
+  // Universal State & Auto-detect Volume
+  const detectedVol = extractVolumeNumber(group.title) ?? extractVolumeNumber(group.universalResource?.file_name)
+  const initialVersion = (group.universalResource?.version === '1.0' && detectedVol !== null)
+    ? String(detectedVol)
+    : (group.universalResource?.version || (detectedVol !== null ? String(detectedVol) : '1'))
+  const [version, setVersion] = useState(initialVersion)
+
   const initialUniversalLink = group.universalResource?.storage_path
     ? group.universalResource.storage_path.startsWith('http')
       ? group.universalResource.storage_path
@@ -274,9 +281,9 @@ export function InlineEditResourceModal({
                     <span className="text-xs font-bold text-white tracking-wide">
                       Descarga Multiplataforma (macOS & Windows)
                     </span>
-                    {group.universalResource?.version && (
-                      <span className="text-[10px] font-mono font-bold text-coral-400 bg-coral-500/10 px-1.5 py-0.5 rounded border border-coral-500/20">
-                        v{group.universalResource.version}
+                    {version && (
+                      <span className="text-[10px] font-mono font-bold text-coral-300 bg-coral-500/15 px-2 py-0.5 rounded-full border border-coral-500/30">
+                        {extractVolumeNumber(version) !== null ? `VOL. ${extractVolumeNumber(version)}` : (version.startsWith('v') ? version : `v${version}`)}
                       </span>
                     )}
                   </div>
@@ -302,10 +309,26 @@ export function InlineEditResourceModal({
 
                 <div className="grid grid-cols-3 gap-2.5">
                   <div>
-                    <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Versión</label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                        <Hash className="w-3 h-3 text-coral-400" /> VOL / Edición
+                      </label>
+                      {detectedVol !== null && (
+                        <button
+                          type="button"
+                          onClick={() => setVersion(String(detectedVol))}
+                          className="text-[9px] text-coral-400 hover:text-coral-300 font-mono font-bold cursor-pointer underline"
+                          title="Aplicar volumen detectado del título"
+                        >
+                          ✨ Vol. {detectedVol}
+                        </button>
+                      )}
+                    </div>
                     <Input
                       name="version"
-                      defaultValue={group.universalResource?.version || '1.0'}
+                      value={version}
+                      onChange={(e) => setVersion(e.target.value)}
+                      placeholder="1"
                       className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
                     />
                   </div>

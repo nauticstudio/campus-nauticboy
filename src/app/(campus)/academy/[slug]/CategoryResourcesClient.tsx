@@ -18,6 +18,7 @@ import { InlineEditCollectionModal } from '@/components/admin/InlineEditCollecti
 import { CollectionCard, type CollectionCardData } from '@/components/campus/CollectionCard'
 import { formatFileSize } from '@/lib/utils'
 import { getCoverStyle } from '@/lib/utils/cover-style'
+import { getResourceBadgeInfo } from '@/lib/utils/volume'
 import { AppleLogo, WindowsLogo } from '@/components/icons/PlatformLogos'
 
 export interface ResourceItem {
@@ -478,6 +479,13 @@ export function CategoryResourcesClient({
                 const winItem = group.winResource
                 const uniItem = group.universalResource
 
+                const badgeInfo = getResourceBadgeInfo({
+                  version: macItem?.version || winItem?.version || uniItem?.version,
+                  title: group.title,
+                  fileName: macItem?.file_name || winItem?.file_name || uniItem?.file_name,
+                  isUniversal: Boolean(uniItem) || (!macItem && !winItem),
+                })
+
                 return (
                   <div
                     key={group.groupKey}
@@ -491,10 +499,16 @@ export function CategoryResourcesClient({
                         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-coral-500/15 text-coral-300 border border-coral-500/30">
                           {group.software || 'General'}
                         </span>
-                        {(macItem?.version || winItem?.version || uniItem?.version) && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-ink-900/90 text-ink-300 border border-ink-800 shadow-sm">
-                            v{macItem?.version || winItem?.version || uniItem?.version}
-                          </span>
+                        {badgeInfo.label && (
+                          badgeInfo.isVolume ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black tracking-wider bg-coral-500 text-white border border-coral-400/80 shadow-sm">
+                              {badgeInfo.label}
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-ink-900/90 text-ink-300 border border-ink-800 shadow-sm">
+                              {badgeInfo.label}
+                            </span>
+                          )
                         )}
                       </div>
 
@@ -524,7 +538,10 @@ export function CategoryResourcesClient({
                         )}
                       </div>
 
-                      <h3 className="font-bold text-base sm:text-lg text-ink-50 group-hover:text-coral-400 transition-colors tracking-tight font-display text-center truncate w-full mt-2.5">
+                      <h3
+                        title={group.title}
+                        className="font-bold text-base text-ink-50 group-hover:text-coral-400 transition-colors tracking-tight font-display text-center line-clamp-2 w-full mt-2.5 min-h-[2.75rem] flex items-center justify-center leading-snug px-1"
+                      >
                         {group.title}
                       </h3>
                       <p className="text-[11px] text-ink-400 text-center line-clamp-1 max-w-[90%] mx-auto mt-0.5">

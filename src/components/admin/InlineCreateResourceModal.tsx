@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Loader2, Link2, FileText, Folder, FolderArchive, Cpu, ImageIcon, Sparkles } from 'lucide-react'
+import { Plus, Loader2, Link2, FileText, Folder, FolderArchive, Cpu, ImageIcon, Sparkles, Hash } from 'lucide-react'
+import { extractVolumeNumber } from '@/lib/utils/volume'
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,39 @@ export function InlineCreateResourceModal({
   const [activeTab, setActiveTab] = useState<'both' | 'macos' | 'windows'>('both')
 
   const isUniversal = isUniversalCategory(categorySlug)
+
+  // Estados dinámicos para auto-completado de Volumen / Versión
+  const [title, setTitle] = useState('')
+  const [version, setVersion] = useState(isUniversal ? '1' : '1.0')
+  const [userEditedVersion, setUserEditedVersion] = useState(false)
+  const [detectedVol, setDetectedVol] = useState<number | null>(null)
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setTitle(val)
+    if (isUniversal) {
+      const vol = extractVolumeNumber(val)
+      setDetectedVol(vol)
+      if (!userEditedVersion) {
+        if (vol !== null) {
+          setVersion(String(vol))
+        } else if (!version || version === '1.0') {
+          setVersion('1')
+        }
+      }
+    }
+  }
+
+  const handleFileNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    if (isUniversal && !userEditedVersion && detectedVol === null) {
+      const vol = extractVolumeNumber(val)
+      if (vol !== null) {
+        setDetectedVol(vol)
+        setVersion(String(vol))
+      }
+    }
+  }
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -119,6 +153,8 @@ export function InlineCreateResourceModal({
                 </label>
                 <Input
                   name="title"
+                  value={title}
+                  onChange={handleTitleChange}
                   required
                   className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-sm font-semibold"
                   placeholder={isUniversal ? (collectionName ? `Ej. ${collectionName} Essential Pack Vol. 1` : "Ej. Vengeance Essential Clubsound Vol. 1") : "Ej. FL Studio 26 / Ableton Live 12 Suite"}
@@ -232,10 +268,24 @@ export function InlineCreateResourceModal({
 
                 <div className="grid grid-cols-3 gap-2.5">
                   <div>
-                    <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Versión / Edición</label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider flex items-center gap-1">
+                        <Hash className="w-3 h-3 text-coral-400" /> VOL / Edición
+                      </label>
+                      {detectedVol !== null && (
+                        <span className="text-[9px] text-coral-400 font-mono font-bold">
+                          ✨ Vol. {detectedVol}
+                        </span>
+                      )}
+                    </div>
                     <Input
                       name="version"
-                      defaultValue="1.0"
+                      value={version}
+                      onChange={(e) => {
+                        setVersion(e.target.value)
+                        setUserEditedVersion(true)
+                      }}
+                      placeholder="1"
                       className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
                     />
                   </div>
@@ -251,6 +301,7 @@ export function InlineCreateResourceModal({
                     <label className="text-[10px] font-bold text-ink-300 uppercase tracking-wider">Archivo</label>
                     <Input
                       name="file_name"
+                      onChange={handleFileNameChange}
                       placeholder={categorySlug?.toLowerCase() === 'samples' ? 'Vengeance_Pack.zip' : 'Material.zip'}
                       className="rounded-xl mt-1 bg-ink-950 border-ink-800 text-ink-100 focus:border-coral-500 text-xs font-mono"
                     />
